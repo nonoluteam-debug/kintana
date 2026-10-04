@@ -1191,7 +1191,7 @@ bot.on("callback_query", async (query) => {
     let html = "";
     let replyMarkup = {};
 
-    else if (query.data === "owner_menu") {
+        if (query.data === "owner_menu") {
       html = `<tg-slideshow>
   <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/dit3soj0.jpg"/>
   <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/hm8tyz69.jpg"/>
