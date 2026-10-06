@@ -1388,7 +1388,7 @@ bot.on("callback_query", async (query) => {
 
       replyMarkup = {
         inline_keyboard: [
-          [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "5316977664848837418" }],
+          [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "6258110956245619517" }],
           [{ text: "kintana menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "5999312225741835904" }],
           [{ text: "thanks to", callback_data: "thanks_to", style: "primary", icon_custom_emoji_id: "5316731584697613423" }],
           [{ text: "channel", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }],
