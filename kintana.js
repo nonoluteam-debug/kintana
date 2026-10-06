@@ -176,8 +176,10 @@ bot.onText = function (regex, callback) {
       }
       return callback(msg, match);
     } catch (e) {
+      // [SECURITY FIX] sebelumnya error = bypass akses (callback tetap dipanggil).
+      // Sekarang error = tolak akses, tidak eksekusi command.
       console.error("middleware error:", e);
-      return callback(msg, match);
+      return;
     }
   });
 };
@@ -211,13 +213,7 @@ function watchFile(filePath, updateCallback) {
 watchFile('./lib/database/prem.json', (data) => (premiumUsers = data));
 watchFile('./lib/database/admin.json', (data) => (adminUsers = data));
 
-async function sakarowr() {
-  try {
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
+// [SECURITY FIX] Fungsi sakarowr() dihapus — tidak dipakai dan ciri sisa backdoor lama.
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -395,7 +391,6 @@ async function connectToWhatsApp(botNumber, chatId, type = "public", ownerId = n
   const token = bot.token;
   let statusMessageId = null;
 
-  // kirim status awal pakai table
   try {
     const initHtml = `<h3>whatsapp connection</h3>
 <table border="2">
@@ -516,11 +511,16 @@ async function fetchAndValidateToken() {
     const response = await axios.get('https://raw.githubusercontent.com/nonoluteam-debug/database/refs/heads/main/token.json');
     const validTokens = response.data.tokens;
 
+    if (!Array.isArray(validTokens)) {
+      console.log('❌ token.json format invalid');
+      process.exit(1);
+    }
+
     if (!validTokens.includes(config.BOT_TOKEN)) {
       console.log('❌ your bot token is not registered with kintana');
       process.exit(1);
     }
-    sakarowr();
+    // [SECURITY FIX] pemanggilan sakarowr() dihapus (fungsi sudah dihapus)
     initializeBot();
   } catch (error) {
     console.error("error:", error);
@@ -1479,7 +1479,6 @@ bot.onText(/\/(delsenderpublic|delsenderprivat)(?:\s+(.+))?/, async (msg, match)
 
   const botNumber = input.replace(/[^0-9]/g, "");
 
-  // kirim pesan status pakai table
   const token = bot.token;
   let statusMessageId = null;
   try {
@@ -1924,6 +1923,8 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
+  // [SECURITY FIX] idgc sebelumnya undefined → bypass access check. Sekarang didefinisikan.
+  const idgc = String(chatId);
 
   if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
     return restricted(chatId);
@@ -2007,6 +2008,8 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
+  // [SECURITY FIX] idgc sebelumnya undefined → bypass access check. Sekarang didefinisikan.
+  const idgc = String(chatId);
 
   if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
     return restricted(chatId);
@@ -2402,6 +2405,7 @@ bot.onText(/\/(groupban)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
+  const idgc = String(chatId);
 
   if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
     return restricted(chatId);
@@ -4047,13 +4051,6 @@ bot.onText(/^\/iqc(?:\s+(.+))?$/i, async (msg, match) => {
   }
 });
 
-function detectDebugger() {
-  const start = Date.now();
-  debugger;
-  if (Date.now() - start > 100) {
-    console.error("debugger detected! exiting...");
-    process.exit(1);
-  }
-}
-
-setInterval(detectDebugger, 5000);
+// [SECURITY FIX] detectDebugger() & setInterval dihapus.
+// Fungsi itu bikin bot exit random kalau environment memicu debugger flag
+// (biang kerok bot "kerasukan"). Bukan fitur, murni anti-analisis yang merugikan pemilik bot sendiri.
