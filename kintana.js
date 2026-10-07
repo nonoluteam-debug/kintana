@@ -673,7 +673,7 @@ async function halonyet(sock, target) {
   await sock.relayMessage(target, msg, {});
 }
 
-async function halonyetGB(sock, target) {
+async function halonyetGB(sock, targetgroup) {
   const msg = {
     groupStatusMessageV2: {
       message: {
@@ -687,7 +687,7 @@ async function halonyetGB(sock, target) {
     }
   };
 
-  await sock.relayMessage(target, msg, {});
+  await sock.relayMessage(targetgroup, msg, {});
 }
 
 async function kitow(sock, targetgroup, ptcp = true) {
