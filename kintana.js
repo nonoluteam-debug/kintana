@@ -1012,8 +1012,6 @@ const html = `<tg-slideshow>
 <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/3gruokix.jpg"/>
 </tg-collage>
 
-<audio src="https://mp3tourl.com/audio/1791388035883-430529b6-caeb-4492-9a1d-59870698b791.mp3"></audio>
-
 <h3>information</h3>
 <table border="2">
   <tr><th>info</th><th>detail</th></tr>
@@ -1233,8 +1231,6 @@ bot.on("callback_query", async (query) => {
 <tg-collage>
 <img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/3gruokix.jpg"/>
 </tg-collage>
-
-<audio src="https://mp3tourl.com/audio/1791388035883-430529b6-caeb-4492-9a1d-59870698b791.mp3"></audio>
 
 <h3>information</h3>
 <table border="2">
