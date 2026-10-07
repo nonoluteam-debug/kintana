@@ -937,8 +937,8 @@ function getkintanaMenu() {
 <h3>android bug (os)</h3>
 <table border="2">
 <tr><th>command</th><th>description</th></tr>
-<tr><td><code>/delayhard</code></td><td>force close crash</td></tr>
-<tr><td><code>/crashmeow</code></td><td>force close crash hard</td></tr>
+<tr><td><code>/delayhard</code></td><td>delayy hard crash</td></tr>
+<tr><td><code>/crashmeow</code></td><td>crash whatsapp hard</td></tr>
 <tr><td><code>/blankclick</code></td><td>crash click chat</td></tr>
 <tr><td><code>/frezehard</code></td><td>freeze chat x delay</td></tr>
 </table>
