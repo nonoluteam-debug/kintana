@@ -3,17 +3,85 @@ const TelegramBot = require("node-telegram-bot-api");
 const {
     default: makeWASocket,
     useMultiFileAuthState,
+    downloadContentFromMessage,
+    emitGroupParticipantsUpdate,
+    emitGroupUpdate,
+    generateWAMessageContent,
+    generateWAMessage,
+    makeInMemoryStore,
     prepareWAMessageMedia,
     generateWAMessageFromContent,
+    MediaType,
+    generateMessageTag,
+    generateRandomMessageId,
+    areJidsSameUser,
+    WAMessageStatus,
+    downloadAndSaveMediaMessage,
+    AuthenticationState,
+    GroupMetadata,
+    initInMemoryKeyStore,
+    getContentType,
+    MiscMessageGenerationOptions,
+    useSingleFileAuthState,
+    BufferJSON,
+    WAMessageProto,
+    MessageOptions,
+    WAFlag,
+    WANode,
+    WAMetric,
+    ChatModification,
+    MessageTypeProto,
+    WALocationMessage,
+    ReconnectMode,
+    WAContextInfo,
     proto,
+    WAGroupMetadata,
+    ProxyAgent,
+    waChatKey,
+    MimetypeMap,
+    MediaPathMap,
+    WAContactMessage,
+    WAContactsArrayMessage,
+    WAGroupInviteMessage,
+    WATextMessage,
+    WAMessageContent,
+    WAMessage,
+    BaileysError,
+    WA_MESSAGE_STATUS_TYPE,
+    MediaConnInfo,
+    URL_REGEX,
+    WAUrlInfo,
+    WA_DEFAULT_EPHEMERAL,
+    WAMediaUpload,
+    jidDecode,
+    mentionedJid,
+    processTime,
+    Browser,
+    MessageType,
+    Presence,
+    WA_MESSAGE_STUB_TYPES,
+    Mimetype,
+    relayWAMessage,
+    Browsers,
+    GroupSettingChange,
     DisconnectReason,
+    WASocket,
+    getStream,
+    WAProto,
+    isBaileys,
+    AnyMessageContent,
+    fetchLatestBaileysVersion,
+    templateMessage,
+    InteractiveMessage,
+    Header,
 } = require('@whiskeysockets/baileys');
 const axios = require('axios');
 const fs = require("fs");
+const readline = require('readline');
 const P = require("pino");
+const crypto = require("crypto");
 const path = require("path");
 const FormData = require('form-data');
-
 const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
 
 // ================= RICH MESSAGE HELPERS =================
@@ -45,6 +113,10 @@ async function editRichMenu(chatId, messageId, html, replyMarkup) {
     try { await bot.deleteMessage(chatId, messageId); } catch (_) {}
     await sendRichMenu(chatId, html, replyMarkup);
   }
+}
+
+  function lower(text) {
+  return String(text || "").toLowerCase();
 }
 // ================= END RICH MESSAGE HELPERS =================
 
@@ -104,6 +176,8 @@ bot.onText = function (regex, callback) {
       }
       return callback(msg, match);
     } catch (e) {
+      // [SECURITY FIX] sebelumnya error = bypass akses (callback tetap dipanggil).
+      // Sekarang error = tolak akses, tidak eksekusi command.
       console.error("middleware error:", e);
       return;
     }
@@ -139,6 +213,8 @@ function watchFile(filePath, updateCallback) {
 watchFile('./lib/database/prem.json', (data) => (premiumUsers = data));
 watchFile('./lib/database/admin.json', (data) => (adminUsers = data));
 
+// [SECURITY FIX] Fungsi sakarowr() dihapus — tidak dipakai dan ciri sisa backdoor lama.
+
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 let murbugGC = []
@@ -159,6 +235,7 @@ function savePremiumUsers() {
 function saveAdminUsers() {
     fs.writeFileSync('./lib/database/admin.json', JSON.stringify(adminUsers, null, 2));
 };
+const RECONNECT_INTERVAL = 60000;
 
 async function restricted(chatid) {
     const html = `<h3>restricted</h3>
@@ -818,7 +895,10 @@ function getPremiumStatus(userId) {
   return isPremium ? "premium" : "no access";
 }
 
-// ============ kintana MENU BUILDER ============
+let senderPublicEnabled = true;
+let senderPrivateEnabled = true;
+
+// ============ kintana MENU BUILDER (tanpa foto) ============
 function getkintanaMenu() {
   let activePublic = 0;
   let activePrivate = 0;
@@ -970,7 +1050,7 @@ bot.on("callback_query", async (query) => {
     let html = "";
     let replyMarkup = {};
 
-    if (query.data === "owner_menu") {
+        if (query.data === "owner_menu") {
       html = `<tg-slideshow>
   <img src="https://files.catbox.moe/w7amv8.jpg"/>
   <img src="https://files.catbox.moe/12084c.jpg"/>
@@ -1081,7 +1161,6 @@ bot.on("callback_query", async (query) => {
 <tr><td><code>/play</code></td><td>search youtube music</td></tr>
 <tr><td><code>/jadihitam</code></td><td>change skin to black</td></tr>
 <tr><td><code>/jadianime</code></td><td>change photo to anime</td></tr>
-<tr><td><code>/stalkff</code></td><td>stalk free fire account</td></tr>
 <tr><td><code>/iqc</code></td><td>iphone quotes whatsapp</td></tr>
 </table>`;
 
@@ -1187,7 +1266,6 @@ bot.on("callback_query", async (query) => {
   }
 });
 
-// ============ SENDER MANAGEMENT ============
 bot.onText(/\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const command = match[1];
@@ -1344,7 +1422,7 @@ ${rowsHtml}
   }
 });
 
-// ============ DELAY / JEDA ============
+// ============================================
 const JEDA_PATH = path.join(__dirname, 'pause.json');
 
 function loadConfig() {
@@ -1505,7 +1583,7 @@ bot.onText(/\/resetjeda/, async (msg) => {
   );
 });
 
-// ============ BUG SUCCESS HELPER ============
+// helper bug success
 async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId = null) {
   const html = `<h3>bug has been sent</h3>
 <table border="2">
@@ -1529,7 +1607,6 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
   await sendRichMenu(chatId, html, replyMarkup, replyToMsgId);
 }
 
-// ============ BUG COMMANDS ============
 bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
@@ -1712,6 +1789,7 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
+  // [SECURITY FIX] idgc sebelumnya undefined → bypass access check. Sekarang didefinisikan.
   const idgc = String(chatId);
 
   if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
@@ -1801,6 +1879,7 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
+  // [SECURITY FIX] idgc sebelumnya undefined → bypass access check. Sekarang didefinisikan.
   const idgc = String(chatId);
 
   if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
@@ -2355,7 +2434,7 @@ bot.onText(/\/(groupban)(?:\s+(.+))?/, async (msg, match) => {
   })();
 });
 
-// ============ COMMAND /blockcmd ============
+//============= COMMAND /blockcmd =============//
 bot.onText(/^\/blockcmd(?:\s+(on|off))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -2505,7 +2584,6 @@ bot.onText(/\/modemurbuggb(?:\s+(on|off))?/, async (msg, match) => {
   }
 });
 
-// ============ PREMIUM / ADMIN MANAGEMENT ============
 bot.onText(/\/addprem(?:\s(.+))?/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
@@ -2766,7 +2844,6 @@ ${rowsHtml}
     );
 });
 
-// ============ INFO & SENDER LIST ============
 bot.onText(/^\/info(\s|$)/i, async (msg) => {
   const user = msg.from;
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
@@ -3189,81 +3266,10 @@ bot.onText(/^\/jadianime$/i, async (msg) => {
     }
 });
 
-bot.onText(/^\/(stalkff|epep|ff)(?:\s+(.+))?$/i, async (msg, match) => {
-    const chatId = msg.chat.id;
-    const uid = match[2] ? match[2].trim() : "";
+function toSmallCaps(text) {
+    return text;
+}
 
-    if (!uid) {
-        return sendRichMenu(chatId,
-            `<h3>missing uid</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>example</td><td>/stalkff 2400235763</td></tr>
-</table>`,
-            null,
-            msg.message_id
-        );
-    }
-
-    const waitMsg = await bot.sendMessage(chatId, `<blockquote>checking free fire account...</blockquote>`, {
-        parse_mode: "HTML",
-        reply_to_message_id: msg.message_id
-    });
-
-    try {
-        await bot.sendChatAction(chatId, "upload_photo");
-
-        const apiUrl = `https://api.ikyyxd.my.id/stalk/epepid?uid=${encodeURIComponent(uid)}`;
-        const { data } = await axios.get(apiUrl, { timeout: 15000 });
-
-        if (!data || !data.status || !data.data) {
-            return bot.editMessageText(`<blockquote>data not found.</blockquote>`, {
-                chat_id: chatId, message_id: waitMsg.message_id, parse_mode: "HTML"
-            });
-        }
-
-        const res = data.data;
-        const nickname = res.name || "-";
-        const idAcc = res.uid || uid;
-        const level = res.level || "-";
-        const region = res.region || "-";
-        const likes = res.Likes || "-";
-        const brRankPoint = res.br_rank_point || "-";
-        const csRankPoint = res.cs_rank_point || "-";
-        const guildName = res.guild_name || "-";
-
-        await bot.deleteMessage(chatId, waitMsg.message_id).catch(() => {});
-
-        await sendRichMenu(chatId,
-            `<h3>free fire stalk</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>nickname</td><td>${nickname}</td></tr>
-<tr><td>uid</td><td>${idAcc}</td></tr>
-<tr><td>level</td><td>${level}</td></tr>
-<tr><td>region</td><td>${region}</td></tr>
-<tr><td>likes</td><td>${likes}</td></tr>
-<tr><td>br point</td><td>${brRankPoint}</td></tr>
-<tr><td>cs point</td><td>${csRankPoint}</td></tr>
-<tr><td>guild</td><td>${guildName}</td></tr>
-</table>`,
-            {
-              inline_keyboard: [
-                [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
-              ]
-            },
-            msg.message_id
-        );
-
-    } catch (error) {
-        console.error("error /stalkff command:", error.message);
-        await bot.editMessageText(`<blockquote>failed to retrieve data.</blockquote>`, {
-            chat_id: chatId, message_id: waitMsg.message_id, parse_mode: "HTML"
-        }).catch(() => {});
-    }
-});
-
-// ============ CEKFUNC ============
 function escapeHtml(str) {
     return String(str)
         .replace(/&/g, '&amp;')
@@ -3681,6 +3687,7 @@ async function sendPin(bot, chatId, key) {
     );
   }
 
+  const replyOpt = { reply_to_message_id: data.replyTo, parse_mode: 'HTML' };
   const start = data.index;
   const end = start + 10;
   const slice = data.results.slice(start, end);
