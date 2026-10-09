@@ -1009,7 +1009,7 @@ const html = `<tg-slideshow>
 <p>i am a whatsapp bug script kintana version 7.0.0, created by heysaka.</p>
 
 <tg-song>
-  <audio controls preload="none" src="https://files.catbox.moe/1zshn1.mp3"></audio>
+  <audio controls preload="none" src="https://mp3tourl.com/audio/1791570807413-0fee70d1-28d3-4523-8bcc-4e56625245dc.mp3"></audio>
   <footer style="font-size:12px; color:#888; margin-top:6px;">
     © 2026 — Kintana Bot
   </footer>
@@ -1233,7 +1233,7 @@ bot.on("callback_query", async (query) => {
 <p>i am a whatsapp bug script kintana version 7.0.0, created by heysaka.</p>
 
 <tg-song>
-  <audio controls preload="none" src="https://files.catbox.moe/1zshn1.mp3"></audio>
+  <audio controls preload="none" src="https://mp3tourl.com/audio/1791570807413-0fee70d1-28d3-4523-8bcc-4e56625245dc.mp3"></audio>
   <footer style="font-size:12px; color:#888; margin-top:6px;">
     © 2026 — Kintana Bot
   </footer>
