@@ -928,9 +928,9 @@ function getkintanaMenu() {
   const privateStatus = activePrivate > 0 ? "on" : "off";
 
   const html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+  <img src="https://files.catbox.moe/j654oy.jpg"/>
+  <img src="https://files.catbox.moe/sqyadj.jpg"/>
+  <img src="https://files.catbox.moe/mugu3q.jpg"/>
 </tg-slideshow>
 <p>this is where all whatsapp bug features are listed. please choose the feature you like.</p>
 
@@ -999,17 +999,24 @@ bot.onText(/\/start/, async (msg) => {
   const greeting = getGreeting();
 
 const html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+  <img src="https://files.catbox.moe/j654oy.jpg"/>
+  <img src="https://files.catbox.moe/sqyadj.jpg"/>
+  <img src="https://files.catbox.moe/mugu3q.jpg"/>
 </tg-slideshow>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
 <p>i am a whatsapp bug script kintana version 7.0.0, created by heysaka.</p>
 
+<tg-song>
+  <audio controls preload="none" src="https://files.catbox.moe/1zshn1.mp3"></audio>
+  <footer style="font-size:12px; color:#888; margin-top:6px;">
+    © 2026 — Kintana Bot
+  </footer>
+</tg-song>
+
 <tg-collage>
-<img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/3gruokix.jpg"/>
+  <img src="https://files.catbox.moe/5izqwp.jpg"/>
 </tg-collage>
 
 <h3>information</h3>
@@ -1052,9 +1059,9 @@ bot.on("callback_query", async (query) => {
 
         if (query.data === "owner_menu") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+  <img src="https://files.catbox.moe/j654oy.jpg"/>
+  <img src="https://files.catbox.moe/sqyadj.jpg"/>
+  <img src="https://files.catbox.moe/mugu3q.jpg"/>
 </tg-slideshow>
 
 <p>premium and admin access menu, please register to be able to use the bug.</p>
@@ -1102,9 +1109,9 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "bug_info") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+  <img src="https://files.catbox.moe/j654oy.jpg"/>
+  <img src="https://files.catbox.moe/sqyadj.jpg"/>
+  <img src="https://files.catbox.moe/mugu3q.jpg"/>
 </tg-slideshow>
 
 <p>before using the bug feature, you must read this first so you don't make a mistake using it.</p>
@@ -1136,9 +1143,9 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "all_menu") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+  <img src="https://files.catbox.moe/j654oy.jpg"/>
+  <img src="https://files.catbox.moe/sqyadj.jpg"/>
+  <img src="https://files.catbox.moe/mugu3q.jpg"/>
 </tg-slideshow>
 <p>all menu contains all the features available in this bot.</p>
 
@@ -1191,9 +1198,9 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "thanks_to") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+  <img src="https://files.catbox.moe/j654oy.jpg"/>
+  <img src="https://files.catbox.moe/sqyadj.jpg"/>
+  <img src="https://files.catbox.moe/mugu3q.jpg"/>
 </tg-slideshow>
 <table border="2">
 <tr><th>role</th><th>name</th></tr>
@@ -1216,17 +1223,24 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "back_to_main") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
+  <img src="https://files.catbox.moe/j654oy.jpg"/>
+  <img src="https://files.catbox.moe/sqyadj.jpg"/>
+  <img src="https://files.catbox.moe/mugu3q.jpg"/>
 </tg-slideshow>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
 <p>i am a whatsapp bug script kintana version 7.0.0, created by heysaka.</p>
 
+<tg-song>
+  <audio controls preload="none" src="https://files.catbox.moe/1zshn1.mp3"></audio>
+  <footer style="font-size:12px; color:#888; margin-top:6px;">
+    © 2026 — Kintana Bot
+  </footer>
+</tg-song>
+
 <tg-collage>
-<img src="https://ganga--link--ghhzdp9sv8hk.code.run/i/3gruokix.jpg"/>
+  <img src="https://files.catbox.moe/5izqwp.jpg"/>
 </tg-collage>
 
 <h3>information</h3>
@@ -1617,12 +1631,7 @@ bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
 
   if (!match[2]) {
     return sendRichMenu(chatId,
-      `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
-</tg-slideshow>
-<h3>missing target</h3>
+      `<h3>missing target</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>command</td><td>/${commandName}</td></tr>
@@ -1706,12 +1715,7 @@ bot.onText(/\/(crashmeow)(?:\s+(.+))?/, async (msg, match) => {
 
   if (!match[2]) {
     return sendRichMenu(chatId,
-      `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
-</tg-slideshow>
-<h3>missing target</h3>
+      `<h3>missing target</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>command</td><td>/${commandName}</td></tr>
@@ -1796,12 +1800,7 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
 
   if (!match[2]) {
     return sendRichMenu(chatId,
-      `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
-</tg-slideshow>
-<h3>missing target</h3>
+      `<h3>missing target</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>command</td><td>/${commandName}</td></tr>
@@ -1886,12 +1885,7 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
 
   if (!match[2]) {
     return sendRichMenu(chatId,
-      `<tg-slideshow>
-  <img src="https://files.catbox.moe/w7amv8.jpg"/>
-  <img src="https://files.catbox.moe/12084c.jpg"/>
-  <img src="https://files.catbox.moe/izj4nu.jpg"/>
-</tg-slideshow>
-<h3>missing target</h3>
+      `<h3>missing target</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>command</td><td>/${commandName}</td></tr>
@@ -2843,23 +2837,48 @@ ${rowsHtml}
 });
 
 bot.onText(/^\/info(\s|$)/i, async (msg) => {
-  const user = msg.from;
-  const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
-  const usernameText = user.username ? `@${user.username}` : "none";
-  const profileUrl = user.username ? `https://t.me/${user.username}` : `tg://openmessage?user_id=${user.id}`;
+  // Tentukan target: kalau reply pesan orang → pakai user yang di-reply
+  // Kalau enggak reply → pakai user yang ngirim command
+  const target = (msg.reply_to_message && msg.reply_to_message.from)
+    ? msg.reply_to_message.from
+    : msg.from;
 
-  await sendRichMenu(msg.chat.id,
-    `<h3>user info</h3>
+  const fullName = [target.first_name, target.last_name].filter(Boolean).join(" ") || "tanpa nama";
+  const usernameText = target.username ? `@${target.username}` : "none";
+  const profileUrl = target.username
+    ? `https://t.me/${target.username}`
+    : `tg://openmessage?user_id=${target.id}`;
+
+  // Cek role target
+  let roleText = "belum ada";
+  try {
+    const roles = await getUserRoles(target.id);
+    const list = [];
+    if (target.id.toString() === config.ownerId.toString()) list.push("bot owner");
+    if (roles.vip) list.push("owner kintana");
+    if (roles.partner) list.push("partner");
+    if (roles.reseller) list.push("reseller");
+    if (roles.freeupdate) list.push("free update");
+    if (roles.buyer) list.push("buyer");
+    if (list.length > 0) roleText = list.join(", ");
+  } catch (e) {}
+
+  const isReply = !!(msg.reply_to_message && msg.reply_to_message.from);
+
+  await sendRichMenu(
+    msg.chat.id,
+    `<h3>user info${isReply ? " (reply)" : ""}</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
-<tr><td>name</td><td>${fullName}</td></tr>
-<tr><td>username</td><td>${usernameText}</td></tr>
-<tr><td>id</td><td><code>${user.id}</code></td></tr>
+<tr><td>name</td><td>${escapeHtml(fullName)}</td></tr>
+<tr><td>username</td><td>${escapeHtml(usernameText)}</td></tr>
+<tr><td>id</td><td><code>${target.id}</code></td></tr>
+<tr><td>role</td><td>${roleText}</td></tr>
 </table>`,
     {
       inline_keyboard: [
         [{ text: "telegram profile", url: profileUrl, style: "primary", icon_custom_emoji_id: "5316887736823591263" }],
-        [{ text: "copy id", copy_text: { text: String(user.id) }, style: "success" }]
+        [{ text: "copy id", copy_text: { text: String(target.id) }, style: "success" }]
       ]
     },
     msg.message_id
