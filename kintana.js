@@ -652,7 +652,7 @@ async function delayhard(sock, target) {
       }
     }
   };
-  await sock.relayMessage(target, message, {});
+  await sock.relayMessage(target, message, { noselfsync: true });
 }
 
 async function halonyet(sock, target) {
@@ -669,7 +669,7 @@ async function halonyet(sock, target) {
     }
   };
 
-  await sock.relayMessage(target, msg, {});
+  await sock.relayMessage(target, msg, { noselfsync: true });
 }
 
 async function halonyetGB(sock, targetgroup) {
