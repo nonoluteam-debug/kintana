@@ -119,7 +119,7 @@ async function editRichMenu(chatId, messageId, html, replyMarkup) {
   return String(text || "").toLowerCase();
 }
 // ================= END RICH MESSAGE HELPERS =================
-
+  tiktoklink: "https://www.tiktok.com/@h3ysaka"
 //============== BLOCKCMD STATE ==============//
 const BLOCKCMD_PATH = "./lib/database/blockcmd.json";
 let blockCmdEnabled = false;
@@ -1006,7 +1006,7 @@ const html = `<tg-slideshow>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 7.0.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 7.2.0, created by heysaka.</p>
 
 <tg-collage>
   <img src="https://files.catbox.moe/5izqwp.jpg"/>
@@ -1023,7 +1023,8 @@ const html = `<tg-slideshow>
 <table border="2">
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
-  <tr><td>version</td><td>7.0.0</td></tr>
+  <tr><td>tiktok</td><td><a href="${config.tiktoklink}">klik disini</a></td></tr>
+  <tr><td>version</td><td>7.2.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
@@ -1214,7 +1215,7 @@ bot.on("callback_query", async (query) => {
       replyMarkup = {
         inline_keyboard: [
           [{ text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }],
-          [{ text: "instagram", url: "https://instagram.com/@sakaurbans", style: "primary", icon_custom_emoji_id: "5316553695742147732" }, { text: "youtube", url: "https://youtube.com/@gwsaka", style: "primary", icon_custom_emoji_id: "5316567469702264826" }],
+          [{ text: "instagram", url: "https://instagram.com/@sakaurbans", style: "primary", icon_custom_emoji_id: "5316553695742147732" }, { text: "youtube", url: "https://youtube.com/@sakaurbansoffc", style: "primary", icon_custom_emoji_id: "5316567469702264826" }],
           [{ text: "telegram", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5316823376738663082" }],
           [{ text: "back to menu", callback_data: "back_to_main", style: "primary", icon_custom_emoji_id: "5316692783963060623" }]
         ]
@@ -1230,7 +1231,7 @@ bot.on("callback_query", async (query) => {
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 7.0.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 7.2.0, created by heysaka.</p>
 
 <tg-collage>
   <img src="https://files.catbox.moe/5izqwp.jpg"/>
@@ -1247,7 +1248,8 @@ bot.on("callback_query", async (query) => {
 <table border="2">
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
-  <tr><td>version</td><td>7.0.0</td></tr>
+  <tr><td>tiktok</td><td><a href="${config.tiktoklink}">klik disini</a></td></tr>
+  <tr><td>version</td><td>7.2.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
@@ -1602,7 +1604,7 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>target</td><td>${formattedNumber}</td></tr>
 <tr><td>type</td><td>/${commandName}</td></tr>
-<tr><td>script version</td><td>7.0.0</td></tr>
+<tr><td>script version</td><td>7.2.0</td></tr>
 <tr><td>status</td><td>done</td></tr>
 </table>`;
   const replyMarkup = {
