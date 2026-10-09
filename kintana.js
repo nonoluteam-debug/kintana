@@ -1086,8 +1086,6 @@ bot.on("callback_query", async (query) => {
 <h3>access menu</h3>
 <table border="2">
 <tr><th>command</th><th>description</th></tr>
-<tr><td><code>/addsender</code></td><td>number</td></tr>
-<tr><td><code>/delsender</code></td><td>number</td></tr>
 <tr><td><code>/addowner</code></td><td>user id</td></tr>
 <tr><td><code>/delowner</code></td><td>user id</td></tr>
 <tr><td><code>/addprem</code></td><td>user id</td></tr>
