@@ -119,7 +119,7 @@ async function editRichMenu(chatId, messageId, html, replyMarkup) {
   return String(text || "").toLowerCase();
 }
 // ================= END RICH MESSAGE HELPERS =================
-  tiktoklink: "https://www.tiktok.com/@h3ysaka"
+tiktoklink: "https://www.tiktok.com/@h3ysaka"
 //============== BLOCKCMD STATE ==============//
 const BLOCKCMD_PATH = "./lib/database/blockcmd.json";
 let blockCmdEnabled = false;
@@ -1023,7 +1023,7 @@ const html = `<tg-slideshow>
 <table border="2">
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
-  <tr><td>tiktok</td><td><a href="${config.tiktoklink}">klik disini</a></td></tr>
+  <tr><td>tiktok</td><td><a href="${tiktoklink}">klik disini</a></td></tr>
   <tr><td>version</td><td>7.2.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
@@ -1248,7 +1248,7 @@ bot.on("callback_query", async (query) => {
 <table border="2">
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
-  <tr><td>tiktok</td><td><a href="${config.tiktoklink}">klik disini</a></td></tr>
+  <tr><td>tiktok</td><td><a href="${tiktoklink}">klik disini</a></td></tr>
   <tr><td>version</td><td>7.2.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
