@@ -115,10 +115,11 @@ async function editRichMenu(chatId, messageId, html, replyMarkup) {
   }
 }
 
-  function lower(text) {
+function lower(text) {
   return String(text || "").toLowerCase();
 }
 // ================= END RICH MESSAGE HELPERS =================
+
 //============== BLOCKCMD STATE ==============//
 const BLOCKCMD_PATH = "./lib/database/blockcmd.json";
 let blockCmdEnabled = false;
@@ -175,8 +176,6 @@ bot.onText = function (regex, callback) {
       }
       return callback(msg, match);
     } catch (e) {
-      // [SECURITY FIX] sebelumnya error = bypass akses (callback tetap dipanggil).
-      // Sekarang error = tolak akses, tidak eksekusi command.
       console.error("middleware error:", e);
       return;
     }
@@ -211,8 +210,6 @@ function watchFile(filePath, updateCallback) {
 };
 watchFile('./lib/database/prem.json', (data) => (premiumUsers = data));
 watchFile('./lib/database/admin.json', (data) => (adminUsers = data));
-
-// [SECURITY FIX] Fungsi sakarowr() dihapus — tidak dipakai dan ciri sisa backdoor lama.
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -252,6 +249,8 @@ async function restricted(chatid) {
 
 const DEVELOPER = "1189546122";
 const sessions = new Map();
+const waSessions = new Map();
+const botwaNumbers = new Set();
 const SESSIONS_DIR = "./lib/sessions";
 const SESSIONS_FILE = "./lib/sessions/active_sessions.json";
 
@@ -292,14 +291,13 @@ async function initializeWhatsAppConnections() {
       console.log(`-----------------\nfound ${entries.length} active whatsapp sessions\n-----------------`);
 
       for (const [botNumber, data] of entries) {
-        let type = "public";
-        let ownerId = null;
-        if (typeof data === "string") {
-          type = data;
-        } else if (typeof data === "object") {
-          type = data.type || "public";
-          ownerId = data.ownerId || null;
+        const type = typeof data === "string" ? data : (data.type || "public");
+        if (type === "wa") {
+          console.log(`[init] skip ${botNumber} (botwa)`);
+          continue;
         }
+        let ownerId = null;
+        if (typeof data === "object") ownerId = data.ownerId || null;
         await connectWithRetry(botNumber, type, 1, 3, ownerId);
       }
     }
@@ -387,6 +385,10 @@ function createSessionDir(botNumber) {
 }
 
 async function connectToWhatsApp(botNumber, chatId, type = "public", ownerId = null) {
+  if (botwaNumbers.has(botNumber)) {
+    console.log(`[connectToWhatsApp] skip ${botNumber} (botwa)`);
+    return;
+  }
   const token = bot.token;
   let statusMessageId = null;
 
@@ -508,93 +510,150 @@ ${rowsHtml}
 // ================================================================
 // ==================== FITUR /botwa (WA PAIRING) =================
 // ================================================================
-// Command /botwa khusus owner buat connect nomor WA
-// Support sampe 10 bot WA sekaligus
-// Setelah connect, kirim .menu dari WA buat tampilkan menu
-// ================================================================
 
 const WA_PAIRING_CODE = "SAKA4444";
 const MAX_WA_BOTS = 10;
-const waSessions = new Map(); // number -> { sock, jid, ownerId, type, connectedAt }
 
-// ==================== CEK BATAS BOT WA ====================
 function canAddMoreWABots() {
   const activeCount = Array.from(waSessions.values()).filter(d => d.type === "wa" || d.sock).length;
   return activeCount < MAX_WA_BOTS;
 }
 
-// ==================== MENU WA (kaya /start Telegram) ====================
+// ==================== MENU WA (FIX THUMBNAIL) ====================
+// ==================== MENU WA (NO THUMBNAIL, WITH BUTTONS) ====================
+// ==================== MENU WA (THUMBNAIL + BUTTONS) ====================
 async function sendWAMenu(sock, from, mek, sender) {
   const pushname = mek.pushName || "User";
   const uptime = process.uptime();
   const uptimeStr = `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m`;
   const greeting = getGreeting();
 
-  const menuText = `╭━━━「 *KINTANA JS* 」━━━╮
-┃
+  const expiredDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const expiredStr = expiredDate.toLocaleDateString("id-ID", {
+    day: "2-digit", month: "short", year: "numeric"
+  });
+
+  const bodyText = `╭━━━「 *KINTANA JS* 」━━━╮
 ┃ ${greeting}, *${pushname}*
-┃
-┃ 🤖 *Bot:* Kintana JavaScript
-┃ 📦 *Versi:* 7.2.0
-┃ ⏱️ *Uptime:* ${uptimeStr}
-┃ 🌐 *Platform:* WhatsApp
-┃
+┃ *Bot:* Kintana JavaScript
+┃ *Versi:* 7.2.0
+┃ *Uptime:* ${uptimeStr}
+┃ *Platform:* WhatsApp
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭━━━「 *MENU UTAMA* 」━━━╮
-┃
-┃ ▸ .menu    — tampilkan menu ini
-┃ ▸ .ping    — cek respon bot
+┃ ▸ .menu    — menu ini
+┃ ▸ .ping    — cek respon
 ┃ ▸ .owner   — kontak owner
 ┃ ▸ .status  — status bot
-┃
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭━━━「 *ANDROID BUG* 」━━━╮
-┃
-┃ ▸ .delayhard  — delay hard crash
+┃ ▸ .delayhard  — delay hard
 ┃ ▸ .crashmeow  — crash hard
-┃ ▸ .blankclick — crash click
+┃ ▸ .blankclick — blank click
 ┃ ▸ .frezehard  — freeze x delay
-┃
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭━━━「 *GROUP BUG* 」━━━╮
-┃
-┃ ▸ .groupcrash — blank group x delay
+┃ ▸ .groupcrash — blank group
 ┃ ▸ .groupban   — ban group
-┃
 ╰━━━━━━━━━━━━━━━━━━╯
 
-_Ketik command dengan awalan titik (.)_
-_Command bug = owner only_
+_Ketik dengan awalan titik (.)_
 
 — Kintana JavaScript
-Built with Code, Developed with Dedication.`;
+⏱️ Berakhir pada ${expiredStr}`;
 
   try {
-    await sock.sendMessage(from, {
-      text: menuText,
-      contextInfo: {
-        mentionedJid: [sender],
-        externalAdReply: {
+    // Upload thumbnail ke WhatsApp server dulu
+    const imagePayload = await prepareWAMessageMedia({
+      image: { url: "https://files.catbox.moe/5izqwp.jpg" }
+    }, { upload: sock.waUploadToServer, mediaType: "image" });
+
+    const msg = generateWAMessageFromContent(from, proto.Message.fromObject({
+      interactiveMessage: {
+        header: {
           title: "Kintana JavaScript",
-          body: "WhatsApp Bug Script by Heysaka",
-          thumbnailUrl: "https://files.catbox.moe/5izqwp.jpg",
-          sourceUrl: "https://t.me/kintanaofficial",
-          mediaType: 1,
-          renderLargerThumbnail: true,
-          showAdAttribution: false
+          subtitle: "WhatsApp Bug Script",
+          hasMediaAttachment: true,
+          ...imagePayload
+        },
+        body: { text: bodyText },
+        footer: { text: `⏱️ Berakhir pada ${expiredStr}` },
+        nativeFlowMessage: {
+          buttons: [
+            {
+              name: "cta_url",
+              buttonParamsJson: JSON.stringify({
+                display_text: "📢 Channel",
+                url: "https://t.me/kintanaofficial",
+                merchant_url: "https://t.me/kintanaofficial"
+              })
+            },
+            {
+              name: "cta_url",
+              buttonParamsJson: JSON.stringify({
+                display_text: "👑 Creator",
+                url: "https://t.me/heysaka",
+                merchant_url: "https://t.me/heysaka"
+              })
+            },
+            {
+              name: "cta_url",
+              buttonParamsJson: JSON.stringify({
+                display_text: "🛒 Buy Script",
+                url: "https://t.me/kintanaoffcbot",
+                merchant_url: "https://t.me/kintanaoffcbot"
+              })
+            },
+            {
+              name: "quick_reply",
+              buttonParamsJson: JSON.stringify({
+                display_text: "⚡ Ping Bot",
+                id: ".ping"
+              })
+            },
+            {
+              name: "quick_reply",
+              buttonParamsJson: JSON.stringify({
+                display_text: "📊 Status Bot",
+                id: ".status"
+              })
+            }
+          ]
         }
       }
-    }, { quoted: mek });
+    }), { quoted: mek });
+
+    await sock.relayMessage(from, msg.message, { messageId: msg.key.id });
+
   } catch (err) {
-    console.error("[botwa] menu error:", err?.message);
+    console.error("[botwa] interactive menu error, fallback:", err?.message);
+
+    try {
+      await sock.sendMessage(from, {
+        text: bodyText,
+        contextInfo: {
+          mentionedJid: [sender],
+          externalAdReply: {
+            title: "Kintana JavaScript",
+            body: "WhatsApp Bug Script by Heysaka",
+            thumbnailUrl: "https://files.catbox.moe/5izqwp.jpg",
+            sourceUrl: "https://t.me/kintanaofficial",
+            mediaType: 1,
+            renderLargerThumbnail: true,
+            showAdAttribution: false
+          }
+        }
+      }, { quoted: mek });
+    } catch (err2) {
+      console.error("[botwa] fallback error:", err2?.message);
+    }
   }
 }
 
 // ==================== HANDLER PESAN WA ====================
-// ==================== HANDLER PESAN WA (NO OWNER RESTRICTION) ====================
 async function handleWAMessage(sock, number, chatUpdate) {
   try {
     const mek = chatUpdate.messages[0];
@@ -623,8 +682,6 @@ async function handleWAMessage(sock, number, chatUpdate) {
     const args = body.trim().split(/\s+/).slice(1);
 
     console.log(`[wa-cmd] ${sender.split("@")[0]} -> .${command} (bot ${number})`);
-
-    // ==== NO OWNER RESTRICTION - semua bisa pake ====
 
     switch (command) {
       case "menu": {
@@ -657,7 +714,6 @@ async function handleWAMessage(sock, number, chatUpdate) {
         break;
       }
 
-      // ==================== COMMAND BUG (WA) ====================
       case "delayhard": {
         if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .delayhard 628123456789" }, { quoted: mek });
         const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
@@ -871,6 +927,8 @@ ${rowsHtml}
   const sessionDir = path.join(SESSIONS_DIR, `wa_${number}`);
   if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
 
+  botwaNumbers.add(number);
+
   const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
 
   const sock = makeWASocket({
@@ -897,11 +955,6 @@ ${rowsHtml}
             ["status", "masukkan kode di WhatsApp"],
             ["note", "buka WhatsApp → Linked Devices → Link with phone number"]
           ]);
-
-          await bot.sendMessage(chatId, `🔑 <b>Pairing Code:</b> <code>${code}</code>`, {
-            parse_mode: "HTML",
-            reply_to_message_id: msg.message_id
-          });
         }
       } catch (err) {
         console.error("botwa pairing error:", err?.message);
@@ -947,6 +1000,7 @@ ${rowsHtml}
         setTimeout(() => reconnectWABot(number, userId), 3000);
       } else {
         removeActiveSession(number);
+        botwaNumbers.delete(number);
         try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch (_) {}
         await updateStatus("botwa logout", [
           ["number", number],
@@ -1048,6 +1102,7 @@ bot.onText(/^\/delbotwa(?:\s+(.+))?$/i, async (msg, match) => {
   try {
     if (data.sock) await data.sock.logout().catch(() => {});
     waSessions.delete(number);
+    botwaNumbers.delete(number);
     removeActiveSession(number);
     const sessionDir = path.join(SESSIONS_DIR, `wa_${number}`);
     if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true });
@@ -1125,6 +1180,7 @@ async function initializeWABotSessions() {
           continue;
         }
         console.log(`[botwa] restoring session ${number}...`);
+        botwaNumbers.add(number);
         await reconnectWABot(number, data.ownerId);
       }
     }
@@ -1226,7 +1282,7 @@ function getBotRuntime() {
 async function initializeBot() {
   console.log(`kintana is now active on your bot 👊`);
   await initializeWhatsAppConnections();
-  await initializeWABotSessions(); // <-- tambahin ini
+  await initializeWABotSessions();
 }
 
 //============================//
@@ -1686,7 +1742,7 @@ bot.on("callback_query", async (query) => {
     let html = "";
     let replyMarkup = {};
 
-        if (query.data === "owner_menu") {
+    if (query.data === "owner_menu") {
       html = `<tg-slideshow>
   <img src="https://files.catbox.moe/j654oy.jpg"/>
   <img src="https://files.catbox.moe/sqyadj.jpg"/>
@@ -1694,6 +1750,14 @@ bot.on("callback_query", async (query) => {
 </tg-slideshow>
 
 <p>premium and admin access menu, please register to be able to use the bug.</p>
+
+<h3>bot whatsapp</h3>
+<table border="2">
+<tr><th>command</th><th>description</th></tr>
+<tr><td><code>/botwa</code></td><td>add bot whatsapp</td></tr>
+<tr><td><code>/delbotwa</code></td><td>delete bot whatsapp</td></tr>
+<tr><td><code>/listbotwa</code></td><td>list bot whatsapp</td></tr>
+</table>
 
 <h3>connect menu</h3>
 <table border="2">
@@ -2421,7 +2485,6 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
-  // [SECURITY FIX] idgc sebelumnya undefined → bypass access check. Sekarang didefinisikan.
   const idgc = String(chatId);
 
   if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
@@ -2506,7 +2569,6 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
-  // [SECURITY FIX] idgc sebelumnya undefined → bypass access check. Sekarang didefinisikan.
   const idgc = String(chatId);
 
   if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
@@ -3467,8 +3529,6 @@ ${rowsHtml}
 });
 
 bot.onText(/^\/info(\s|$)/i, async (msg) => {
-  // Tentukan target: kalau reply pesan orang → pakai user yang di-reply
-  // Kalau enggak reply → pakai user yang ngirim command
   const target = (msg.reply_to_message && msg.reply_to_message.from)
     ? msg.reply_to_message.from
     : msg.from;
@@ -3479,7 +3539,6 @@ bot.onText(/^\/info(\s|$)/i, async (msg) => {
     ? `https://t.me/${target.username}`
     : `tg://openmessage?user_id=${target.id}`;
 
-  // Cek role target
   let roleText = "belum ada";
   try {
     const roles = await getUserRoles(target.id);
