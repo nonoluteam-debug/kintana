@@ -524,22 +524,13 @@ function canAddMoreWABots() {
 }
 
 // ==================== MENU WA (kaya /start Telegram) ====================
-// ==================== MENU WA (RICH INTERACTIVE MESSAGE) ====================
 async function sendWAMenu(sock, from, mek, sender) {
   const pushname = mek.pushName || "User";
   const uptime = process.uptime();
   const uptimeStr = `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m`;
   const greeting = getGreeting();
 
-  // Tanggal expired (30 hari dari sekarang)
-  const expiredDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const expiredStr = expiredDate.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  });
-
-  const bodyText = `╭━━━「 *KINTANA JS* 」━━━╮
+  const menuText = `╭━━━「 *KINTANA JS* 」━━━╮
 ┃
 ┃ ${greeting}, *${pushname}*
 ┃
@@ -551,112 +542,59 @@ async function sendWAMenu(sock, from, mek, sender) {
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭━━━「 *MENU UTAMA* 」━━━╮
-┃ ▸ .menu    — menu ini
-┃ ▸ .ping    — cek respon
+┃
+┃ ▸ .menu    — tampilkan menu ini
+┃ ▸ .ping    — cek respon bot
 ┃ ▸ .owner   — kontak owner
 ┃ ▸ .status  — status bot
+┃
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭━━━「 *ANDROID BUG* 」━━━╮
-┃ ▸ .delayhard  — delay hard
+┃
+┃ ▸ .delayhard  — delay hard crash
 ┃ ▸ .crashmeow  — crash hard
-┃ ▸ .blankclick — blank click
+┃ ▸ .blankclick — crash click
 ┃ ▸ .frezehard  — freeze x delay
+┃
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭━━━「 *GROUP BUG* 」━━━╮
-┃ ▸ .groupcrash — blank group
+┃
+┃ ▸ .groupcrash — blank group x delay
 ┃ ▸ .groupban   — ban group
+┃
 ╰━━━━━━━━━━━━━━━━━━╯
 
-_Ketik dengan awalan titik (.)_
-_Bug command = owner only_
+_Ketik command dengan awalan titik (.)_
+_Command bug = owner only_
 
-— Kintana JavaScript`;
+— Kintana JavaScript
+Built with Code, Developed with Dedication.`;
 
   try {
-    // Coba pake interactive message dulu (kaya di Telegram)
-    const interactiveMsg = {
-      viewOnceMessage: {
-        message: {
-          interactiveMessage: {
-            header: {
-              title: "Kintana JavaScript",
-              subtitle: "WhatsApp Bug Script",
-              hasMediaAttachment: true,
-              imageMessage: {
-                url: "https://files.catbox.moe/5izqwp.jpg",
-                mimetype: "image/jpeg",
-                caption: ""
-              }
-            },
-            body: { text: bodyText },
-            footer: { text: `⏱️ Berakhir pada ${expiredStr}` },
-            nativeFlowMessage: {
-              buttons: [
-                {
-                  name: "cta_url",
-                  buttonParamsJson: JSON.stringify({
-                    display_text: "Show Feature",
-                    url: "https://t.me/kintanaofficial",
-                    merchant_url: "https://t.me/kintanaofficial"
-                  })
-                },
-                {
-                  name: "cta_url",
-                  buttonParamsJson: JSON.stringify({
-                    display_text: "Creator",
-                    url: "https://t.me/heysaka",
-                    merchant_url: "https://t.me/heysaka"
-                  })
-                }
-              ]
-            },
-            contextInfo: {
-              mentionedJid: [sender],
-              forwardingScore: 9999,
-              isForwarded: true,
-              forwardedNewsletterMessageInfo: {
-                newsletterJid: "120363411988580825@newsletter",
-                newsletterName: "Kintana JavaScript",
-                serverMessageId: 1
-              }
-            }
-          }
+    await sock.sendMessage(from, {
+      text: menuText,
+      contextInfo: {
+        mentionedJid: [sender],
+        externalAdReply: {
+          title: "Kintana JavaScript",
+          body: "WhatsApp Bug Script by Heysaka",
+          thumbnailUrl: "https://files.catbox.moe/5izqwp.jpg",
+          sourceUrl: "https://t.me/kintanaofficial",
+          mediaType: 1,
+          renderLargerThumbnail: true,
+          showAdAttribution: false
         }
       }
-    };
-
-    // Kirim pake relayMessage biar dapet tampilan interactive
-    await sock.relayMessage(from, interactiveMsg, { quoted: mek });
-
+    }, { quoted: mek });
   } catch (err) {
-    console.error("[botwa] interactive menu error, fallback ke text:", err?.message);
-
-    // FALLBACK: kalau interactive gagal, kirim text biasa dengan thumbnail
-    try {
-      await sock.sendMessage(from, {
-        text: bodyText + `\n\n⏱️ *Berakhir pada ${expiredStr}*`,
-        contextInfo: {
-          mentionedJid: [sender],
-          externalAdReply: {
-            title: "Kintana JavaScript",
-            body: "WhatsApp Bug Script by Heysaka",
-            thumbnailUrl: "https://files.catbox.moe/5izqwp.jpg",
-            sourceUrl: "https://t.me/kintanaofficial",
-            mediaType: 1,
-            renderLargerThumbnail: true,
-            showAdAttribution: false
-          }
-        }
-      }, { quoted: mek });
-    } catch (err2) {
-      console.error("[botwa] fallback error:", err2?.message);
-    }
+    console.error("[botwa] menu error:", err?.message);
   }
 }
 
 // ==================== HANDLER PESAN WA ====================
+// ==================== HANDLER PESAN WA (NO OWNER RESTRICTION) ====================
 async function handleWAMessage(sock, number, chatUpdate) {
   try {
     const mek = chatUpdate.messages[0];
@@ -668,7 +606,6 @@ async function handleWAMessage(sock, number, chatUpdate) {
       : mek.message;
 
     const from = mek.key.remoteJid;
-    const isGroup = from.endsWith("@g.us");
     const sender = mek.key.fromMe
       ? sock.user.id.split(":")[0] + "@s.whatsapp.net"
       : (mek.key.participant || mek.key.remoteJid);
@@ -687,18 +624,7 @@ async function handleWAMessage(sock, number, chatUpdate) {
 
     console.log(`[wa-cmd] ${sender.split("@")[0]} -> .${command} (bot ${number})`);
 
-    // ==== CEK OWNER ====
-    const senderNumber = sender.split("@")[0];
-    const ownerNumbers = (config.OWNER_ID || []).map(n => String(n).replace(/\D/g, ""));
-    const isOwnerWA = ownerNumbers.includes(senderNumber);
-
-    const ownerCommands = ["delayhard", "crashmeow", "blankclick", "frezehard", "groupcrash", "groupban", "connect", "disconnect", "bug"];
-
-    if (ownerCommands.includes(command) && !isOwnerWA) {
-      return sock.sendMessage(from, {
-        text: "🔒 *Access Denied*\n\nCommand ini hanya untuk owner bot."
-      }, { quoted: mek });
-    }
+    // ==== NO OWNER RESTRICTION - semua bisa pake ====
 
     switch (command) {
       case "menu": {
