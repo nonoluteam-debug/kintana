@@ -533,40 +533,35 @@ async function sendWAMenu(sock, from, mek, sender) {
     day: "2-digit", month: "short", year: "numeric"
   });
 
-  const bodyText = `╭━━━「 *KINTANA JS* 」━━━╮
-┃ ${greeting}, *${pushname}*
-┃ *Bot:* Kintana JavaScript
-┃ *Versi:* 7.2.0
-┃ *Uptime:* ${uptimeStr}
-┃ *Platform:* WhatsApp
-╰━━━━━━━━━━━━━━━━━━╯
+  const bodyText = `\`「 KINTANA JS 」\`
+ ${greeting}, *${pushname}*
+*Bot:* Kintana JavaScript
+*Versi:* 7.2.0
+*Uptime:* ${uptimeStr}
+*Platform:* WhatsApp
 
-╭━━━「 *MENU UTAMA* 」━━━╮
-┃ ▸ .menu    — menu ini
-┃ ▸ .ping    — cek respon
-┃ ▸ .owner   — kontak owner
-┃ ▸ .status  — status bot
-╰━━━━━━━━━━━━━━━━━━╯
+\`「 MENU UTAMA 」\`
+▸ .menu    — menu ini
+▸ .ping    — cek respon
+▸ .owner   — kontak owner
+▸ .status  — status bot
 
-╭━━━「 *ANDROID BUG* 」━━━╮
-┃ ▸ .delayhard  — delay hard
-┃ ▸ .crashmeow  — crash hard
-┃ ▸ .blankclick — blank click
-┃ ▸ .frezehard  — freeze x delay
-╰━━━━━━━━━━━━━━━━━━╯
+\`「 *ANDROID BUG* 」\`
+▸ .delayhard 62xxx
+▸ .crashmeow 62xxx
+▸ .blankclick 62xxx
+▸ .frezehard 62xxx
 
-╭━━━「 *GROUP BUG* 」━━━╮
-┃ ▸ .groupcrash — blank group
-┃ ▸ .groupban   — ban group
-╰━━━━━━━━━━━━━━━━━━╯
+\`「 *GROUP BUG* 」\`
+▸ .groupcrash (link)
+▸ .groupban (link)
 
-_Ketik dengan awalan titik (.)_
+Ketik dengan awalan titik (.)
 
 — Kintana JavaScript
-⏱️ Berakhir pada ${expiredStr}`;
+Berakhir pada ${expiredStr}`;
 
   try {
-    // Upload thumbnail ke WhatsApp server dulu
     const imagePayload = await prepareWAMessageMedia({
       image: { url: "https://files.catbox.moe/5izqwp.jpg" }
     }, { upload: sock.waUploadToServer, mediaType: "image" });
@@ -580,13 +575,13 @@ _Ketik dengan awalan titik (.)_
           ...imagePayload
         },
         body: { text: bodyText },
-        footer: { text: `⏱️ Berakhir pada ${expiredStr}` },
+        footer: { text: `Berakhir pada ${expiredStr}` },
         nativeFlowMessage: {
           buttons: [
             {
               name: "cta_url",
               buttonParamsJson: JSON.stringify({
-                display_text: "📢 Channel",
+                display_text: "Channel Telegram",
                 url: "https://t.me/kintanaofficial",
                 merchant_url: "https://t.me/kintanaofficial"
               })
@@ -594,7 +589,7 @@ _Ketik dengan awalan titik (.)_
             {
               name: "cta_url",
               buttonParamsJson: JSON.stringify({
-                display_text: "👑 Creator",
+                display_text: "Creator",
                 url: "https://t.me/heysaka",
                 merchant_url: "https://t.me/heysaka"
               })
@@ -602,7 +597,7 @@ _Ketik dengan awalan titik (.)_
             {
               name: "cta_url",
               buttonParamsJson: JSON.stringify({
-                display_text: "🛒 Buy Script",
+                display_text: "Buy Script",
                 url: "https://t.me/kintanaoffcbot",
                 merchant_url: "https://t.me/kintanaoffcbot"
               })
@@ -610,14 +605,14 @@ _Ketik dengan awalan titik (.)_
             {
               name: "quick_reply",
               buttonParamsJson: JSON.stringify({
-                display_text: "⚡ Ping Bot",
+                display_text: "Ping Bot",
                 id: ".ping"
               })
             },
             {
               name: "quick_reply",
               buttonParamsJson: JSON.stringify({
-                display_text: "📊 Status Bot",
+                display_text: "Status Bot",
                 id: ".status"
               })
             }
@@ -995,7 +990,7 @@ ${rowsHtml}
       if (shouldReconnect) {
         await updateStatus("botwa reconnecting", [
           ["number", number],
-          ["status", "koneksi terputus, mencoba ulang..."]
+          ["status", "Successfully Connected"]
         ]);
         setTimeout(() => reconnectWABot(number, userId), 3000);
       } else {
@@ -1004,7 +999,7 @@ ${rowsHtml}
         try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch (_) {}
         await updateStatus("botwa logout", [
           ["number", number],
-          ["status", "session dihapus, pairing ulang /botwa " + number]
+          ["status", "session deleted, re-pairing /botwa" + number]
         ]);
       }
     }
