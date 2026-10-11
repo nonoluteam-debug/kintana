@@ -127,8 +127,6 @@ renderLargerThumbnail: false,
 }
 }, { quoted: fquoted.channel });
 }
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // ==================== QUOTED OBJECTS ====================
 const qpayment = {
 key: {
