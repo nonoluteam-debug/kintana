@@ -4601,6 +4601,7 @@ const REPO_OWNER = "nonoluteam-debug";
 const REPO_NAME = "kintana";
 const FILE_PATH_ON_GITHUB = "kintanaai.json";
 const DB_FILE = "./kintana/kintanaai.json";
+const DB_DIR = "./kintana";
 const PEMILIK = 1189546122;
 
 let dbMemory = {
@@ -4611,30 +4612,24 @@ let dbMemory = {
 // ==================== FORMAT RICH MESSAGE ====================
 function formatQuote(text) {
   if (typeof text !== "string") text = String(text);
-
   const escaped = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-
   return `<blockquote>${escaped}</blockquote>`;
 }
 
-// Format pesan tabel HTML
 function formatTable(title, rows, headers = ["info", "detail"]) {
   if (!Array.isArray(rows)) rows = [];
-
   const headerHtml = headers.map((h) => `<th>${h}</th>`).join("");
   const rowsHtml = rows
     .map((row) => {
       return `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`;
     })
     .join("");
-
   return `<b>${title}</b>\n<table border="2">\n<tr>${headerHtml}</tr>\n${rowsHtml}\n</table>`;
 }
 
-// Format pesan status
 function formatStatus(emoji, text) {
   return `<blockquote>${emoji} <b>${text}</b></blockquote>`;
 }
@@ -4675,7 +4670,6 @@ async function validateGroupAction(msg) {
 <tr><td>user id</td><td>${userId}</td></tr>
 <tr><td>status</td><td>not in admin list</td></tr>
 </table>`;
-
       await bot.sendMessage(chatId, tableMsg, {
         reply_to_message_id: msg.message_id,
         parse_mode: "HTML"
@@ -4685,13 +4679,11 @@ async function validateGroupAction(msg) {
     return true;
   } catch (error) {
     console.error("Gagal mengecek status admin:", error.message);
-
     const tableMsg = `<table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>user id</td><td>${userId}</td></tr>
 <tr><td>status</td><td>error checking admin</td></tr>
 </table>`;
-
     await bot.sendMessage(chatId, tableMsg, {
       reply_to_message_id: msg.message_id,
       parse_mode: "HTML"
@@ -4701,10 +4693,29 @@ async function validateGroupAction(msg) {
 }
 
 // ==================== DATABASE ====================
-async function initDatabase() {
-  if (!fs.existsSync("./database")) {
-    fs.mkdirSync("./database", { recursive: true });
+// Auto-create folder & file database kalau belum ada
+function ensureDbFileExists() {
+  try {
+    if (!fs.existsSync(DB_DIR)) {
+      fs.mkdirSync(DB_DIR, { recursive: true });
+      console.log(`📁 Folder '${DB_DIR}' berhasil dibuat.`);
+    }
+    if (!fs.existsSync(DB_FILE)) {
+      fs.writeFileSync(
+        DB_FILE,
+        JSON.stringify({ aiGroups: {}, userNames: {} }, null, 2),
+        "utf8"
+      );
+      console.log(`📄 File '${DB_FILE}' berhasil dibuat.`);
+    }
+  } catch (err) {
+    console.error("❌ Gagal membuat file database:", err.message);
   }
+}
+
+async function initDatabase() {
+  // Pastikan folder & file ada dulu
+  ensureDbFileExists();
 
   try {
     console.log("📥 Mengunduh database terbaru dari GitHub...");
@@ -4719,7 +4730,6 @@ async function initDatabase() {
     if (response.data && typeof response.data === "object") {
       dbMemory.aiGroups = response.data.aiGroups || {};
       dbMemory.userNames = response.data.userNames || {};
-
       fs.writeFileSync(DB_FILE, JSON.stringify(dbMemory, null, 2), "utf8");
       console.log("✅ Database sukses disinkronisasi dari Cloud GitHub!");
     }
@@ -4733,9 +4743,18 @@ async function initDatabase() {
         console.log("📂 Database lokal berhasil dimuat.");
       } catch (err) {
         console.error("❌ File database lokal rusak, membuat struktur baru.");
+        fs.writeFileSync(
+          DB_FILE,
+          JSON.stringify({ aiGroups: {}, userNames: {} }, null, 2),
+          "utf8"
+        );
       }
     } else {
-      fs.writeFileSync(DB_FILE, JSON.stringify(dbMemory, null, 2), "utf8");
+      fs.writeFileSync(
+        DB_FILE,
+        JSON.stringify({ aiGroups: {}, userNames: {} }, null, 2),
+        "utf8"
+      );
     }
   }
 }
@@ -4775,6 +4794,8 @@ async function saveDatabaseToCloud() {
   }
 }
 
+// Panggil auto-create DULU (sync), baru initDatabase (async)
+ensureDbFileExists();
 initDatabase();
 
 setInterval(async () => {
@@ -4811,7 +4832,6 @@ bot.onText(/^\/(?:kintana|kintanaai)(?:\s+(.*))?$/i, async (msg, match) => {
 
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(dbMemory, null, 2), "utf8");
-
     const statusMsg = await bot.sendMessage(
       chatId,
       formatQuote(
@@ -4819,10 +4839,8 @@ bot.onText(/^\/(?:kintana|kintanaai)(?:\s+(.*))?$/i, async (msg, match) => {
       ),
       { parse_mode: "HTML" }
     );
-
     await saveDatabaseToCloud();
 
-    // Tampilkan status dalam bentuk tabel
     const tableMsg = `<table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>chat id</td><td>${chatId}</td></tr>
@@ -4862,7 +4880,6 @@ bot.on("callback_query", async (callbackQuery) => {
     if (data === "kintana_set_on" || data === "kintana_set_off") {
       await bot.answerCallbackQuery(callbackQuery.id);
       const targetMode = data === "kintana_set_on";
-
       dbMemory.aiGroups[chatId] = targetMode;
 
       fs.writeFileSync(DB_FILE, JSON.stringify(dbMemory, null, 2), "utf8");
@@ -4927,7 +4944,6 @@ bot.on("message", async (msg) => {
       const fileId = replyMsg.photo[replyMsg.photo.length - 1].file_id;
       const file = await bot.getFile(fileId);
       const fileUrl = `https://api.telegram.org/file/bot${config.BOT_TOKEN}/${file.file_path}`;
-
       contextGambarText = `\n[SITUASI: User saat ini sedang me-reply sebuah gambar/foto. Link gambar tersebut adalah: ${fileUrl}. Analisis gambar tersebut jika user bertanya tentang gambarnya!]`;
     }
 
@@ -5074,7 +5090,6 @@ jadi ai yang terasa hidup, pintar, cuek, jutek, sombong, kadang nyebelin, tapi t
     });
   } catch (err) {
     console.error("Kintana AI Error:", err.message);
-
     await bot.sendMessage(
       msg.chat.id,
       formatStatus("❌", "kintana lagi error bentar bro 😭 coba lagi nanti"),
