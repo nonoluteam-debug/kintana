@@ -126,9 +126,8 @@ const BLOCKCMD_PATH = "./lib/database/blockcmd.json";
 const BLOCKED_CMD_PATH = "./lib/database/blocked_commands.json";
 
 let blockCmdEnabled = false;
-let blockedCommands = []; // daftar command yang diblokir, contoh: ["/start", "/menu"]
+let blockedCommands = [];
 
-// load blockcmd state
 try {
   if (fs.existsSync(BLOCKCMD_PATH)) {
     const _bc = JSON.parse(fs.readFileSync(BLOCKCMD_PATH));
@@ -136,7 +135,6 @@ try {
   }
 } catch (e) { console.error("blockcmd load:", e); }
 
-// load blocked commands
 try {
   if (fs.existsSync(BLOCKED_CMD_PATH)) {
     const _bl = JSON.parse(fs.readFileSync(BLOCKED_CMD_PATH));
@@ -158,15 +156,19 @@ function saveBlockedCommands() {
   } catch (e) { console.error("blocked_commands save:", e); }
 }
 
-// helper: ambil command dari teks pesan (contoh: "/start@bot foo" -> "/start")
+// helper: ambil command pertama dari teks pesan
+// "/block /delayhard" -> "/block"
+// "/start@bot foo"    -> "/start"
 function extractCommand(text) {
   if (!text) return null;
-  const m = String(text).trim().match(/^(\/[a-zA-Z0-9_]+)(@\w+)?/);
-  if (!m) return null;
-  return m[1].toLowerCase();
+  const trimmed = String(text).trim();
+  if (!trimmed.startsWith("/")) return null;
+  const firstToken = trimmed.split(/\s+/)[0];
+  const cmd = firstToken.split("@")[0].toLowerCase();
+  if (!/^\/[a-zA-Z0-9_]+$/.test(cmd)) return null;
+  return cmd;
 }
 
-// command yang TIDAK boleh diblokir (biar owner bisa unblock)
 const PROTECTED_COMMANDS = [
   "/blockcmd", "/block", "/unblock", "/listblock"
 ];
@@ -189,6 +191,12 @@ bot.onText = function (regex, callback) {
       const chatId = String(msg.chat?.id || "");
       const text = msg.text || "";
 
+      // PENTING: cek dulu apakah regex handler INI cocok dengan text
+      // Ini mencegah command lain ke-trigger (misal /block /delayhard -> /delayhard)
+      const re = new RegExp(regex.source, regex.flags.replace("g", ""));
+      const localMatch = text.match(re);
+      if (!localMatch) return;
+
       const isAllowedUser =
         isOwner(fromId) ||
         premiumUsers.map(String).includes(fromId) ||
@@ -197,7 +205,7 @@ bot.onText = function (regex, callback) {
       const isMurbugGroup = murbugGC.includes(chatId);
       const isAllowed = isAllowedUser || isMurbugGroup;
 
-      // 1) cek blockcmd global (hanya owner/premium/admin/murbug group)
+      // 1) cek blockcmd global
       const isBlockCmdCtrl = /^\/(blockcmd|block|unblock|listblock)\b/i.test(text);
       if (blockCmdEnabled && !isAllowed && !isBlockCmdCtrl) {
         const html = `<h3>access denied</h3>
@@ -218,20 +226,20 @@ bot.onText = function (regex, callback) {
         return;
       }
 
-      // 2) cek command yang di-block spesifik (hanya user biasa yang kena)
-      if (!isAllowed && isCommandBlocked(text)) {
-        const cmd = extractCommand(text);
+      // 2) cek command yang di-block spesifik (hanya user biasa)
+      const invokedCmd = extractCommand(text);
+      if (!isAllowed && invokedCmd && blockedCommands.includes(invokedCmd)) {
         const html = `<h3>command blocked</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>${cmd}</td></tr>
+<tr><td>command</td><td>${invokedCmd}</td></tr>
 <tr><td>status</td><td>this command is currently unavailable</td></tr>
 <tr><td>contact</td><td>@heysaka</td></tr>
 </table>`;
         sendRichMenu(msg.chat.id, html, {
           inline_keyboard: [
             [
-              { text: "buy access", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" },
+              { text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" },
               { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }
             ]
           ]
@@ -239,7 +247,7 @@ bot.onText = function (regex, callback) {
         return;
       }
 
-      return callback(msg, match);
+      return callback(msg, localMatch);
     } catch (e) {
       console.error("middleware error:", e);
       return;
@@ -1856,7 +1864,7 @@ function getkintanaMenu() {
 }
 
 // ============ COMMAND /START ============
-bot.onText(/\/start/, async (msg) => {
+bot.onText(/^\/start(?:\s|$)/i, async (msg) => {
   const chatId = msg.chat.id;
   const senderId = msg.from.id;
   const username = msg.from.username ? `@${msg.from.username}` : "no username";
@@ -2157,7 +2165,7 @@ bot.on("callback_query", async (query) => {
   }
 });
 
-bot.onText(/\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const command = match[1];
   const type = command === "addsenderpublic" ? "public" : "private";
@@ -2199,7 +2207,7 @@ bot.onText(/\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?/, async (msg, match)
   }
 });
 
-bot.onText(/\/(delsenderpublic|delsenderprivat)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(delsenderpublic|delsenderprivat)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const command = match[1];
   const targetType = command === "delsenderpublic" ? "public" : "private";
@@ -2375,7 +2383,7 @@ function formatDelay(ms) {
     return `${minutes}m ${remainingSeconds}s`;
 }
 
-bot.onText(/\/setjeda(?:\s(.+))?/, async (msg, match) => {
+bot.onText(/^\/setjeda(?:\s(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
 
   if (!isOwner(msg.from.id)) {
@@ -2432,7 +2440,7 @@ bot.onText(/\/setjeda(?:\s(.+))?/, async (msg, match) => {
   );
 });
 
-bot.onText(/\/cekjeda/, async (msg) => {
+bot.onText(/^\/cekjeda$/, async (msg) => {
   const chatId = msg.chat.id;
 
   if (!isOwner(msg.from.id)) {
@@ -2455,7 +2463,7 @@ bot.onText(/\/cekjeda/, async (msg) => {
   );
 });
 
-bot.onText(/\/resetjeda/, async (msg) => {
+bot.onText(/^\/resetjeda$/, async (msg) => {
   const chatId = msg.chat.id;
 
   if (!isOwner(msg.from.id)) {
@@ -2498,7 +2506,7 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
   await sendRichMenu(chatId, html, replyMarkup, replyToMsgId);
 }
 
-bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(delayhard)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2582,7 +2590,7 @@ bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(crashmeow)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(crashmeow)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2666,7 +2674,7 @@ bot.onText(/\/(crashmeow)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(blankclick)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2750,7 +2758,7 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(frezehard)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2834,7 +2842,7 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(delaygroup)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(delaygroup)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2991,7 +2999,7 @@ bot.onText(/\/(delaygroup)(?:\s+(.+))?/, async (msg, match) => {
   })();
 });
 
-bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(groupcrash)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -3148,7 +3156,7 @@ bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
   })();
 });
 
-bot.onText(/\/(groupban)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(groupban)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -3505,7 +3513,7 @@ ${rowsHtml}
   );
 });
 
-bot.onText(/\/modemurbuggb(?:\s+(on|off))?/, async (msg, match) => {
+bot.onText(/^\/modemurbuggb(?:\s+(on|off))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const arg = match[1];
@@ -3605,7 +3613,7 @@ bot.onText(/\/modemurbuggb(?:\s+(on|off))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/addprem(?:\s(.+))?/i, (msg, match) => {
+bot.onText(/^\/addprem(?:\s(.+))?$/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3663,7 +3671,7 @@ bot.onText(/\/addprem(?:\s(.+))?/i, (msg, match) => {
     }
 });
 
-bot.onText(/\/addowner(?:\s(.+))?/i, (msg, match) => {
+bot.onText(/^\/addowner(?:\s(.+))?$/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3721,7 +3729,7 @@ bot.onText(/\/addowner(?:\s(.+))?/i, (msg, match) => {
     }
 });
 
-bot.onText(/\/delprem(?:\s(.+))?/i, (msg, match) => {
+bot.onText(/^\/delprem(?:\s(.+))?$/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3767,7 +3775,7 @@ bot.onText(/\/delprem(?:\s(.+))?/i, (msg, match) => {
     }
 });
 
-bot.onText(/\/delowner(?:\s(.+))?/i, (msg, match) => {
+bot.onText(/^\/delowner(?:\s(.+))?$/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3813,7 +3821,7 @@ bot.onText(/\/delowner(?:\s(.+))?/i, (msg, match) => {
     }
 });
 
-bot.onText(/\/listprem/, (msg) => {
+bot.onText(/^\/listprem$/, (msg) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3839,7 +3847,7 @@ ${rowsHtml}
     );
 });
 
-bot.onText(/\/listowner/, (msg) => {
+bot.onText(/^\/listowner$/, (msg) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3865,7 +3873,7 @@ ${rowsHtml}
     );
 });
 
-bot.onText(/^\/info(\s|$)/i, async (msg) => {
+bot.onText(/^\/info(?:\s|$)/i, async (msg) => {
   const target = (msg.reply_to_message && msg.reply_to_message.from)
     ? msg.reply_to_message.from
     : msg.from;
@@ -3911,7 +3919,7 @@ bot.onText(/^\/info(\s|$)/i, async (msg) => {
   );
 });
 
-bot.onText(/\/(listsender|listsenderpublic|listsenderprivat|devices)/, async (msg, match) => {
+bot.onText(/^\/(listsender|listsenderpublic|listsenderprivat|devices)$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const senderid = msg.from.id;
   const command = match[1];
@@ -4026,7 +4034,7 @@ bot.onText(/^\/brat(?:\s+(.+))?$/i, async (msg, match) => {
     }
 });
 
-bot.onText(/^\/tourl$/i, async (msg) => {
+bot.onText(/^\/tourl$/, async (msg) => {
     const chatId = msg.chat.id;
     const reply = msg.reply_to_message;
 
@@ -4185,7 +4193,7 @@ bot.onText(/^\/play(?:\s+(.+))?$/i, async (msg, match) => {
     }
 });
 
-bot.onText(/^\/jadihitam$/i, async (msg) => {
+bot.onText(/^\/jadihitam$/, async (msg) => {
     try {
         const chatId = msg.chat.id;
         const reply = msg.reply_to_message;
@@ -4247,7 +4255,7 @@ bot.onText(/^\/jadihitam$/i, async (msg) => {
     }
 });
 
-bot.onText(/^\/jadianime$/i, async (msg) => {
+bot.onText(/^\/jadianime$/, async (msg) => {
     try {
         const chatId = msg.chat.id;
         const reply = msg.reply_to_message;
@@ -4321,7 +4329,7 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
-bot.onText(/\/cekfunc/, async (msg) => {
+bot.onText(/^\/cekfunc$/, async (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username ? `@${msg.from.username}` : msg.from.first_name || "user";
     const token = bot.token;
@@ -4641,7 +4649,7 @@ function blockQuote(text) {
   return `<blockquote>${text}</blockquote>`;
 }
 
-bot.onText(/^\/pinterest(?:\s+(.+))?/i, async (msg, match) => {
+bot.onText(/^\/pinterest(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const query = match[1]?.trim();
   const replyOpt = { reply_to_message_id: msg.message_id, parse_mode: 'HTML' };
@@ -4807,7 +4815,7 @@ async function sendPin(bot, chatId, key) {
 }
 
 // ============ IQC ============
-bot.onText(/^\/iqc(?:\s+(.+))?$/i, async (msg, match) => {
+bot.onText(/^\/iqc(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const input = match[1] ? match[1].trim() : "";
 
