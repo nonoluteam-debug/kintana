@@ -4693,7 +4693,6 @@ async function validateGroupAction(msg) {
 }
 
 // ==================== DATABASE ====================
-// Auto-create folder & file database kalau belum ada
 function ensureDbFileExists() {
   try {
     if (!fs.existsSync(DB_DIR)) {
@@ -4714,7 +4713,6 @@ function ensureDbFileExists() {
 }
 
 async function initDatabase() {
-  // Pastikan folder & file ada dulu
   ensureDbFileExists();
 
   try {
@@ -4794,7 +4792,6 @@ async function saveDatabaseToCloud() {
   }
 }
 
-// Panggil auto-create DULU (sync), baru initDatabase (async)
 ensureDbFileExists();
 initDatabase();
 
@@ -5027,36 +5024,62 @@ jadi ai yang terasa hidup, pintar, cuek, jutek, sombong, kadang nyebelin, tapi t
 
     const fullApiPrompt = `${systemPrompt}\n\n${userTextData}`;
 
-    const response = await axios.get("https://api.ikyyxd.my.id/ai/cici", {
-      params: { prompt: fullApiPrompt },
-      timeout: 30000
-    });
-
-    let resData = response.data;
-
-    if (typeof resData === "string") {
-      try {
-        resData = JSON.parse(resData);
-      } catch (e) {}
-    }
-
+    // ==================== API GEMINI ====================
     let resultText = "";
-    if (typeof resData === "object" && resData !== null) {
-      resultText =
-        resData.reply ||
-        resData.result ||
-        resData.respon ||
-        resData.response ||
-        resData.data ||
-        resData.message ||
-        "";
+    try {
+      const response = await axios.get("https://api.ikyyxd.my.id/ai/gemini", {
+        params: {
+          text: fullApiPrompt,
+          sessionsId: String(chatId) // session unik per chat/grup
+        },
+        timeout: 45000
+      });
 
-      if (typeof resultText === "object" && resultText !== null) {
-        resultText =
-          resultText.reply || resultText.result || JSON.stringify(resultText);
+      let resData = response.data;
+
+      // Kalau response berupa string JSON, parse dulu
+      if (typeof resData === "string") {
+        try {
+          resData = JSON.parse(resData);
+        } catch (e) {
+          // Kalau bukan JSON, anggap string itu jawabannya langsung
+          resultText = resData;
+        }
       }
-    } else {
-      resultText = String(resData || "");
+
+      // Kalau response object, cari field yang isinya jawaban
+      if (!resultText && typeof resData === "object" && resData !== null) {
+        resultText =
+          resData.reply ||
+          resData.result ||
+          resData.respon ||
+          resData.response ||
+          resData.text ||
+          resData.data ||
+          resData.message ||
+          resData.answer ||
+          "";
+
+        // Kalau field result/respon isinya object lagi, ambil lebih dalam
+        if (typeof resultText === "object" && resultText !== null) {
+          resultText =
+            resultText.reply ||
+            resultText.result ||
+            resultText.text ||
+            resultText.answer ||
+            JSON.stringify(resultText);
+        }
+      }
+
+      if (!resultText) resultText = "";
+
+      // Log buat debug kalau response kosong / aneh
+      if (!resultText) {
+        console.log("⚠️ Response API gemini kosong/format beda:", JSON.stringify(resData).slice(0, 300));
+      }
+    } catch (apiErr) {
+      console.error("❌ API Gemini error:", apiErr.response?.data || apiErr.message);
+      resultText = "";
     }
 
     let result = String(resultText);
