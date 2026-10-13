@@ -123,7 +123,12 @@ function lower(text) {
 
 //============== BLOCKCMD STATE ==============//
 const BLOCKCMD_PATH = "./lib/database/blockcmd.json";
+const BLOCKED_CMD_PATH = "./lib/database/blocked_commands.json";
+
 let blockCmdEnabled = false;
+let blockedCommands = []; // daftar command yang diblokir, contoh: ["/start", "/menu"]
+
+// load blockcmd state
 try {
   if (fs.existsSync(BLOCKCMD_PATH)) {
     const _bc = JSON.parse(fs.readFileSync(BLOCKCMD_PATH));
@@ -131,12 +136,48 @@ try {
   }
 } catch (e) { console.error("blockcmd load:", e); }
 
+// load blocked commands
+try {
+  if (fs.existsSync(BLOCKED_CMD_PATH)) {
+    const _bl = JSON.parse(fs.readFileSync(BLOCKED_CMD_PATH));
+    if (Array.isArray(_bl.blocked)) blockedCommands = _bl.blocked;
+  }
+} catch (e) { console.error("blocked_commands load:", e); }
+
 function saveBlockCmd() {
   try {
     if (!fs.existsSync("./lib/database")) fs.mkdirSync("./lib/database", { recursive: true });
     fs.writeFileSync(BLOCKCMD_PATH, JSON.stringify({ enabled: blockCmdEnabled }, null, 2));
   } catch (e) { console.error("blockcmd save:", e); }
 }
+
+function saveBlockedCommands() {
+  try {
+    if (!fs.existsSync("./lib/database")) fs.mkdirSync("./lib/database", { recursive: true });
+    fs.writeFileSync(BLOCKED_CMD_PATH, JSON.stringify({ blocked: blockedCommands }, null, 2));
+  } catch (e) { console.error("blocked_commands save:", e); }
+}
+
+// helper: ambil command dari teks pesan (contoh: "/start@bot foo" -> "/start")
+function extractCommand(text) {
+  if (!text) return null;
+  const m = String(text).trim().match(/^(\/[a-zA-Z0-9_]+)(@\w+)?/);
+  if (!m) return null;
+  return m[1].toLowerCase();
+}
+
+// command yang TIDAK boleh diblokir (biar owner bisa unblock)
+const PROTECTED_COMMANDS = [
+  "/blockcmd", "/block", "/unblock", "/listblock"
+];
+
+function isCommandBlocked(text) {
+  const cmd = extractCommand(text);
+  if (!cmd) return false;
+  if (PROTECTED_COMMANDS.includes(cmd)) return false;
+  return blockedCommands.includes(cmd);
+}
+
 //============== END BLOCKCMD STATE ==========//
 
 //============= BLOCKCMD MIDDLEWARE =============//
@@ -144,10 +185,9 @@ const _origOnText = bot.onText.bind(bot);
 bot.onText = function (regex, callback) {
   return _origOnText(regex, (msg, match) => {
     try {
-      if (!blockCmdEnabled) return callback(msg, match);
-
       const fromId = msg.from?.id?.toString() || "";
       const chatId = String(msg.chat?.id || "");
+      const text = msg.text || "";
 
       const isAllowedUser =
         isOwner(fromId) ||
@@ -156,9 +196,10 @@ bot.onText = function (regex, callback) {
 
       const isMurbugGroup = murbugGC.includes(chatId);
       const isAllowed = isAllowedUser || isMurbugGroup;
-      const isBlockCmd = /^\/blockcmd\b/i.test(msg.text || "");
 
-      if (!isAllowed && !isBlockCmd) {
+      // 1) cek blockcmd global (hanya owner/premium/admin/murbug group)
+      const isBlockCmdCtrl = /^\/(blockcmd|block|unblock|listblock)\b/i.test(text);
+      if (blockCmdEnabled && !isAllowed && !isBlockCmdCtrl) {
         const html = `<h3>access denied</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
@@ -166,7 +207,7 @@ bot.onText = function (regex, callback) {
 <tr><td>action</td><td>purchase the script to gain access</td></tr>
 <tr><td>contact</td><td>@heysaka</td></tr>
 </table>`;
-        return sendRichMenu(msg.chat.id, html, {
+        sendRichMenu(msg.chat.id, html, {
           inline_keyboard: [
             [
               { text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" },
@@ -174,7 +215,30 @@ bot.onText = function (regex, callback) {
             ]
           ]
         }, msg.message_id);
+        return;
       }
+
+      // 2) cek command yang di-block spesifik (hanya user biasa yang kena)
+      if (!isAllowed && isCommandBlocked(text)) {
+        const cmd = extractCommand(text);
+        const html = `<h3>command blocked</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>command</td><td>${cmd}</td></tr>
+<tr><td>status</td><td>this command is currently unavailable</td></tr>
+<tr><td>contact</td><td>@heysaka</td></tr>
+</table>`;
+        sendRichMenu(msg.chat.id, html, {
+          inline_keyboard: [
+            [
+              { text: "buy access", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" },
+              { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }
+            ]
+          ]
+        }, msg.message_id);
+        return;
+      }
+
       return callback(msg, match);
     } catch (e) {
       console.error("middleware error:", e);
@@ -1899,6 +1963,9 @@ bot.on("callback_query", async (query) => {
 <table border="2">
 <tr><th>command</th><th>description</th></tr>
 <tr><td><code>/blockcmd</code></td><td>on / off (owner only)</td></tr>
+<tr><td><code>/block /command</code></td><td>block a specific command</td></tr>
+<tr><td><code>/unblock /command</code></td><td>unblock a command</td></tr>
+<tr><td><code>/listblock</code></td><td>list blocked commands</td></tr>
 </table>
 
 <h3>access menu</h3>
@@ -3236,7 +3303,7 @@ bot.onText(/\/(groupban)(?:\s+(.+))?/, async (msg, match) => {
   })();
 });
 
-//============= COMMAND /blockcmd =============//
+//============= COMMAND /blockcmd & /block & /unblock & /listblock =============//
 bot.onText(/^\/blockcmd(?:\s+(on|off))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -3282,7 +3349,159 @@ bot.onText(/^\/blockcmd(?:\s+(on|off))?$/i, async (msg, match) => {
 <tr><td>current</td><td>${status}</td></tr>
 <tr><td>on</td><td>lock bot + anti kidnap</td></tr>
 <tr><td>off</td><td>open access for public</td></tr>
+</table>
+
+<p>use <code>/block /command</code> to block specific commands</p>`
+  );
+});
+
+bot.onText(/^\/block(?:\s+(.+))?$/i, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  if (!isOwner(userId)) return restricted(chatId);
+
+  if (!match[1]) {
+    return sendRichMenu(chatId,
+      `<h3>missing command</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>usage</td><td>/block &lt;command&gt;</td></tr>
+<tr><td>example</td><td>/block /start</td></tr>
+<tr><td>example</td><td>/block /menu</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  // ambil command dari input
+  let cmd = match[1].trim().toLowerCase();
+  if (!cmd.startsWith("/")) cmd = "/" + cmd;
+  cmd = extractCommand(cmd) || cmd;
+
+  if (PROTECTED_COMMANDS.includes(cmd)) {
+    return sendRichMenu(chatId,
+      `<h3>cannot block</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>command</td><td>${cmd}</td></tr>
+<tr><td>reason</td><td>protected command (owner tools)</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  if (blockedCommands.includes(cmd)) {
+    return sendRichMenu(chatId,
+      `<h3>already blocked</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>command</td><td>${cmd}</td></tr>
+<tr><td>status</td><td>already in blocklist</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  blockedCommands.push(cmd);
+  saveBlockedCommands();
+
+  await sendRichMenu(chatId,
+    `<h3>command blocked</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>command</td><td>${cmd}</td></tr>
+<tr><td>status</td><td>successfully blocked</td></tr>
+<tr><td>note</td><td>owner / premium / admin can still use</td></tr>
+</table>`,
+    null,
+    msg.message_id
+  );
+});
+
+bot.onText(/^\/unblock(?:\s+(.+))?$/i, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  if (!isOwner(userId)) return restricted(chatId);
+
+  if (!match[1]) {
+    return sendRichMenu(chatId,
+      `<h3>missing command</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>usage</td><td>/unblock &lt;command&gt;</td></tr>
+<tr><td>example</td><td>/unblock /start</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  let cmd = match[1].trim().toLowerCase();
+  if (!cmd.startsWith("/")) cmd = "/" + cmd;
+  cmd = extractCommand(cmd) || cmd;
+
+  if (!blockedCommands.includes(cmd)) {
+    return sendRichMenu(chatId,
+      `<h3>not blocked</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>command</td><td>${cmd}</td></tr>
+<tr><td>status</td><td>not in blocklist</td></tr>
+</table>`,
+      null,
+      msg.message_id
+    );
+  }
+
+  blockedCommands = blockedCommands.filter(c => c !== cmd);
+  saveBlockedCommands();
+
+  await sendRichMenu(chatId,
+    `<h3>command unblocked</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>command</td><td>${cmd}</td></tr>
+<tr><td>status</td><td>successfully unblocked</td></tr>
+</table>`,
+    null,
+    msg.message_id
+  );
+});
+
+bot.onText(/^\/listblock$/i, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  if (!isOwner(userId)) return restricted(chatId);
+
+  if (blockedCommands.length === 0) {
+    return sendRichMenu(chatId,
+      `<h3>blocked commands</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>no blocked commands</td></tr>
 </table>`
+    );
+  }
+
+  let rowsHtml = "";
+  blockedCommands.forEach((cmd, i) => {
+    rowsHtml += `<tr><td>${i + 1}</td><td>${cmd}</td></tr>\n`;
+  });
+
+  await sendRichMenu(chatId,
+    `<h3>blocked commands</h3>
+<table border="2">
+<tr><th>#</th><th>command</th></tr>
+${rowsHtml}
+</table>
+
+<p>total: ${blockedCommands.length} commands</p>`
   );
 });
 
