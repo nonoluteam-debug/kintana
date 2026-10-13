@@ -4813,9 +4813,9 @@ async function sendPin(bot, chatId, key) {
 }
 
 // ============ IQC (Buffer Download Version) ============
-bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
+bot.onText(/^\/iqc(?:\s+(.+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
-  const input = match && match[1] ? match[1].trim() : "";
+  const input = match[1] ? match[1].trim() : "";
 
   if (!input) {
     return sendRichMenu(chatId,
@@ -4826,16 +4826,11 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
 <tr><td>example</td><td>/iqc hello, good night!</td></tr>
 <tr><td>custom time</td><td>/iqc hello | 22:15 | 22:15</td></tr>
 </table>`,
-      {
-        inline_keyboard: [
-          [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
-        ]
-      },
+      null,
       msg.message_id
     );
   }
 
-  // Ambil waktu default (Asia/Jakarta)
   const now = new Date();
   const timeOptions = { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false };
   const currentTime = now.toLocaleTimeString("id-ID", timeOptions).replace(".", ":");
@@ -4844,7 +4839,6 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
   let chatTimeParam = currentTime;
   let statusBarTimeParam = currentTime;
 
-  // Format: /iqc <text> | <chatTime> | <statusBarTime>
   if (input.includes("|")) {
     const parts = input.split("|").map(p => p.trim());
     textParam = parts[0] || "hello";
@@ -4852,222 +4846,59 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
     statusBarTimeParam = parts[2] || parts[1] || currentTime;
   }
 
-  // Kirim pesan loading
-  let waitMsg = null;
-  try {
-    waitMsg = await bot.sendMessage(chatId, `<blockquote>creating iphone quote...</blockquote>`, {
-      parse_mode: "HTML",
-      reply_to_message_id: msg.message_id
-    });
-  } catch (e) {
-    console.error("iqc: failed to send loading msg:", e?.message);
-  }
-
-  // Helper: hapus loading msg
-  const deleteWaitMsg = async () => {
-    if (!waitMsg) return;
-    try { await bot.deleteMessage(chatId, waitMsg.message_id); } catch (_) {}
-    waitMsg = null;
-  };
-
-  // Helper: edit loading msg
-  const editWaitMsg = async (text) => {
-    if (!waitMsg) return;
-    try {
-      await bot.editMessageText(`<blockquote>${text}</blockquote>`, {
-        chat_id: chatId,
-        message_id: waitMsg.message_id,
-        parse_mode: "HTML"
-      });
-    } catch (_) {}
-  };
-
-  // Helper: cek content-type image
-  const isImageResponse = (headers) => {
-    const ct = String(headers?.["content-type"] || "").toLowerCase();
-    return ct.startsWith("image/") || ct.includes("octet-stream");
-  };
-
-  // Helper: download image jadi buffer
-  const downloadImageBuffer = async (url) => {
-    try {
-      const res = await axios.get(url, {
-        responseType: "arraybuffer",
-        timeout: 60000,
-        maxRedirects: 5,
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-          "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"
-        },
-        validateStatus: (s) => s >= 200 && s < 400
-      });
-
-      if (!isImageResponse(res.headers)) {
-        console.error(`iqc: url bukan gambar, content-type: ${res.headers?.["content-type"]}`);
-        return null;
-      }
-      if (!res.data || res.data.byteLength < 500) {
-        console.error(`iqc: image terlalu kecil (${res.data?.byteLength} bytes)`);
-        return null;
-      }
-
-      return Buffer.from(res.data);
-    } catch (e) {
-      console.error("iqc: download error:", e?.message);
-      return null;
-    }
-  };
-
-  // Helper: extract URL dari response JSON
-  const extractImageUrl = (data) => {
-    if (!data) return null;
-    if (typeof data === "string" && /^https?:\/\//.test(data)) return data;
-    if (typeof data !== "object") return null;
-
-    const candidates = [
-      data.url, data.image, data.image_url, data.result,
-      data.data, data.link, data.output,
-      data.result?.url, data.result?.image, data.result?.image_url,
-      data.result?.result_url, data.result?.resultUrl,
-      data.data?.url, data.data?.image, data.data?.result_url,
-    ];
-    for (const c of candidates) {
-      if (typeof c === "string" && /^https?:\/\//.test(c)) return c;
-    }
-
-    // recursive scan
-    const scan = (obj, depth = 0) => {
-      if (depth > 3 || !obj || typeof obj !== "object") return null;
-      for (const v of Object.values(obj)) {
-        if (typeof v === "string" && /^https?:\/\//.test(v)) return v;
-        if (typeof v === "object") {
-          const found = scan(v, depth + 1);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    return scan(data);
-  };
+  const waitMsg = await bot.sendMessage(chatId, `<blockquote>creating iphone quote...</blockquote>`, {
+    parse_mode: "HTML", reply_to_message_id: msg.message_id
+  });
 
   try {
+    await bot.sendChatAction(chatId, "upload_photo");
+
     const apiUrl = `https://api.ikyyxd.my.id/canvas/iqc?text=${encodeURIComponent(textParam)}&chatTime=${encodeURIComponent(chatTimeParam)}&statusBarTime=${encodeURIComponent(statusBarTimeParam)}`;
+    const { data } = await axios.get(apiUrl, { timeout: 25000 });
 
     let imageUrl = null;
-    let imageBuffer = null;
-    let apiError = null;
+    if (typeof data === 'string' && data.startsWith('http')) imageUrl = data;
+    else if (data) imageUrl = data.result || data.url || data.data || (data.status && data.result?.url ? data.result.url : null);
 
-    // ===== STEP 1: fetch API =====
-    await editWaitMsg("requesting api...");
-    try {
-      const { data, headers } = await axios.get(apiUrl, {
-        timeout: 45000,
-        responseType: "arraybuffer",
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"
-        },
-        validateStatus: () => true
+    if (!imageUrl && data && data.status === false) {
+      return bot.editMessageText(`<blockquote>failed to create iqc image.</blockquote>`, {
+        chat_id: chatId, message_id: waitMsg.message_id, parse_mode: "HTML"
       });
-
-      if (isImageResponse(headers)) {
-        // (a) response langsung image
-        const buf = Buffer.from(data);
-        if (buf.length > 500) {
-          imageBuffer = buf;
-        } else {
-          apiError = "image buffer too small";
-        }
-      } else {
-        // (b) response JSON
-        let json = null;
-        try {
-          json = JSON.parse(Buffer.from(data).toString("utf-8"));
-        } catch (_) {
-          apiError = "response bukan json dan bukan image";
-        }
-        if (json) {
-          if (json.status === false) {
-            apiError = json.message || json.msg || "api returned status false";
-          } else {
-            imageUrl = extractImageUrl(json);
-            if (!imageUrl) apiError = "url gambar tidak ditemukan di response";
-          }
-        }
-      }
-    } catch (e) {
-      apiError = e?.message || "request failed";
-      console.error("iqc: api request error:", apiError);
     }
 
-    // ===== STEP 2: kalau dapat URL, download jadi buffer =====
-    if (!imageBuffer && imageUrl) {
-      await editWaitMsg("downloading image...");
-      imageBuffer = await downloadImageBuffer(imageUrl);
-      if (!imageBuffer) apiError = "failed to download image from url";
-    }
+    await bot.deleteMessage(chatId, waitMsg.message_id).catch(() => {});
+    const targetUrl = imageUrl || apiUrl;
 
-    // ===== STEP 3: fallback download langsung dari apiUrl =====
-    if (!imageBuffer) {
-      await editWaitMsg("retrying...");
-      imageBuffer = await downloadImageBuffer(apiUrl);
-      if (!imageBuffer) apiError = apiError || "failed to fetch image from api directly";
-    }
-
-    // ===== STEP 4: kirim buffer ke telegram =====
-    if (imageBuffer) {
-      await deleteWaitMsg();
-      try {
-        await bot.sendChatAction(chatId, "upload_photo").catch(() => {});
-        await bot.sendPhoto(chatId, imageBuffer, {
-          caption: `<blockquote>iphone chat generator\n"${textParam}"</blockquote>`,
-          parse_mode: "HTML",
-          reply_to_message_id: msg.message_id,
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
-            ]
-          }
-        }, { filename: "iqc.jpg", contentType: "image/jpeg" });
-        return;
-      } catch (e) {
-        console.error("iqc: sendPhoto buffer error:", e?.message);
-        apiError = "failed to send image to telegram";
-      }
-    }
-
-    // ===== GAGAL TOTAL =====
-    await deleteWaitMsg();
-    await sendRichMenu(chatId,
-      `<h3>iqc failed</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>status</td><td>failed to create image</td></tr>
-<tr><td>reason</td><td>${String(apiError || "unknown").slice(0, 180)}</td></tr>
-</table>`,
-      {
+    await bot.sendPhoto(chatId, targetUrl, {
+      caption: `<blockquote>iphone chat generator\n"${textParam}"</blockquote>`,
+      parse_mode: "HTML",
+      reply_to_message_id: msg.message_id,
+      reply_markup: {
         inline_keyboard: [
           [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
         ]
-      },
-      msg.message_id
-    );
+      }
+    });
 
   } catch (error) {
-    console.error("error /iqc command:", error?.message || error);
-    await deleteWaitMsg();
-    await sendRichMenu(chatId,
-      `<h3>iqc error</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>status</td><td>something went wrong</td></tr>
-<tr><td>message</td><td>${String(error?.message || error).slice(0, 180)}</td></tr>
-</table>`,
-      {
-        inline_keyboard: [
-          [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
-        ]
-      },
-      msg.message_id
-    );
+    console.error("error /iqc command:", error.message);
+    try {
+      const directApiUrl = `https://api.ikyyxd.my.id/canvas/iqc?text=${encodeURIComponent(textParam)}&chatTime=${encodeURIComponent(chatTimeParam)}&statusBarTime=${encodeURIComponent(statusBarTimeParam)}`;
+      await bot.deleteMessage(chatId, waitMsg.message_id).catch(() => {});
+      await bot.sendPhoto(chatId, directApiUrl, {
+        caption: `<blockquote>iphone chat generator\n"${textParam}"</blockquote>`,
+        parse_mode: "HTML",
+        reply_to_message_id: msg.message_id,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
+          ]
+        }
+      });
+    } catch (fallbackError) {
+      await bot.editMessageText(`<blockquote>api server is currently down.</blockquote>`, {
+        chat_id: chatId, message_id: waitMsg.message_id, parse_mode: "HTML"
+      }).catch(() => {});
+    }
   }
 });
