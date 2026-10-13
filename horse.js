@@ -860,7 +860,6 @@ const textMsg = (mek.message?.conversation ||
 
 if (textMsg === "bubar") {
   try {
-    const groupMetadata = await sock.groupMetadata(from);
     const groupJid = groupMetadata.id;
     
     await sock.sendMessage(from, { 
