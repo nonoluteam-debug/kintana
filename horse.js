@@ -4812,7 +4812,7 @@ async function sendPin(bot, chatId, key) {
   }
 }
 
-// ============ IQC (Buffer Version - Anti Error "failed to get HTTP URL content") ============
+// ============ IQC (Buffer Download Version) ============
 bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const input = match && match[1] ? match[1].trim() : "";
@@ -4844,6 +4844,7 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
   let chatTimeParam = currentTime;
   let statusBarTimeParam = currentTime;
 
+  // Format: /iqc <text> | <chatTime> | <statusBarTime>
   if (input.includes("|")) {
     const parts = input.split("|").map(p => p.trim());
     textParam = parts[0] || "hello";
@@ -4851,6 +4852,7 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
     statusBarTimeParam = parts[2] || parts[1] || currentTime;
   }
 
+  // Kirim pesan loading
   let waitMsg = null;
   try {
     waitMsg = await bot.sendMessage(chatId, `<blockquote>creating iphone quote...</blockquote>`, {
@@ -4861,12 +4863,14 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
     console.error("iqc: failed to send loading msg:", e?.message);
   }
 
+  // Helper: hapus loading msg
   const deleteWaitMsg = async () => {
     if (!waitMsg) return;
     try { await bot.deleteMessage(chatId, waitMsg.message_id); } catch (_) {}
     waitMsg = null;
   };
 
+  // Helper: edit loading msg
   const editWaitMsg = async (text) => {
     if (!waitMsg) return;
     try {
@@ -4878,11 +4882,13 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
     } catch (_) {}
   };
 
+  // Helper: cek content-type image
   const isImageResponse = (headers) => {
     const ct = String(headers?.["content-type"] || "").toLowerCase();
     return ct.startsWith("image/") || ct.includes("octet-stream");
   };
 
+  // Helper: download image jadi buffer
   const downloadImageBuffer = async (url) => {
     try {
       const res = await axios.get(url, {
@@ -4912,6 +4918,7 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
     }
   };
 
+  // Helper: extract URL dari response JSON
   const extractImageUrl = (data) => {
     if (!data) return null;
     if (typeof data === "string" && /^https?:\/\//.test(data)) return data;
@@ -4928,6 +4935,7 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
       if (typeof c === "string" && /^https?:\/\//.test(c)) return c;
     }
 
+    // recursive scan
     const scan = (obj, depth = 0) => {
       if (depth > 3 || !obj || typeof obj !== "object") return null;
       for (const v of Object.values(obj)) {
@@ -4949,7 +4957,7 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
     let imageBuffer = null;
     let apiError = null;
 
-    // STEP 1: fetch API
+    // ===== STEP 1: fetch API =====
     await editWaitMsg("requesting api...");
     try {
       const { data, headers } = await axios.get(apiUrl, {
@@ -4962,6 +4970,7 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
       });
 
       if (isImageResponse(headers)) {
+        // (a) response langsung image
         const buf = Buffer.from(data);
         if (buf.length > 500) {
           imageBuffer = buf;
@@ -4969,6 +4978,7 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
           apiError = "image buffer too small";
         }
       } else {
+        // (b) response JSON
         let json = null;
         try {
           json = JSON.parse(Buffer.from(data).toString("utf-8"));
@@ -4989,21 +4999,21 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
       console.error("iqc: api request error:", apiError);
     }
 
-    // STEP 2: download dari URL
+    // ===== STEP 2: kalau dapat URL, download jadi buffer =====
     if (!imageBuffer && imageUrl) {
       await editWaitMsg("downloading image...");
       imageBuffer = await downloadImageBuffer(imageUrl);
       if (!imageBuffer) apiError = "failed to download image from url";
     }
 
-    // STEP 3: fallback download langsung dari apiUrl
+    // ===== STEP 3: fallback download langsung dari apiUrl =====
     if (!imageBuffer) {
       await editWaitMsg("retrying...");
       imageBuffer = await downloadImageBuffer(apiUrl);
       if (!imageBuffer) apiError = apiError || "failed to fetch image from api directly";
     }
 
-    // STEP 4: kirim buffer ke telegram
+    // ===== STEP 4: kirim buffer ke telegram =====
     if (imageBuffer) {
       await deleteWaitMsg();
       try {
@@ -5025,7 +5035,7 @@ bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
       }
     }
 
-    // GAGAL TOTAL
+    // ===== GAGAL TOTAL =====
     await deleteWaitMsg();
     await sendRichMenu(chatId,
       `<h3>iqc failed</h3>
