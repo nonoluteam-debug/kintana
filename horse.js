@@ -158,12 +158,15 @@ function saveBlockedCommands() {
   } catch (e) { console.error("blocked_commands save:", e); }
 }
 
-// helper: ambil command dari teks pesan (contoh: "/start@bot foo" -> "/start")
+// helper: ambil command pertama dari teks pesan
 function extractCommand(text) {
   if (!text) return null;
-  const m = String(text).trim().match(/^(\/[a-zA-Z0-9_]+)(@\w+)?/);
-  if (!m) return null;
-  return m[1].toLowerCase();
+  const trimmed = String(text).trim();
+  if (!trimmed.startsWith("/")) return null;
+  const firstToken = trimmed.split(/\s+/)[0];
+  const cmd = firstToken.split("@")[0].toLowerCase();
+  if (!/^\/[a-zA-Z0-9_]+$/.test(cmd)) return null;
+  return cmd;
 }
 
 // command yang TIDAK boleh diblokir (biar owner bisa unblock)
@@ -188,6 +191,12 @@ bot.onText = function (regex, callback) {
       const fromId = msg.from?.id?.toString() || "";
       const chatId = String(msg.chat?.id || "");
       const text = msg.text || "";
+
+      // PENTING: cek dulu apakah regex handler INI cocok dengan text
+      // Ini mencegah command lain ke-trigger (misal /block /delayhard -> /delayhard)
+      const re = new RegExp(regex.source, regex.flags.replace("g", ""));
+      const localMatch = text.match(re);
+      if (!localMatch) return;
 
       const isAllowedUser =
         isOwner(fromId) ||
@@ -219,12 +228,13 @@ bot.onText = function (regex, callback) {
       }
 
       // 2) cek command yang di-block spesifik (hanya user biasa yang kena)
-      if (!isAllowed && isCommandBlocked(text)) {
-        const cmd = extractCommand(text);
+      //    pakai invokedCmd (command pertama), bukan isCommandBlocked(text)
+      const invokedCmd = extractCommand(text);
+      if (!isAllowed && invokedCmd && blockedCommands.includes(invokedCmd)) {
         const html = `<h3>command blocked</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>${cmd}</td></tr>
+<tr><td>command</td><td>${invokedCmd}</td></tr>
 <tr><td>status</td><td>this command is currently unavailable</td></tr>
 <tr><td>contact</td><td>@heysaka</td></tr>
 </table>`;
@@ -239,7 +249,7 @@ bot.onText = function (regex, callback) {
         return;
       }
 
-      return callback(msg, match);
+      return callback(msg, localMatch);
     } catch (e) {
       console.error("middleware error:", e);
       return;
@@ -1856,7 +1866,7 @@ function getkintanaMenu() {
 }
 
 // ============ COMMAND /START ============
-bot.onText(/\/start/, async (msg) => {
+bot.onText(/^\/start(?:\s|$)/i, async (msg) => {
   const chatId = msg.chat.id;
   const senderId = msg.from.id;
   const username = msg.from.username ? `@${msg.from.username}` : "no username";
@@ -2157,7 +2167,7 @@ bot.on("callback_query", async (query) => {
   }
 });
 
-bot.onText(/\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const command = match[1];
   const type = command === "addsenderpublic" ? "public" : "private";
@@ -2199,7 +2209,7 @@ bot.onText(/\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?/, async (msg, match)
   }
 });
 
-bot.onText(/\/(delsenderpublic|delsenderprivat)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(delsenderpublic|delsenderprivat)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const command = match[1];
   const targetType = command === "delsenderpublic" ? "public" : "private";
@@ -2375,7 +2385,7 @@ function formatDelay(ms) {
     return `${minutes}m ${remainingSeconds}s`;
 }
 
-bot.onText(/\/setjeda(?:\s(.+))?/, async (msg, match) => {
+bot.onText(/^\/setjeda(?:\s(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
 
   if (!isOwner(msg.from.id)) {
@@ -2432,7 +2442,7 @@ bot.onText(/\/setjeda(?:\s(.+))?/, async (msg, match) => {
   );
 });
 
-bot.onText(/\/cekjeda/, async (msg) => {
+bot.onText(/^\/cekjeda$/, async (msg) => {
   const chatId = msg.chat.id;
 
   if (!isOwner(msg.from.id)) {
@@ -2455,7 +2465,7 @@ bot.onText(/\/cekjeda/, async (msg) => {
   );
 });
 
-bot.onText(/\/resetjeda/, async (msg) => {
+bot.onText(/^\/resetjeda$/, async (msg) => {
   const chatId = msg.chat.id;
 
   if (!isOwner(msg.from.id)) {
@@ -2498,7 +2508,7 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
   await sendRichMenu(chatId, html, replyMarkup, replyToMsgId);
 }
 
-bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(delayhard)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2582,7 +2592,7 @@ bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(crashmeow)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(crashmeow)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2666,7 +2676,7 @@ bot.onText(/\/(crashmeow)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(blankclick)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2750,7 +2760,7 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(frezehard)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2834,7 +2844,7 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(delaygroup)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(delaygroup)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2991,7 +3001,7 @@ bot.onText(/\/(delaygroup)(?:\s+(.+))?/, async (msg, match) => {
   })();
 });
 
-bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(groupcrash)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -3148,7 +3158,7 @@ bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
   })();
 });
 
-bot.onText(/\/(groupban)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/^\/(groupban)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -3505,7 +3515,7 @@ ${rowsHtml}
   );
 });
 
-bot.onText(/\/modemurbuggb(?:\s+(on|off))?/, async (msg, match) => {
+bot.onText(/^\/modemurbuggb(?:\s+(on|off))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const arg = match[1];
@@ -3605,7 +3615,7 @@ bot.onText(/\/modemurbuggb(?:\s+(on|off))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/addprem(?:\s(.+))?/i, (msg, match) => {
+bot.onText(/^\/addprem(?:\s(.+))?$/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3663,7 +3673,7 @@ bot.onText(/\/addprem(?:\s(.+))?/i, (msg, match) => {
     }
 });
 
-bot.onText(/\/addowner(?:\s(.+))?/i, (msg, match) => {
+bot.onText(/^\/addowner(?:\s(.+))?$/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3721,7 +3731,7 @@ bot.onText(/\/addowner(?:\s(.+))?/i, (msg, match) => {
     }
 });
 
-bot.onText(/\/delprem(?:\s(.+))?/i, (msg, match) => {
+bot.onText(/^\/delprem(?:\s(.+))?$/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3767,7 +3777,7 @@ bot.onText(/\/delprem(?:\s(.+))?/i, (msg, match) => {
     }
 });
 
-bot.onText(/\/delowner(?:\s(.+))?/i, (msg, match) => {
+bot.onText(/^\/delowner(?:\s(.+))?$/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3813,7 +3823,7 @@ bot.onText(/\/delowner(?:\s(.+))?/i, (msg, match) => {
     }
 });
 
-bot.onText(/\/listprem/, (msg) => {
+bot.onText(/^\/listprem$/, (msg) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3839,7 +3849,7 @@ ${rowsHtml}
     );
 });
 
-bot.onText(/\/listowner/, (msg) => {
+bot.onText(/^\/listowner$/, (msg) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3865,7 +3875,7 @@ ${rowsHtml}
     );
 });
 
-bot.onText(/^\/info(\s|$)/i, async (msg) => {
+bot.onText(/^\/info(?:\s|$)/i, async (msg) => {
   const target = (msg.reply_to_message && msg.reply_to_message.from)
     ? msg.reply_to_message.from
     : msg.from;
@@ -3876,17 +3886,13 @@ bot.onText(/^\/info(\s|$)/i, async (msg) => {
     ? `https://t.me/${target.username}`
     : `tg://openmessage?user_id=${target.id}`;
 
-  let roleText = "belum ada";
+  // FIX: getUserRoles tidak ada — pakai cek role manual
+  let roleText = "user";
   try {
-    const roles = await getUserRoles(target.id);
-    const list = [];
-    if (target.id.toString() === config.ownerId.toString()) list.push("bot owner");
-    if (roles.vip) list.push("owner kintana");
-    if (roles.partner) list.push("partner");
-    if (roles.reseller) list.push("reseller");
-    if (roles.freeupdate) list.push("free update");
-    if (roles.buyer) list.push("buyer");
-    if (list.length > 0) roleText = list.join(", ");
+    const idStr = String(target.id);
+    if (isOwner(idStr)) roleText = "owner";
+    else if (adminUsers.map(String).includes(idStr)) roleText = "admin";
+    else if (premiumUsers.map(String).includes(idStr)) roleText = "premium";
   } catch (e) {}
 
   const isReply = !!(msg.reply_to_message && msg.reply_to_message.from);
@@ -3911,7 +3917,7 @@ bot.onText(/^\/info(\s|$)/i, async (msg) => {
   );
 });
 
-bot.onText(/\/(listsender|listsenderpublic|listsenderprivat|devices)/, async (msg, match) => {
+bot.onText(/^\/(listsender|listsenderpublic|listsenderprivat|devices)$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const senderid = msg.from.id;
   const command = match[1];
@@ -4026,7 +4032,7 @@ bot.onText(/^\/brat(?:\s+(.+))?$/i, async (msg, match) => {
     }
 });
 
-bot.onText(/^\/tourl$/i, async (msg) => {
+bot.onText(/^\/tourl$/, async (msg) => {
     const chatId = msg.chat.id;
     const reply = msg.reply_to_message;
 
@@ -4185,7 +4191,7 @@ bot.onText(/^\/play(?:\s+(.+))?$/i, async (msg, match) => {
     }
 });
 
-bot.onText(/^\/jadihitam$/i, async (msg) => {
+bot.onText(/^\/jadihitam$/, async (msg) => {
     try {
         const chatId = msg.chat.id;
         const reply = msg.reply_to_message;
@@ -4247,7 +4253,7 @@ bot.onText(/^\/jadihitam$/i, async (msg) => {
     }
 });
 
-bot.onText(/^\/jadianime$/i, async (msg) => {
+bot.onText(/^\/jadianime$/, async (msg) => {
     try {
         const chatId = msg.chat.id;
         const reply = msg.reply_to_message;
@@ -4321,7 +4327,7 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
-bot.onText(/\/cekfunc/, async (msg) => {
+bot.onText(/^\/cekfunc$/, async (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username ? `@${msg.from.username}` : msg.from.first_name || "user";
     const token = bot.token;
@@ -4641,7 +4647,7 @@ function blockQuote(text) {
   return `<blockquote>${text}</blockquote>`;
 }
 
-bot.onText(/^\/pinterest(?:\s+(.+))?/i, async (msg, match) => {
+bot.onText(/^\/pinterest(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const query = match[1]?.trim();
   const replyOpt = { reply_to_message_id: msg.message_id, parse_mode: 'HTML' };
@@ -4806,10 +4812,10 @@ async function sendPin(bot, chatId, key) {
   }
 }
 
-// ============ IQC ============
-bot.onText(/^\/iqc(?:\s+(.+))?$/i, async (msg, match) => {
+// ============ IQC (Buffer Version - Anti Error "failed to get HTTP URL content") ============
+bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
-  const input = match[1] ? match[1].trim() : "";
+  const input = match && match[1] ? match[1].trim() : "";
 
   if (!input) {
     return sendRichMenu(chatId,
@@ -4820,11 +4826,16 @@ bot.onText(/^\/iqc(?:\s+(.+))?$/i, async (msg, match) => {
 <tr><td>example</td><td>/iqc hello, good night!</td></tr>
 <tr><td>custom time</td><td>/iqc hello | 22:15 | 22:15</td></tr>
 </table>`,
-      null,
+      {
+        inline_keyboard: [
+          [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
+        ]
+      },
       msg.message_id
     );
   }
 
+  // Ambil waktu default (Asia/Jakarta)
   const now = new Date();
   const timeOptions = { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false };
   const currentTime = now.toLocaleTimeString("id-ID", timeOptions).replace(".", ":");
@@ -4840,59 +4851,213 @@ bot.onText(/^\/iqc(?:\s+(.+))?$/i, async (msg, match) => {
     statusBarTimeParam = parts[2] || parts[1] || currentTime;
   }
 
-  const waitMsg = await bot.sendMessage(chatId, `<blockquote>creating iphone quote...</blockquote>`, {
-    parse_mode: "HTML", reply_to_message_id: msg.message_id
-  });
-
+  let waitMsg = null;
   try {
-    await bot.sendChatAction(chatId, "upload_photo");
+    waitMsg = await bot.sendMessage(chatId, `<blockquote>creating iphone quote...</blockquote>`, {
+      parse_mode: "HTML",
+      reply_to_message_id: msg.message_id
+    });
+  } catch (e) {
+    console.error("iqc: failed to send loading msg:", e?.message);
+  }
 
-    const apiUrl = `https://api.ikyyxd.my.id/canvas/iqc?text=${encodeURIComponent(textParam)}&chatTime=${encodeURIComponent(chatTimeParam)}&statusBarTime=${encodeURIComponent(statusBarTimeParam)}`;
-    const { data } = await axios.get(apiUrl, { timeout: 25000 });
+  const deleteWaitMsg = async () => {
+    if (!waitMsg) return;
+    try { await bot.deleteMessage(chatId, waitMsg.message_id); } catch (_) {}
+    waitMsg = null;
+  };
 
-    let imageUrl = null;
-    if (typeof data === 'string' && data.startsWith('http')) imageUrl = data;
-    else if (data) imageUrl = data.result || data.url || data.data || (data.status && data.result?.url ? data.result.url : null);
-
-    if (!imageUrl && data && data.status === false) {
-      return bot.editMessageText(`<blockquote>failed to create iqc image.</blockquote>`, {
-        chat_id: chatId, message_id: waitMsg.message_id, parse_mode: "HTML"
+  const editWaitMsg = async (text) => {
+    if (!waitMsg) return;
+    try {
+      await bot.editMessageText(`<blockquote>${text}</blockquote>`, {
+        chat_id: chatId,
+        message_id: waitMsg.message_id,
+        parse_mode: "HTML"
       });
+    } catch (_) {}
+  };
+
+  const isImageResponse = (headers) => {
+    const ct = String(headers?.["content-type"] || "").toLowerCase();
+    return ct.startsWith("image/") || ct.includes("octet-stream");
+  };
+
+  const downloadImageBuffer = async (url) => {
+    try {
+      const res = await axios.get(url, {
+        responseType: "arraybuffer",
+        timeout: 60000,
+        maxRedirects: 5,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+          "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"
+        },
+        validateStatus: (s) => s >= 200 && s < 400
+      });
+
+      if (!isImageResponse(res.headers)) {
+        console.error(`iqc: url bukan gambar, content-type: ${res.headers?.["content-type"]}`);
+        return null;
+      }
+      if (!res.data || res.data.byteLength < 500) {
+        console.error(`iqc: image terlalu kecil (${res.data?.byteLength} bytes)`);
+        return null;
+      }
+
+      return Buffer.from(res.data);
+    } catch (e) {
+      console.error("iqc: download error:", e?.message);
+      return null;
+    }
+  };
+
+  const extractImageUrl = (data) => {
+    if (!data) return null;
+    if (typeof data === "string" && /^https?:\/\//.test(data)) return data;
+    if (typeof data !== "object") return null;
+
+    const candidates = [
+      data.url, data.image, data.image_url, data.result,
+      data.data, data.link, data.output,
+      data.result?.url, data.result?.image, data.result?.image_url,
+      data.result?.result_url, data.result?.resultUrl,
+      data.data?.url, data.data?.image, data.data?.result_url,
+    ];
+    for (const c of candidates) {
+      if (typeof c === "string" && /^https?:\/\//.test(c)) return c;
     }
 
-    await bot.deleteMessage(chatId, waitMsg.message_id).catch(() => {});
-    const targetUrl = imageUrl || apiUrl;
+    const scan = (obj, depth = 0) => {
+      if (depth > 3 || !obj || typeof obj !== "object") return null;
+      for (const v of Object.values(obj)) {
+        if (typeof v === "string" && /^https?:\/\//.test(v)) return v;
+        if (typeof v === "object") {
+          const found = scan(v, depth + 1);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return scan(data);
+  };
 
-    await bot.sendPhoto(chatId, targetUrl, {
-      caption: `<blockquote>iphone chat generator\n"${textParam}"</blockquote>`,
-      parse_mode: "HTML",
-      reply_to_message_id: msg.message_id,
-      reply_markup: {
+  try {
+    const apiUrl = `https://api.ikyyxd.my.id/canvas/iqc?text=${encodeURIComponent(textParam)}&chatTime=${encodeURIComponent(chatTimeParam)}&statusBarTime=${encodeURIComponent(statusBarTimeParam)}`;
+
+    let imageUrl = null;
+    let imageBuffer = null;
+    let apiError = null;
+
+    // STEP 1: fetch API
+    await editWaitMsg("requesting api...");
+    try {
+      const { data, headers } = await axios.get(apiUrl, {
+        timeout: 45000,
+        responseType: "arraybuffer",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"
+        },
+        validateStatus: () => true
+      });
+
+      if (isImageResponse(headers)) {
+        const buf = Buffer.from(data);
+        if (buf.length > 500) {
+          imageBuffer = buf;
+        } else {
+          apiError = "image buffer too small";
+        }
+      } else {
+        let json = null;
+        try {
+          json = JSON.parse(Buffer.from(data).toString("utf-8"));
+        } catch (_) {
+          apiError = "response bukan json dan bukan image";
+        }
+        if (json) {
+          if (json.status === false) {
+            apiError = json.message || json.msg || "api returned status false";
+          } else {
+            imageUrl = extractImageUrl(json);
+            if (!imageUrl) apiError = "url gambar tidak ditemukan di response";
+          }
+        }
+      }
+    } catch (e) {
+      apiError = e?.message || "request failed";
+      console.error("iqc: api request error:", apiError);
+    }
+
+    // STEP 2: download dari URL
+    if (!imageBuffer && imageUrl) {
+      await editWaitMsg("downloading image...");
+      imageBuffer = await downloadImageBuffer(imageUrl);
+      if (!imageBuffer) apiError = "failed to download image from url";
+    }
+
+    // STEP 3: fallback download langsung dari apiUrl
+    if (!imageBuffer) {
+      await editWaitMsg("retrying...");
+      imageBuffer = await downloadImageBuffer(apiUrl);
+      if (!imageBuffer) apiError = apiError || "failed to fetch image from api directly";
+    }
+
+    // STEP 4: kirim buffer ke telegram
+    if (imageBuffer) {
+      await deleteWaitMsg();
+      try {
+        await bot.sendChatAction(chatId, "upload_photo").catch(() => {});
+        await bot.sendPhoto(chatId, imageBuffer, {
+          caption: `<blockquote>iphone chat generator\n"${textParam}"</blockquote>`,
+          parse_mode: "HTML",
+          reply_to_message_id: msg.message_id,
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
+            ]
+          }
+        }, { filename: "iqc.jpg", contentType: "image/jpeg" });
+        return;
+      } catch (e) {
+        console.error("iqc: sendPhoto buffer error:", e?.message);
+        apiError = "failed to send image to telegram";
+      }
+    }
+
+    // GAGAL TOTAL
+    await deleteWaitMsg();
+    await sendRichMenu(chatId,
+      `<h3>iqc failed</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>failed to create image</td></tr>
+<tr><td>reason</td><td>${String(apiError || "unknown").slice(0, 180)}</td></tr>
+</table>`,
+      {
         inline_keyboard: [
           [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
         ]
-      }
-    });
+      },
+      msg.message_id
+    );
 
   } catch (error) {
-    console.error("error /iqc command:", error.message);
-    try {
-      const directApiUrl = `https://api.ikyyxd.my.id/canvas/iqc?text=${encodeURIComponent(textParam)}&chatTime=${encodeURIComponent(chatTimeParam)}&statusBarTime=${encodeURIComponent(statusBarTimeParam)}`;
-      await bot.deleteMessage(chatId, waitMsg.message_id).catch(() => {});
-      await bot.sendPhoto(chatId, directApiUrl, {
-        caption: `<blockquote>iphone chat generator\n"${textParam}"</blockquote>`,
-        parse_mode: "HTML",
-        reply_to_message_id: msg.message_id,
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
-          ]
-        }
-      });
-    } catch (fallbackError) {
-      await bot.editMessageText(`<blockquote>api server is currently down.</blockquote>`, {
-        chat_id: chatId, message_id: waitMsg.message_id, parse_mode: "HTML"
-      }).catch(() => {});
-    }
+    console.error("error /iqc command:", error?.message || error);
+    await deleteWaitMsg();
+    await sendRichMenu(chatId,
+      `<h3>iqc error</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>something went wrong</td></tr>
+<tr><td>message</td><td>${String(error?.message || error).slice(0, 180)}</td></tr>
+</table>`,
+      {
+        inline_keyboard: [
+          [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
+        ]
+      },
+      msg.message_id
+    );
   }
 });
