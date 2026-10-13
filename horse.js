@@ -558,7 +558,7 @@ async function sendWAMenu(sock, from, mek, sender) {
   const bodyText = `\`「 KINTANA JS 」\`
  ${greeting}, *${pushname}*
   ▢ *Bot:* Kintana JavaScript
-  ▢ *Versi:* 7.2.0
+  ▢ *Versi:* 7.3.0
   ▢ *Uptime:* ${uptimeStr}
   ▢ *Platform:* WhatsApp
 
@@ -568,13 +568,13 @@ async function sendWAMenu(sock, from, mek, sender) {
 ▸ .owner   — kontak owner
 ▸ .status  — status bot
 
-\`「 *ANDROID BUG* 」\`
+\`「 ANDROID BUG 」\`
 ▸ .delayhard 62xxx
 ▸ .crashmeow 62xxx
 ▸ .blankclick 62xxx
 ▸ .frezehard 62xxx
 
-\`「 *GROUP BUG* 」\`
+\`「 GROUP BUG 」\`
 ▸ .groupcrash (link)
 ▸ .groupban (link)
 ▸ .bubar (bug in place)
@@ -592,7 +592,7 @@ Berakhir pada ${expiredStr}`;
     const msg = generateWAMessageFromContent(from, proto.Message.fromObject({
       interactiveMessage: {
         header: {
-          title: "Kintana JavaScript",
+          title: "Credit By H3ysaka",
           subtitle: "WhatsApp Bug Script",
           hasMediaAttachment: true,
           ...imagePayload
@@ -623,20 +623,6 @@ Berakhir pada ${expiredStr}`;
                 display_text: "Buy Script",
                 url: "https://t.me/kintanaoffcbot",
                 merchant_url: "https://t.me/kintanaoffcbot"
-              })
-            },
-            {
-              name: "quick_reply",
-              buttonParamsJson: JSON.stringify({
-                display_text: "Ping Bot",
-                id: ".ping"
-              })
-            },
-            {
-              name: "quick_reply",
-              buttonParamsJson: JSON.stringify({
-                display_text: "Status Bot",
-                id: ".status"
               })
             }
           ]
@@ -766,7 +752,7 @@ async function handleWAMessage(sock, number, chatUpdate) {
 
       case "owner": {
         await sock.sendMessage(from, {
-          text: `👑 *Owner Bot*\n\n📱 Telegram: @heysaka\n📢 Channel: t.me/kintanaofficial\n🌐 Script: Kintana JavaScript v7.2.0`
+          text: `👑 *Owner Bot*\n\n📱 Telegram: @heysaka\n📢 Channel: t.me/kintanaofficial\n🌐 Script: Kintana JavaScript v7.3.0`
         }, { quoted: mek });
         break;
       }
@@ -776,7 +762,7 @@ async function handleWAMessage(sock, number, chatUpdate) {
         const mem = process.memoryUsage();
         const memMB = (mem.rss / 1024 / 1024).toFixed(2);
         await sock.sendMessage(from, {
-          text: `📊 *Bot Status*\n\n⏱️ Uptime: ${Math.floor(uptime / 60)} menit\n💾 Memory: ${memMB} MB\n🔌 Bot: ${number}\n📦 Version: 7.2.0`
+          text: `📊 *Bot Status*\n\n⏱️ Uptime: ${Math.floor(uptime / 60)} menit\n💾 Memory: ${memMB} MB\n🔌 Bot: ${number}\n📦 Version: 7.3.0`
         }, { quoted: mek });
         break;
       }
@@ -1757,7 +1743,7 @@ const html = `<tg-slideshow>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 7.2.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 7.3.0, created by heysaka.</p>
 
 <tg-collage>
   <img src="https://files.catbox.moe/5izqwp.jpg"/>
@@ -1775,7 +1761,7 @@ const html = `<tg-slideshow>
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
   <tr><td>tiktok</td><td>https://www.tiktok.com/@h3ysaka</td></tr>
-  <tr><td>version</td><td>7.2.0</td></tr>
+  <tr><td>version</td><td>7.3.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
@@ -1990,7 +1976,7 @@ bot.on("callback_query", async (query) => {
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 7.2.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 7.3.0, created by heysaka.</p>
 
 <tg-collage>
   <img src="https://files.catbox.moe/5izqwp.jpg"/>
@@ -2008,7 +1994,7 @@ bot.on("callback_query", async (query) => {
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
   <tr><td>tiktok</td><td>https://www.tiktok.com/@h3ysaka</td></tr>
-  <tr><td>version</td><td>7.2.0</td></tr>
+  <tr><td>version</td><td>7.3.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
@@ -2363,7 +2349,7 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>target</td><td>${formattedNumber}</td></tr>
 <tr><td>type</td><td>/${commandName}</td></tr>
-<tr><td>script version</td><td>7.2.0</td></tr>
+<tr><td>script version</td><td>7.3.0</td></tr>
 <tr><td>status</td><td>done</td></tr>
 </table>`;
   const replyMarkup = {
