@@ -831,35 +831,12 @@ async function handleWAMessage(sock, number, chatUpdate) {
         break;
       }
 
-      case "groupban": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .groupban https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
-        const inviteCode = args[0].match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
-        if (!inviteCode) return sock.sendMessage(from, { text: "❌ Link grup tidak valid." }, { quoted: mek });
-        try {
-          const groupInfo = await sock.groupGetInviteInfo(inviteCode);
-          const groupJid = groupInfo.id;
-          await sock.sendMessage(from, { text: `🚀 Ban grup ${groupInfo.subject}...` }, { quoted: mek });
-          await bansgc(sock, groupJid);
-          await sock.sendMessage(from, { text: `✅ Selesai.` }, { quoted: mek });
-        } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
-        }
-        break;
-      }
-
-      default:
-        break;
-    }
-  } catch (err) {
-    console.error("[botwa] messages.upsert error:", err?.message);
-  }
-}
-
 const textMsg = (mek.message?.conversation || 
                  mek.message?.extendedTextMessage?.text || "").trim().toLowerCase();
 
 if (textMsg === "bubar") {
   try {
+    const groupMetadata = await sock.groupMetadata(from);
     const groupJid = groupMetadata.id;
     
     await sock.sendMessage(from, { 
@@ -883,6 +860,30 @@ if (textMsg === "bubar") {
     }, { quoted: mek });
   }
   return; // stop, jangan lanjut ke command lain
+}
+
+      case "groupban": {
+        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .groupban https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
+        const inviteCode = args[0].match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
+        if (!inviteCode) return sock.sendMessage(from, { text: "❌ Link grup tidak valid." }, { quoted: mek });
+        try {
+          const groupInfo = await sock.groupGetInviteInfo(inviteCode);
+          const groupJid = groupInfo.id;
+          await sock.sendMessage(from, { text: `🚀 Ban grup ${groupInfo.subject}...` }, { quoted: mek });
+          await bansgc(sock, groupJid);
+          await sock.sendMessage(from, { text: `✅ Selesai.` }, { quoted: mek });
+        } catch (e) {
+          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+  } catch (err) {
+    console.error("[botwa] messages.upsert error:", err?.message);
+  }
 }
 // ==================== /botwa ====================
 bot.onText(/^\/botwa(?:\s+(.+))?$/i, async (msg, match) => {
