@@ -4815,9 +4815,9 @@ async function sendPin(bot, chatId, key) {
 }
 
 // ============ IQC ============
-bot.onText(/^\/iqc(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/^\/iqc(?:\s+([\s\S]+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
-  const input = match[1] ? match[1].trim() : "";
+  const input = match && match[1] ? match[1].trim() : "";
 
   if (!input) {
     return sendRichMenu(chatId,
@@ -4828,11 +4828,16 @@ bot.onText(/^\/iqc(?:\s+(.+))?$/, async (msg, match) => {
 <tr><td>example</td><td>/iqc hello, good night!</td></tr>
 <tr><td>custom time</td><td>/iqc hello | 22:15 | 22:15</td></tr>
 </table>`,
-      null,
+      {
+        inline_keyboard: [
+          [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
+        ]
+      },
       msg.message_id
     );
   }
 
+  // Ambil waktu default dari timezone Asia/Jakarta
   const now = new Date();
   const timeOptions = { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false };
   const currentTime = now.toLocaleTimeString("id-ID", timeOptions).replace(".", ":");
@@ -4841,6 +4846,7 @@ bot.onText(/^\/iqc(?:\s+(.+))?$/, async (msg, match) => {
   let chatTimeParam = currentTime;
   let statusBarTimeParam = currentTime;
 
+  // Format: /iqc <text> | <chatTime> | <statusBarTime>
   if (input.includes("|")) {
     const parts = input.split("|").map(p => p.trim());
     textParam = parts[0] || "hello";
@@ -4848,46 +4854,99 @@ bot.onText(/^\/iqc(?:\s+(.+))?$/, async (msg, match) => {
     statusBarTimeParam = parts[2] || parts[1] || currentTime;
   }
 
-  const waitMsg = await bot.sendMessage(chatId, `<blockquote>creating iphone quote...</blockquote>`, {
-    parse_mode: "HTML", reply_to_message_id: msg.message_id
-  });
-
+  // Kirim pesan "loading"
+  let waitMsg = null;
   try {
-    await bot.sendChatAction(chatId, "upload_photo");
+    waitMsg = await bot.sendMessage(chatId, `<blockquote>creating iphone quote...</blockquote>`, {
+      parse_mode: "HTML",
+      reply_to_message_id: msg.message_id
+    });
+  } catch (e) {
+    console.error("iqc: failed to send loading msg:", e?.message);
+  }
 
-    const apiUrl = `https://api.ikyyxd.my.id/canvas/iqc?text=${encodeURIComponent(textParam)}&chatTime=${encodeURIComponent(chatTimeParam)}&statusBarTime=${encodeURIComponent(statusBarTimeParam)}`;
-    const { data } = await axios.get(apiUrl, { timeout: 25000 });
+  // Helper: hapus loading message dengan aman
+  const deleteWaitMsg = async () => {
+    if (!waitMsg) return;
+    try { await bot.deleteMessage(chatId, waitMsg.message_id); } catch (_) {}
+    waitMsg = null;
+  };
 
-    let imageUrl = null;
-    if (typeof data === 'string' && data.startsWith('http')) imageUrl = data;
-    else if (data) imageUrl = data.result || data.url || data.data || (data.status && data.result?.url ? data.result.url : null);
-
-    if (!imageUrl && data && data.status === false) {
-      return bot.editMessageText(`<blockquote>failed to create iqc image.</blockquote>`, {
-        chat_id: chatId, message_id: waitMsg.message_id, parse_mode: "HTML"
+  // Helper: edit loading message dengan aman, fallback ke sendRichMenu kalau gagal
+  const editWaitMsg = async (text) => {
+    if (!waitMsg) {
+      await sendRichMenu(chatId,
+        `<h3>iqc</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>${text}</td></tr>
+</table>`,
+        null,
+        msg.message_id
+      );
+      return;
+    }
+    try {
+      await bot.editMessageText(`<blockquote>${text}</blockquote>`, {
+        chat_id: chatId,
+        message_id: waitMsg.message_id,
+        parse_mode: "HTML"
       });
+    } catch (e) {
+      // kalau edit gagal, hapus & kirim baru
+      await deleteWaitMsg();
+      await sendRichMenu(chatId,
+        `<h3>iqc</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>${text}</td></tr>
+</table>`,
+        null,
+        msg.message_id
+      );
+    }
+  };
+
+  // Helper: extract URL dari response API (fleksibel)
+  const extractImageUrl = (data) => {
+    if (!data) return null;
+    if (typeof data === "string" && data.startsWith("http")) return data;
+    if (typeof data !== "object") return null;
+
+    // cek berbagai field yang mungkin
+    const candidates = [
+      data.result,
+      data.url,
+      data.data,
+      data.image,
+      data.image_url,
+      data.result?.url,
+      data.result?.image,
+      data.data?.url,
+      data.data?.image,
+    ];
+    for (const c of candidates) {
+      if (typeof c === "string" && c.startsWith("http")) return c;
     }
 
-    await bot.deleteMessage(chatId, waitMsg.message_id).catch(() => {});
-    const targetUrl = imageUrl || apiUrl;
-
-    await bot.sendPhoto(chatId, targetUrl, {
-      caption: `<blockquote>iphone chat generator\n"${textParam}"</blockquote>`,
-      parse_mode: "HTML",
-      reply_to_message_id: msg.message_id,
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
-        ]
+    // recursive: cek data.result kalau object
+    if (data.result && typeof data.result === "object") {
+      for (const v of Object.values(data.result)) {
+        if (typeof v === "string" && v.startsWith("http")) return v;
       }
-    });
+    }
 
-  } catch (error) {
-    console.error("error /iqc command:", error.message);
+    return null;
+  };
+
+  // Helper: kirim foto dengan retry & fallback ke direct URL
+  const sendIqcPhoto = async (url) => {
     try {
-      const directApiUrl = `https://api.ikyyxd.my.id/canvas/iqc?text=${encodeURIComponent(textParam)}&chatTime=${encodeURIComponent(chatTimeParam)}&statusBarTime=${encodeURIComponent(statusBarTimeParam)}`;
-      await bot.deleteMessage(chatId, waitMsg.message_id).catch(() => {});
-      await bot.sendPhoto(chatId, directApiUrl, {
+      await bot.sendChatAction(chatId, "upload_photo");
+    } catch (_) {}
+
+    try {
+      await bot.sendPhoto(chatId, url, {
         caption: `<blockquote>iphone chat generator\n"${textParam}"</blockquote>`,
         parse_mode: "HTML",
         reply_to_message_id: msg.message_id,
@@ -4897,10 +4956,85 @@ bot.onText(/^\/iqc(?:\s+(.+))?$/, async (msg, match) => {
           ]
         }
       });
-    } catch (fallbackError) {
-      await bot.editMessageText(`<blockquote>api server is currently down.</blockquote>`, {
-        chat_id: chatId, message_id: waitMsg.message_id, parse_mode: "HTML"
-      }).catch(() => {});
+      return true;
+    } catch (e) {
+      console.error("iqc: sendPhoto error:", e?.message);
+      return false;
     }
+  };
+
+  try {
+    // API URL
+    const apiUrl = `https://api.ikyyxd.my.id/canvas/iqc?text=${encodeURIComponent(textParam)}&chatTime=${encodeURIComponent(chatTimeParam)}&statusBarTime=${encodeURIComponent(statusBarTimeParam)}`;
+
+    let imageUrl = null;
+    let apiError = null;
+
+    // ===== ATTEMPT 1: fetch dari API =====
+    try {
+      const { data } = await axios.get(apiUrl, { timeout: 40000 });
+      if (data && data.status === false) {
+        apiError = data.message || "api returned status false";
+      } else {
+        imageUrl = extractImageUrl(data);
+      }
+    } catch (e) {
+      apiError = e?.message || "request failed";
+      console.error("iqc: api request error:", apiError);
+    }
+
+    // ===== ATTEMPT 2: kirim langsung dari API URL (kalau API-nya balikin image stream) =====
+    if (!imageUrl) {
+      await editWaitMsg("fetching image from api directly...");
+      const ok = await sendIqcPhoto(apiUrl);
+      if (ok) {
+        await deleteWaitMsg();
+        return;
+      }
+    }
+
+    // ===== SUKSES: kirim foto dari URL yang didapat =====
+    if (imageUrl) {
+      await editWaitMsg("sending image...");
+      const ok = await sendIqcPhoto(imageUrl);
+      await deleteWaitMsg();
+      if (ok) return;
+      throw new Error("failed to send image from url");
+    }
+
+    // ===== GAGAL TOTAL =====
+    await deleteWaitMsg();
+    await sendRichMenu(chatId,
+      `<h3>iqc failed</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>failed to create image</td></tr>
+<tr><td>reason</td><td>${apiError || "unknown error"}</td></tr>
+</table>`,
+      {
+        inline_keyboard: [
+          [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
+        ]
+      },
+      msg.message_id
+    );
+
+  } catch (error) {
+    console.error("error /iqc command:", error?.message || error);
+    await deleteWaitMsg();
+    await sendRichMenu(chatId,
+      `<h3>iqc error</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>something went wrong</td></tr>
+<tr><td>message</td><td>${String(error?.message || error).slice(0, 200)}</td></tr>
+</table>`,
+      {
+        inline_keyboard: [
+          [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
+        ]
+      },
+      msg.message_id
+    );
   }
 });
