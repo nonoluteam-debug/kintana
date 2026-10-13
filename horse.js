@@ -198,15 +198,21 @@ bot.onText = function (regex, callback) {
       const localMatch = text.match(re);
       if (!localMatch) return;
 
-      const isAllowedUser =
-        isOwner(fromId) ||
-        premiumUsers.map(String).includes(fromId) ||
-        adminUsers.map(String).includes(fromId);
-
+      // === TENTUKAN SIAPA YANG BYPASS ===
+      const isOwnerUser = isOwner(fromId);
+      const isAdminUser = adminUsers.map(String).includes(fromId);
+      const isPremiumUser = premiumUsers.map(String).includes(fromId);
       const isMurbugGroup = murbugGC.includes(chatId);
-      const isAllowed = isAllowedUser || isMurbugGroup;
 
-      // 1) cek blockcmd global (hanya owner/premium/admin/murbug group)
+      // ATURAN:
+      // - Owner SELALU bypass (kapanpun, apapun kondisinya)
+      // - Admin/Premium/Murbug cuma bypass kalau blockcmd ON
+      const isAllowed =
+        isOwnerUser ||
+        (blockCmdEnabled && (isAdminUser || isPremiumUser || isMurbugGroup));
+
+      // 1) cek blockcmd global
+      //    Kalau blockcmd ON dan user BUKAN allowed → tolak semua command
       const isBlockCmdCtrl = /^\/(blockcmd|block|unblock|listblock)\b/i.test(text);
       if (blockCmdEnabled && !isAllowed && !isBlockCmdCtrl) {
         const html = `<h3>access denied</h3>
@@ -227,8 +233,8 @@ bot.onText = function (regex, callback) {
         return;
       }
 
-      // 2) cek command yang di-block spesifik (hanya user biasa yang kena)
-      //    pakai invokedCmd (command pertama), bukan isCommandBlocked(text)
+      // 2) cek command yang di-block spesifik
+      //    Hanya user yang BUKAN allowed yang kena
       const invokedCmd = extractCommand(text);
       if (!isAllowed && invokedCmd && blockedCommands.includes(invokedCmd)) {
         const html = `<h3>command blocked</h3>
@@ -257,7 +263,6 @@ bot.onText = function (regex, callback) {
   });
 };
 //============= END MIDDLEWARE ==================//
-
 let premiumUsers = JSON.parse(fs.readFileSync('./lib/database/prem.json'));
 let adminUsers = JSON.parse(fs.readFileSync('./lib/database/admin.json'));
 
