@@ -184,6 +184,7 @@ function isCommandBlocked(text) {
 //============== END BLOCKCMD STATE ==========//
 
 //============= BLOCKCMD MIDDLEWARE =============//
+//============= BLOCKCMD MIDDLEWARE =============//
 const _origOnText = bot.onText.bind(bot);
 bot.onText = function (regex, callback) {
   return _origOnText(regex, (msg, match) => {
@@ -204,17 +205,21 @@ bot.onText = function (regex, callback) {
       const isPremiumUser = premiumUsers.map(String).includes(fromId);
       const isMurbugGroup = murbugGC.includes(chatId);
 
-      // ATURAN:
-      // - Owner SELALU bypass (kapanpun, apapun kondisinya)
-      // - Admin/Premium/Murbug cuma bypass kalau blockcmd ON
-      const isAllowed =
-        isOwnerUser ||
+      // === ATURAN ===
+      // 1. Block command spesifik → HANYA owner yang bypass
+      // 2. Blockcmd global (lockdown) → Owner + admin + premium + murbug bypass
+
+      // Untuk cek command yang di-block spesifik (aturannya owner ONLY)
+      const bypassBlockedCommand = isOwnerUser;
+
+      // Untuk cek blockcmd global (owner + admin/premium/murbug kalau ON)
+      const bypassBlockCmd = isOwnerUser ||
         (blockCmdEnabled && (isAdminUser || isPremiumUser || isMurbugGroup));
 
       // 1) cek blockcmd global
-      //    Kalau blockcmd ON dan user BUKAN allowed → tolak semua command
+      //    Kalau blockcmd ON dan user BUKAN bypassBlockCmd → tolak semua command
       const isBlockCmdCtrl = /^\/(blockcmd|block|unblock|listblock)\b/i.test(text);
-      if (blockCmdEnabled && !isAllowed && !isBlockCmdCtrl) {
+      if (blockCmdEnabled && !bypassBlockCmd && !isBlockCmdCtrl) {
         const html = `<h3>access denied</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
@@ -234,9 +239,9 @@ bot.onText = function (regex, callback) {
       }
 
       // 2) cek command yang di-block spesifik
-      //    Hanya user yang BUKAN allowed yang kena
+      //    HANYA owner yang bypass (bypassBlockedCommand)
       const invokedCmd = extractCommand(text);
-      if (!isAllowed && invokedCmd && blockedCommands.includes(invokedCmd)) {
+      if (!bypassBlockedCommand && invokedCmd && blockedCommands.includes(invokedCmd)) {
         const html = `<h3>command blocked</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
@@ -262,6 +267,7 @@ bot.onText = function (regex, callback) {
     }
   });
 };
+//============= END MIDDLEWARE ==================//
 //============= END MIDDLEWARE ==================//
 let premiumUsers = JSON.parse(fs.readFileSync('./lib/database/prem.json'));
 let adminUsers = JSON.parse(fs.readFileSync('./lib/database/admin.json'));
