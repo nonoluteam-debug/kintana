@@ -115,11 +115,10 @@ async function editRichMenu(chatId, messageId, html, replyMarkup) {
   }
 }
 
-function lower(text) {
+  function lower(text) {
   return String(text || "").toLowerCase();
 }
 // ================= END RICH MESSAGE HELPERS =================
-
 //============== BLOCKCMD STATE ==============//
 const BLOCKCMD_PATH = "./lib/database/blockcmd.json";
 let blockCmdEnabled = false;
@@ -176,6 +175,8 @@ bot.onText = function (regex, callback) {
       }
       return callback(msg, match);
     } catch (e) {
+      // [SECURITY FIX] sebelumnya error = bypass akses (callback tetap dipanggil).
+      // Sekarang error = tolak akses, tidak eksekusi command.
       console.error("middleware error:", e);
       return;
     }
@@ -210,6 +211,8 @@ function watchFile(filePath, updateCallback) {
 };
 watchFile('./lib/database/prem.json', (data) => (premiumUsers = data));
 watchFile('./lib/database/admin.json', (data) => (adminUsers = data));
+
+// [SECURITY FIX] Fungsi sakarowr() dihapus — tidak dipakai dan ciri sisa backdoor lama.
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -894,7 +897,7 @@ function getPremiumStatus(userId) {
 let senderPublicEnabled = true;
 let senderPrivateEnabled = true;
 
-// ============ kintana MENU BUILDER (tanpa foto) ============
+// ============ kintana MENU BUILDER (dengan tg-button-row) ============
 function getkintanaMenu() {
   let activePublic = 0;
   let activePrivate = 0;
@@ -959,28 +962,27 @@ function getkintanaMenu() {
 <tr><td>sender private</td><td>${privateDisplay} (${privateStatus})</td></tr>
 </table>
 
-<p>all bugs carry the risk of being banned, okay?</p>`;
+<p>all bugs carry the risk of being banned, okay?</p>
 
-  const replyMarkup = {
-    inline_keyboard: [
-      [
-        { text: `sender public: ${publicDisplay} (${publicStatus})`, callback_data: "toggle_public", style: "primary", icon_custom_emoji_id: "5316832074047441823" },
-      ],
-      [
-        { text: `sender private: ${privateDisplay} (${privateStatus})`, callback_data: "toggle_private", style: "primary", icon_custom_emoji_id: "5316858509571144216" }
-      ],
-      [
-        { text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" },
-        { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }
-      ],
-      [
-        { text: "bug information", callback_data: "bug_info", style: "danger", icon_custom_emoji_id: "5258132936401624790" }
-      ],
-      [
-        { text: "back to menu", callback_data: "back_to_main", style: "primary", icon_custom_emoji_id: "5316692783963060623" }
-      ]
-    ]
-  };
+<tg-button-row>
+  <tg-button type="primary" callback_data="toggle_public">「  」 sender public: ${publicDisplay} (${publicStatus})</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" callback_data="toggle_private">「  」 sender private: ${privateDisplay} (${privateStatus})</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/kintanaofficial">「  」 script info</tg-button>
+  <tg-button type="primary" url="https://t.me/heysaka">「  」 creator</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="danger" callback_data="bug_info">「  」 bug information</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" callback_data="back_to_main">「  」 back to menu</tg-button>
+</tg-button-row>`;
+
+  // replyMarkup dikosongkan karena tombol sudah di HTML
+  const replyMarkup = { inline_keyboard: [] };
 
   return { html, replyMarkup };
 }
@@ -1025,17 +1027,28 @@ bot.onText(/\/start/, async (msg) => {
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
   <tr><td>status</td><td>${premiumStatus.toLowerCase()}</td></tr>
-</table>`;
+</table>
 
-  const replyMarkup = {
-    inline_keyboard: [
-      [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "5316977664848837418" }],
-      [{ text: "kintana menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "6258110956245619517" }],
-      [{ text: "thanks to", callback_data: "thanks_to", style: "primary", icon_custom_emoji_id: "5316731584697613423" }],
-      [{ text: "channel", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }],
-      [{ text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" }]
-    ]
-  };
+<tg-button-row>
+  <tg-button type="primary" callback_data="owner_menu">「  」 owner menu</tg-button>
+  <tg-button type="primary" callback_data="all_menu">「  」 all menu</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" callback_data="kintana-menu">「  」 kintana menu</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" callback_data="thanks_to">「  」 thanks to</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/kintanaofficial">「  」 channel</tg-button>
+  <tg-button type="primary" url="https://t.me/heysaka">「  」 creator</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/kintanaoffcbot">「  」 buy script</tg-button>
+</tg-button-row>`;
+
+  // replyMarkup kosong, tombol sudah di HTML
+  const replyMarkup = { inline_keyboard: [] };
 
   await sendRichMenu(chatId, html, replyMarkup);
 });
@@ -1052,7 +1065,7 @@ bot.on("callback_query", async (query) => {
     const greeting = getGreeting();
 
     let html = "";
-    let replyMarkup = {};
+    let replyMarkup = { inline_keyboard: [] };
 
     if (query.data === "owner_menu") {
       html = `<tg-slideshow>
@@ -1097,11 +1110,14 @@ bot.on("callback_query", async (query) => {
 <tr><td><code>/listprem</code></td><td>list premium</td></tr>
 <tr><td><code>/listowner</code></td><td>list owner</td></tr>
 <tr><td><code>/setjeda</code></td><td>set delay on bug features</td></tr>
-</table>`;
+</table>
 
-      replyMarkup = { inline_keyboard: [
-        [{ text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "back to menu", callback_data: "back_to_main", style: "primary", icon_custom_emoji_id: "5316692783963060623" }]
-      ]};
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/kintanaofficial">「  」 script info</tg-button>
+  <tg-button type="primary" callback_data="back_to_main">「  」 back to menu</tg-button>
+</tg-button-row>`;
+
+      replyMarkup = { inline_keyboard: [] };
     }
 
     else if (query.data === "bug_info") {
@@ -1131,11 +1147,14 @@ bot.on("callback_query", async (query) => {
 <tr><td>your number is safe but still having problems</td><td>contact @heysaka to check your script</td></tr>
 </table>
 
-<p>don't minus the literacy okay</p>`;
+<p>don't minus the literacy okay</p>
 
-      replyMarkup = { inline_keyboard: [
-        [{ text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "back to menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "5316692783963060623" }]
-      ]};
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/kintanaofficial">「  」 script info</tg-button>
+  <tg-button type="primary" callback_data="kintana-menu">「  」 back to menu</tg-button>
+</tg-button-row>`;
+
+      replyMarkup = { inline_keyboard: [] };
     }
 
     else if (query.data === "all_menu") {
@@ -1164,11 +1183,14 @@ bot.on("callback_query", async (query) => {
 <tr><td><code>/jadihitam</code></td><td>change skin to black</td></tr>
 <tr><td><code>/jadianime</code></td><td>change photo to anime</td></tr>
 <tr><td><code>/iqc</code></td><td>iphone quotes whatsapp</td></tr>
-</table>`;
+</table>
 
-      replyMarkup = { inline_keyboard: [
-        [{ text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "back to menu", callback_data: "back_to_main", style: "primary", icon_custom_emoji_id: "5316692783963060623" }]
-      ]};
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/kintanaofficial">「  」 script info</tg-button>
+  <tg-button type="primary" callback_data="back_to_main">「  」 back to menu</tg-button>
+</tg-button-row>`;
+
+      replyMarkup = { inline_keyboard: [] };
     }
 
     else if (query.data === "kintana-menu") {
@@ -1206,16 +1228,23 @@ bot.on("callback_query", async (query) => {
 <tr><td>friend</td><td>kintana buyer</td></tr>
 </table>
 
-<p>and to all kintana script users, thank you for your support.</p>`;
+<p>and to all kintana script users, thank you for your support.</p>
 
-      replyMarkup = {
-        inline_keyboard: [
-          [{ text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }],
-          [{ text: "instagram", url: "https://instagram.com/@sakaurbans", style: "primary", icon_custom_emoji_id: "5316553695742147732" }, { text: "youtube", url: "https://youtube.com/@sakaurbansoffc", style: "primary", icon_custom_emoji_id: "5316567469702264826" }],
-          [{ text: "telegram", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5316823376738663082" }],
-          [{ text: "back to menu", callback_data: "back_to_main", style: "primary", icon_custom_emoji_id: "5316692783963060623" }]
-        ]
-      };
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/kintanaofficial">「  」 script info</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" url="https://instagram.com/@sakaurbans">「  」 instagram</tg-button>
+  <tg-button type="primary" url="https://youtube.com/@sakaurbansoffc">「  」 youtube</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/heysaka">「  」 telegram</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" callback_data="back_to_main">「  」 back to menu</tg-button>
+</tg-button-row>`;
+
+      replyMarkup = { inline_keyboard: [] };
     }
 
     else if (query.data === "back_to_main") {
@@ -1250,17 +1279,27 @@ bot.on("callback_query", async (query) => {
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
   <tr><td>status</td><td>${premiumStatus.toLowerCase()}</td></tr>
-</table>`;
+</table>
 
-      replyMarkup = {
-        inline_keyboard: [
-          [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "6258110956245619517" }],
-          [{ text: "kintana menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "5999312225741835904" }],
-          [{ text: "thanks to", callback_data: "thanks_to", style: "primary", icon_custom_emoji_id: "5316731584697613423" }],
-          [{ text: "channel", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }],
-          [{ text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" }]
-        ]
-      };
+<tg-button-row>
+  <tg-button type="primary" callback_data="owner_menu">「  」 owner menu</tg-button>
+  <tg-button type="primary" callback_data="all_menu">「  」 all menu</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" callback_data="kintana-menu">「  」 kintana menu</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" callback_data="thanks_to">「  」 thanks to</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/kintanaofficial">「  」 channel</tg-button>
+  <tg-button type="primary" url="https://t.me/heysaka">「  」 creator</tg-button>
+</tg-button-row>
+<tg-button-row>
+  <tg-button type="primary" url="https://t.me/kintanaoffcbot">「  」 buy script</tg-button>
+</tg-button-row>`;
+
+      replyMarkup = { inline_keyboard: [] };
     }
 
     if (html) {
@@ -1275,8 +1314,6 @@ bot.on("callback_query", async (query) => {
     } catch (e) {}
   }
 });
-
-// ============ COMMAND HANDLERS ============
 
 bot.onText(/\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
@@ -1619,7 +1656,6 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
   await sendRichMenu(chatId, html, replyMarkup, replyToMsgId);
 }
 
-// ============ BUG COMMANDS ============
 bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
@@ -1792,6 +1828,7 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
+  // [SECURITY FIX] idgc sebelumnya undefined → bypass access check. Sekarang didefinisikan.
   const idgc = String(chatId);
 
   if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
@@ -1876,6 +1913,7 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
+  // [SECURITY FIX] idgc sebelumnya undefined → bypass access check. Sekarang didefinisikan.
   const idgc = String(chatId);
 
   if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
@@ -1956,7 +1994,6 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-// ============ GROUP BUG COMMANDS ============
 bot.onText(/\/(delaygroup)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
@@ -2088,7 +2125,7 @@ bot.onText(/\/(delaygroup)(?:\s+(.+))?/, async (msg, match) => {
 </table>`,
     {
       inline_keyboard: [
-        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: 'group link', url: link, style: "primary" }]
+        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary" }, { text: 'group link', url: link, style: "primary" }]
       ]
     }
   );
@@ -2245,7 +2282,7 @@ bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
 </table>`,
     {
       inline_keyboard: [
-        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: 'group link', url: link, style: "primary" }]
+        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary" }, { text: 'group link', url: link, style: "primary" }]
       ]
     }
   );
@@ -2402,7 +2439,7 @@ bot.onText(/\/(groupban)(?:\s+(.+))?/, async (msg, match) => {
 </table>`,
     {
       inline_keyboard: [
-        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: 'group link', url: link, style: "primary" }]
+        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary" }, { text: 'group link', url: link, style: "primary" }]
       ]
     }
   );
@@ -2576,7 +2613,6 @@ bot.onText(/\/modemurbuggb(?:\s+(on|off))?/, async (msg, match) => {
   }
 });
 
-// ============ ACCESS MANAGEMENT ============
 bot.onText(/\/addprem(?:\s(.+))?/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
@@ -2837,8 +2873,9 @@ ${rowsHtml}
     );
 });
 
-// ============ INFO ============
 bot.onText(/^\/info(\s|$)/i, async (msg) => {
+  // Tentukan target: kalau reply pesan orang → pakai user yang di-reply
+  // Kalau enggak reply → pakai user yang ngirim command
   const target = (msg.reply_to_message && msg.reply_to_message.from)
     ? msg.reply_to_message.from
     : msg.from;
@@ -2849,6 +2886,7 @@ bot.onText(/^\/info(\s|$)/i, async (msg) => {
     ? `https://t.me/${target.username}`
     : `tg://openmessage?user_id=${target.id}`;
 
+  // Cek role target
   let roleText = "belum ada";
   try {
     const roles = await getUserRoles(target.id);
@@ -2884,7 +2922,6 @@ bot.onText(/^\/info(\s|$)/i, async (msg) => {
   );
 });
 
-// ============ LIST SENDER ============
 bot.onText(/\/(listsender|listsenderpublic|listsenderprivat|devices)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const senderid = msg.from.id;
