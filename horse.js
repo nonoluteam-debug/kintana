@@ -897,7 +897,7 @@ function getPremiumStatus(userId) {
 let senderPublicEnabled = true;
 let senderPrivateEnabled = true;
 
-// ============ kintana MENU BUILDER (format tg-button polos) ============
+// ============ kintana MENU BUILDER ============
 function getkintanaMenu() {
   let activePublic = 0;
   let activePrivate = 0;
@@ -964,20 +964,12 @@ function getkintanaMenu() {
 
 <p>all bugs carry the risk of being banned, okay?</p>
 
-<tg-button-row>
-  <tg-button type="primary">「  」 sender public: ${publicDisplay} (${publicStatus})</tg-button>
-  <tg-button type="primary">「  」 sender private: ${privateDisplay} (${privateStatus})</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 script info</tg-button>
-  <tg-button type="primary">「  」 creator</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="danger">「  」 bug information</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 back to menu</tg-button>
-</tg-button-row>`;
+<button type="primary" data="toggle_public">「  」 sender public: ${publicDisplay} (${publicStatus})</button>
+<button type="primary" data="toggle_private">「  」 sender private: ${privateDisplay} (${privateStatus})</button>
+<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
+<button type="primary" url="https://t.me/heysaka">「  」 creator</button>
+<button type="danger" data="bug_info">「  」 bug information</button>
+<button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
   const replyMarkup = { inline_keyboard: [] };
 
@@ -1026,23 +1018,13 @@ bot.onText(/\/start/, async (msg) => {
   <tr><td>status</td><td>${premiumStatus.toLowerCase()}</td></tr>
 </table>
 
-<tg-button-row>
-  <tg-button type="primary">「  」 owner menu</tg-button>
-  <tg-button type="primary">「  」 all menu</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 kintana menu</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 thanks to</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 channel</tg-button>
-  <tg-button type="primary">「  」 creator</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 buy script</tg-button>
-</tg-button-row>`;
+<button type="primary" data="owner_menu">「  」 owner menu</button>
+<button type="primary" data="all_menu">「  」 all menu</button>
+<button type="primary" data="kintana-menu">「  」 kintana menu</button>
+<button type="primary" data="thanks_to">「  」 thanks to</button>
+<button type="primary" url="https://t.me/kintanaofficial">「  」 channel</button>
+<button type="primary" url="https://t.me/heysaka">「  」 creator</button>
+<button type="primary" url="https://t.me/kintanaoffcbot">「  」 buy script</button>`;
 
   const replyMarkup = { inline_keyboard: [] };
 
@@ -1108,10 +1090,8 @@ bot.on("callback_query", async (query) => {
 <tr><td><code>/setjeda</code></td><td>set delay on bug features</td></tr>
 </table>
 
-<tg-button-row>
-  <tg-button type="primary">「  」 script info</tg-button>
-  <tg-button type="primary">「  」 back to menu</tg-button>
-</tg-button-row>`;
+<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
+<button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
       replyMarkup = { inline_keyboard: [] };
     }
@@ -1145,10 +1125,8 @@ bot.on("callback_query", async (query) => {
 
 <p>don't minus the literacy okay</p>
 
-<tg-button-row>
-  <tg-button type="primary">「  」 script info</tg-button>
-  <tg-button type="primary">「  」 back to menu</tg-button>
-</tg-button-row>`;
+<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
+<button type="primary" data="kintana-menu">「  」 back to menu</button>`;
 
       replyMarkup = { inline_keyboard: [] };
     }
@@ -1181,10 +1159,8 @@ bot.on("callback_query", async (query) => {
 <tr><td><code>/iqc</code></td><td>iphone quotes whatsapp</td></tr>
 </table>
 
-<tg-button-row>
-  <tg-button type="primary">「  」 script info</tg-button>
-  <tg-button type="primary">「  」 back to menu</tg-button>
-</tg-button-row>`;
+<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
+<button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
       replyMarkup = { inline_keyboard: [] };
     }
@@ -1226,19 +1202,11 @@ bot.on("callback_query", async (query) => {
 
 <p>and to all kintana script users, thank you for your support.</p>
 
-<tg-button-row>
-  <tg-button type="primary">「  」 script info</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 instagram</tg-button>
-  <tg-button type="primary">「  」 youtube</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 telegram</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 back to menu</tg-button>
-</tg-button-row>`;
+<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
+<button type="primary" url="https://instagram.com/@sakaurbans">「  」 instagram</button>
+<button type="primary" url="https://youtube.com/@sakaurbansoffc">「  」 youtube</button>
+<button type="primary" url="https://t.me/heysaka">「  」 telegram</button>
+<button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
       replyMarkup = { inline_keyboard: [] };
     }
@@ -1277,23 +1245,13 @@ bot.on("callback_query", async (query) => {
   <tr><td>status</td><td>${premiumStatus.toLowerCase()}</td></tr>
 </table>
 
-<tg-button-row>
-  <tg-button type="primary">「  」 owner menu</tg-button>
-  <tg-button type="primary">「  」 all menu</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 kintana menu</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 thanks to</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 channel</tg-button>
-  <tg-button type="primary">「  」 creator</tg-button>
-</tg-button-row>
-<tg-button-row>
-  <tg-button type="primary">「  」 buy script</tg-button>
-</tg-button-row>`;
+<button type="primary" data="owner_menu">「  」 owner menu</button>
+<button type="primary" data="all_menu">「  」 all menu</button>
+<button type="primary" data="kintana-menu">「  」 kintana menu</button>
+<button type="primary" data="thanks_to">「  」 thanks to</button>
+<button type="primary" url="https://t.me/kintanaofficial">「  」 channel</button>
+<button type="primary" url="https://t.me/heysaka">「  」 creator</button>
+<button type="primary" url="https://t.me/kintanaoffcbot">「  」 buy script</button>`;
 
       replyMarkup = { inline_keyboard: [] };
     }
