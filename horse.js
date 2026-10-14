@@ -964,14 +964,23 @@ function getkintanaMenu() {
 
 <p>all bugs carry the risk of being banned, okay?</p>
 
-<button type="primary" data="toggle_public">「  」 sender public: ${publicDisplay} (${publicStatus})</button>
-<button type="primary" data="toggle_private">「  」 sender private: ${privateDisplay} (${privateStatus})</button>
 <button type="danger" data="bug_info">「  」 bug information</button>
-<button type="primary" data="back_to_main">「  」 back to menu</button>
+<button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
-<p>─── <a href="https://t.me/kintanaofficial">script info</a> ─── <a href="https://t.me/heysaka">creator</a> ───</p>`;
-
-  const replyMarkup = { inline_keyboard: [] };
+  const replyMarkup = {
+    inline_keyboard: [
+      [
+        { text: `sender public: ${publicDisplay} (${publicStatus})`, callback_data: "toggle_public", style: "primary", icon_custom_emoji_id: "5316832074047441823" },
+      ],
+      [
+        { text: `sender private: ${privateDisplay} (${privateStatus})`, callback_data: "toggle_private", style: "primary", icon_custom_emoji_id: "5316858509571144216" }
+      ],
+      [
+        { text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" },
+        { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }
+      ]
+    ]
+  };
 
   return { html, replyMarkup };
 }
@@ -1021,11 +1030,14 @@ bot.onText(/\/start/, async (msg) => {
 <button type="primary" data="owner_menu">「  」 owner menu</button>
 <button type="primary" data="all_menu">「  」 all menu</button>
 <button type="primary" data="kintana-menu">「  」 kintana menu</button>
-<button type="primary" data="thanks_to">「  」 thanks to</button>
+<button type="primary" data="thanks_to">「  」 thanks to</button>`;
 
-<p>─── <a href="https://t.me/kintanaofficial">channel</a> ─── <a href="https://t.me/heysaka">creator</a> ─── <a href="https://t.me/kintanaoffcbot">buy script</a> ───</p>`;
-
-  const replyMarkup = { inline_keyboard: [] };
+  const replyMarkup = {
+    inline_keyboard: [
+      [{ text: "channel", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }],
+      [{ text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" }]
+    ]
+  };
 
   await sendRichMenu(chatId, html, replyMarkup);
 });
@@ -1042,7 +1054,7 @@ bot.on("callback_query", async (query) => {
     const greeting = getGreeting();
 
     let html = "";
-    let replyMarkup = { inline_keyboard: [] };
+    let replyMarkup = {};
 
     if (query.data === "owner_menu") {
       html = `<tg-slideshow>
@@ -1091,7 +1103,9 @@ bot.on("callback_query", async (query) => {
 
 <button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
-      replyMarkup = { inline_keyboard: [] };
+      replyMarkup = { inline_keyboard: [
+        [{ text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }]
+      ]};
     }
 
     else if (query.data === "bug_info") {
@@ -1125,7 +1139,9 @@ bot.on("callback_query", async (query) => {
 
 <button type="primary" data="kintana-menu">「  」 back to menu</button>`;
 
-      replyMarkup = { inline_keyboard: [] };
+      replyMarkup = { inline_keyboard: [
+        [{ text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }]
+      ]};
     }
 
     else if (query.data === "all_menu") {
@@ -1158,7 +1174,9 @@ bot.on("callback_query", async (query) => {
 
 <button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
-      replyMarkup = { inline_keyboard: [] };
+      replyMarkup = { inline_keyboard: [
+        [{ text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }]
+      ]};
     }
 
     else if (query.data === "kintana-menu") {
@@ -1198,11 +1216,15 @@ bot.on("callback_query", async (query) => {
 
 <p>and to all kintana script users, thank you for your support.</p>
 
-<button type="primary" data="back_to_main">「  」 back to menu</button>
+<button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
-<p>─── <a href="https://t.me/kintanaofficial">script info</a> ─── <a href="https://instagram.com/@sakaurbans">instagram</a> ─── <a href="https://youtube.com/@sakaurbansoffc">youtube</a> ─── <a href="https://t.me/heysaka">telegram</a> ───</p>`;
-
-      replyMarkup = { inline_keyboard: [] };
+      replyMarkup = {
+        inline_keyboard: [
+          [{ text: "instagram", url: "https://instagram.com/@sakaurbans", style: "primary", icon_custom_emoji_id: "5316553695742147732" }, { text: "youtube", url: "https://youtube.com/@sakaurbansoffc", style: "primary", icon_custom_emoji_id: "5316567469702264826" }],
+          [{ text: "telegram", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5316823376738663082" }],
+          [{ text: "script info", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }]
+        ]
+      };
     }
 
     else if (query.data === "back_to_main") {
@@ -1242,11 +1264,14 @@ bot.on("callback_query", async (query) => {
 <button type="primary" data="owner_menu">「  」 owner menu</button>
 <button type="primary" data="all_menu">「  」 all menu</button>
 <button type="primary" data="kintana-menu">「  」 kintana menu</button>
-<button type="primary" data="thanks_to">「  」 thanks to</button>
+<button type="primary" data="thanks_to">「  」 thanks to</button>`;
 
-<p>─── <a href="https://t.me/kintanaofficial">channel</a> ─── <a href="https://t.me/heysaka">creator</a> ─── <a href="https://t.me/kintanaoffcbot">buy script</a> ───</p>`;
-
-      replyMarkup = { inline_keyboard: [] };
+      replyMarkup = {
+        inline_keyboard: [
+          [{ text: "channel", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }],
+          [{ text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" }]
+        ]
+      };
     }
 
     if (html) {
