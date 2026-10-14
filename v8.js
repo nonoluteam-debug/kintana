@@ -880,9 +880,6 @@ sᴇɴᴅᴇʀ ᴘʀɪᴠᴀᴛᴇ: ${privateDisplay} (${privateStatus})
         { text: `sᴇɴᴅᴇʀ ᴘʀɪᴠᴀᴛᴇ: ${privateDisplay} (${privateStatus})`, callback_data: "toggle_private", style: "success", icon_custom_emoji_id: "5316858509571144216" }
       ],
       [
-      { text: "ᴍᴜʀʙᴜɢ ᴍᴇɴᴜ", callback_data: "murbug_menu", style: "success", icon_custom_emoji_id: "5316747214083603534" }
-      ],
-      [
         { text: "ɪɴғᴏ sᴄʀɪᴘᴛ", url: "https://t.me/KintanaOfficial", style: "success", icon_custom_emoji_id: "5316826301611390284" },
         { text: "ᴄʀᴇᴀᴛᴏʀ", url: "https://t.me/heysaka", style: "success", icon_custom_emoji_id: "5319301933645707826" }
       ],
