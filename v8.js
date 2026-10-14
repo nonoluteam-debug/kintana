@@ -158,7 +158,7 @@ bot.onText = function (regex, callback) {
 let premiumUsers = JSON.parse(fs.readFileSync('./lib/database/prem.json'));
 let adminUsers = JSON.parse(fs.readFileSync('./lib/database/admin.json'));
 //==================
-const kintana = "https://videotourl.com/videos/1791978793041-d3370376-7b63-4858-8ae1-9dd2933a692e.mp4";
+const kintana = "https://files.catbox.moe/bi6cv9.mp4";
 const mediabug = "https://files.catbox.moe/6uhr3l.mp4";
 // Helper ucapan waktu (WIB)
 function getGreeting() {
