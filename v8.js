@@ -488,15 +488,8 @@ async function connectToWhatsApp(botNumber, chatId, type = "public", ownerId = n
   return sock;
 }
 //============================================//
-async function fetchAndValidateToken() {
+async function startBot() {
   try {
-    const response = await axios.get('https://raw.githubusercontent.com/56saka/lovender/refs/heads/main/kintanatokens.json');
-    const validTokens = response.data.tokens;
-
-    if (!validTokens.includes(config.BOT_TOKEN)) {
-      console.log('❌ cihuy token bot kamu belum terdaftar di kintana');
-      process.exit(1);
-    }
     sakarowr();
     initializeBot();
   } catch (error) {
@@ -505,7 +498,7 @@ async function fetchAndValidateToken() {
   }
 }
 
-fetchAndValidateToken();
+startBot();
 
 //============= ANTI KIDNAP (TELEGRAM) =============//
 function attachAntiKidnapTelegram() {
