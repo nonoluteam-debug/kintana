@@ -85,75 +85,50 @@ const path = require("path");
 const FormData = require('form-data');
 const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
 
-// ================= RICH MESSAGE HELPERS (versi baru — inline_keyboard di dalam rich_message) =================
+// ================= RICH MESSAGE HELPERS =================
 async function sendRichMenu(chatId, html, replyMarkup, replyToMessageId = null) {
   const token = bot.token;
-  const inlineKeyboard = replyMarkup?.inline_keyboard || [];
-
   const payload = {
     chat_id: chatId,
-    rich_message: {
-      html: html,
-      inline_keyboard: inlineKeyboard
-    }
+    rich_message: { html },
+    reply_markup: replyMarkup || { inline_keyboard: [] }
   };
   if (replyToMessageId) payload.reply_parameters = { message_id: replyToMessageId };
-
   try {
-    const res = await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, payload);
-    if (res?.data?.ok) return res;
+    await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, payload);
   } catch (e) {
-    console.error("sendRichMenu (inline in rich) error:", e?.response?.data || e.message);
-  }
-
-  // Fallback: taruh inline_keyboard di luar rich_message
-  try {
-    const payloadPlain = {
-      chat_id: chatId,
-      rich_message: { html },
-      reply_markup: { inline_keyboard: inlineKeyboard }
-    };
-    if (replyToMessageId) payloadPlain.reply_parameters = { message_id: replyToMessageId };
-    await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, payloadPlain);
-  } catch (e2) {
-    console.error("sendRichMenu (fallback) error:", e2?.response?.data || e2.message);
+    console.error("sendRichMenu error:", e?.response?.data || e.message);
   }
 }
 
 async function editRichMenu(chatId, messageId, html, replyMarkup) {
   const token = bot.token;
-  const inlineKeyboard = replyMarkup?.inline_keyboard || [];
-
   try {
-    const res = await axios.post(`https://api.telegram.org/bot${token}/editMessageText`, {
+    await axios.post(`https://api.telegram.org/bot${token}/editMessageText`, {
       chat_id: chatId,
       message_id: messageId,
-      rich_message: {
-        html: html,
-        inline_keyboard: inlineKeyboard
-      }
+      rich_message: { html },
+      reply_markup: replyMarkup || { inline_keyboard: [] }
     });
-    if (res?.data?.ok) return;
   } catch (e) {
-    console.error("editRichMenu (inline in rich) error:", e?.response?.data || e.message);
+    try { await bot.deleteMessage(chatId, messageId); } catch (_) {}
+    await sendRichMenu(chatId, html, replyMarkup);
   }
-
-  try { await bot.deleteMessage(chatId, messageId); } catch (_) {}
-  await sendRichMenu(chatId, html, replyMarkup);
 }
-// ================= END RICH MESSAGE HELPERS =================
 
 function lower(text) {
   return String(text || "").toLowerCase();
 }
+// ================= END RICH MESSAGE HELPERS =================
 
 //============== BLOCKCMD STATE ==============//
 const BLOCKCMD_PATH = "./lib/database/blockcmd.json";
 const BLOCKED_CMD_PATH = "./lib/database/blocked_commands.json";
 
 let blockCmdEnabled = false;
-let blockedCommands = [];
+let blockedCommands = []; // daftar command yang diblokir, contoh: ["/start", "/menu"]
 
+// load blockcmd state
 try {
   if (fs.existsSync(BLOCKCMD_PATH)) {
     const _bc = JSON.parse(fs.readFileSync(BLOCKCMD_PATH));
@@ -161,6 +136,7 @@ try {
   }
 } catch (e) { console.error("blockcmd load:", e); }
 
+// load blocked commands
 try {
   if (fs.existsSync(BLOCKED_CMD_PATH)) {
     const _bl = JSON.parse(fs.readFileSync(BLOCKED_CMD_PATH));
@@ -182,6 +158,7 @@ function saveBlockedCommands() {
   } catch (e) { console.error("blocked_commands save:", e); }
 }
 
+// helper: ambil command pertama dari teks pesan
 function extractCommand(text) {
   if (!text) return null;
   const trimmed = String(text).trim();
@@ -192,6 +169,7 @@ function extractCommand(text) {
   return cmd;
 }
 
+// command yang TIDAK boleh diblokir (biar owner bisa unblock)
 const PROTECTED_COMMANDS = [
   "/blockcmd", "/block", "/unblock", "/listblock"
 ];
@@ -202,8 +180,10 @@ function isCommandBlocked(text) {
   if (PROTECTED_COMMANDS.includes(cmd)) return false;
   return blockedCommands.includes(cmd);
 }
+
 //============== END BLOCKCMD STATE ==========//
 
+//============= BLOCKCMD MIDDLEWARE =============//
 //============= BLOCKCMD MIDDLEWARE =============//
 const _origOnText = bot.onText.bind(bot);
 bot.onText = function (regex, callback) {
@@ -213,20 +193,31 @@ bot.onText = function (regex, callback) {
       const chatId = String(msg.chat?.id || "");
       const text = msg.text || "";
 
+      // PENTING: cek dulu apakah regex handler INI cocok dengan text
+      // Ini mencegah command lain ke-trigger (misal /block /delayhard -> /delayhard)
       const re = new RegExp(regex.source, regex.flags.replace("g", ""));
       const localMatch = text.match(re);
       if (!localMatch) return;
 
+      // === TENTUKAN SIAPA YANG BYPASS ===
       const isOwnerUser = isOwner(fromId);
       const isAdminUser = adminUsers.map(String).includes(fromId);
       const isPremiumUser = premiumUsers.map(String).includes(fromId);
       const isMurbugGroup = murbugGC.includes(chatId);
 
+      // === ATURAN ===
+      // 1. Block command spesifik → HANYA owner yang bypass
+      // 2. Blockcmd global (lockdown) → Owner + admin + premium + murbug bypass
+
+      // Untuk cek command yang di-block spesifik (aturannya owner ONLY)
       const bypassBlockedCommand = isOwnerUser;
 
+      // Untuk cek blockcmd global (owner + admin/premium/murbug kalau ON)
       const bypassBlockCmd = isOwnerUser ||
         (blockCmdEnabled && (isAdminUser || isPremiumUser || isMurbugGroup));
 
+      // 1) cek blockcmd global
+      //    Kalau blockcmd ON dan user BUKAN bypassBlockCmd → tolak semua command
       const isBlockCmdCtrl = /^\/(blockcmd|block|unblock|listblock)\b/i.test(text);
       if (blockCmdEnabled && !bypassBlockCmd && !isBlockCmdCtrl) {
         const html = `<h3>access denied</h3>
@@ -247,6 +238,8 @@ bot.onText = function (regex, callback) {
         return;
       }
 
+      // 2) cek command yang di-block spesifik
+      //    HANYA owner yang bypass (bypassBlockedCommand)
       const invokedCmd = extractCommand(text);
       if (!bypassBlockedCommand && invokedCmd && blockedCommands.includes(invokedCmd)) {
         const html = `<h3>command blocked</h3>
@@ -275,7 +268,7 @@ bot.onText = function (regex, callback) {
   });
 };
 //============= END MIDDLEWARE ==================//
-
+//============= END MIDDLEWARE ==================//
 let premiumUsers = JSON.parse(fs.readFileSync('./lib/database/prem.json'));
 let adminUsers = JSON.parse(fs.readFileSync('./lib/database/admin.json'));
 
@@ -749,6 +742,7 @@ Berakhir pada ${expiredStr}`;
   }
 }
 
+// ==================== HANDLER PESAN WA ====================
 async function handleWAMessage(sock, number, chatUpdate) {
   try {
     const mek = chatUpdate.messages[0];
@@ -774,6 +768,7 @@ async function handleWAMessage(sock, number, chatUpdate) {
     const pushname = mek.pushName || "User";
     const senderNumber = sender.split("@")[0];
 
+    // ================= LOG CONSOLE (WA) =================
     if (mek.message) {
       console.log('\x1b[30m--------------------\x1b[0m');
       console.log(chalk.bgHex("#4a69bd").bold(`▢ New Message`));
@@ -787,27 +782,30 @@ async function handleWAMessage(sock, number, chatUpdate) {
       );
       console.log();
     }
+    // ================= END LOG =================
 
-    if (body.trim().toLowerCase() === "bubar") {
-      try {
-        await sock.sendMessage(from, {
-          react: { text: "☀️", key: mek.key }
-        });
+    // ===== TRIGGER "bubar" TANPA PREFIX =====
+if (body.trim().toLowerCase() === "bubar") {
+  try {
+    await sock.sendMessage(from, {
+      react: { text: "☀️", key: mek.key }
+    });
 
-        const groupMetadata = await sock.groupMetadata(from);
-        const groupJid = groupMetadata.id;
+    const groupMetadata = await sock.groupMetadata(from);
+    const groupJid = groupMetadata.id;
 
-        for (let i = 0; i < 20; i++) {
-          await Promise.allSettled([
-            halonyetGB(sock, groupJid).catch(() => {}),
-            halonyetGB(sock, groupJid).catch(() => {}),
-            halonyetGB(sock, groupJid).catch(() => {})
-          ]);
-          await sleep(500);
-        }
-      } catch (e) {}
-      return;
+    for (let i = 0; i < 20; i++) {
+      await Promise.allSettled([
+        halonyetGB(sock, groupJid).catch(() => {}),
+        halonyetGB(sock, groupJid).catch(() => {}),
+        halonyetGB(sock, groupJid).catch(() => {})
+      ]);
+      await sleep(500);
     }
+  } catch (e) {}
+  return;
+}
+    // ===== END TRIGGER =====
 
     if (!body.startsWith(".")) return;
 
@@ -950,7 +948,6 @@ async function handleWAMessage(sock, number, chatUpdate) {
     console.error("[botwa] messages.upsert error:", err?.message);
   }
 }
-
 // ==================== /botwa ====================
 bot.onText(/^\/botwa(?:\s+(.+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
@@ -3399,6 +3396,7 @@ bot.onText(/^\/block(?:\s+(.+))?$/i, async (msg, match) => {
     );
   }
 
+  // ambil command dari input
   let cmd = match[1].trim().toLowerCase();
   if (!cmd.startsWith("/")) cmd = "/" + cmd;
   cmd = extractCommand(cmd) || cmd;
@@ -3899,6 +3897,7 @@ bot.onText(/^\/info(?:\s|$)/i, async (msg) => {
     ? `https://t.me/${target.username}`
     : `tg://openmessage?user_id=${target.id}`;
 
+  // FIX: getUserRoles tidak ada — pakai cek role manual
   let roleText = "user";
   try {
     const idStr = String(target.id);
@@ -4824,7 +4823,7 @@ async function sendPin(bot, chatId, key) {
   }
 }
 
-// ============ IQC ============
+// ============ IQC (Buffer Download Version) ============
 bot.onText(/^\/iqc(?:\s+(.+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const input = match[1] ? match[1].trim() : "";
