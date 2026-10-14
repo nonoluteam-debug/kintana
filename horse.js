@@ -966,10 +966,10 @@ function getkintanaMenu() {
 
 <button type="primary" data="toggle_public">「  」 sender public: ${publicDisplay} (${publicStatus})</button>
 <button type="primary" data="toggle_private">「  」 sender private: ${privateDisplay} (${privateStatus})</button>
-<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
-<button type="primary" url="https://t.me/heysaka">「  」 creator</button>
 <button type="danger" data="bug_info">「  」 bug information</button>
-<button type="primary" data="back_to_main">「  」 back to menu</button>`;
+<button type="primary" data="back_to_main">「  」 back to menu</button>
+
+<p>─── <a href="https://t.me/kintanaofficial">script info</a> ─── <a href="https://t.me/heysaka">creator</a> ───</p>`;
 
   const replyMarkup = { inline_keyboard: [] };
 
@@ -1022,9 +1022,8 @@ bot.onText(/\/start/, async (msg) => {
 <button type="primary" data="all_menu">「  」 all menu</button>
 <button type="primary" data="kintana-menu">「  」 kintana menu</button>
 <button type="primary" data="thanks_to">「  」 thanks to</button>
-<button type="primary" url="https://t.me/kintanaofficial">「  」 channel</button>
-<button type="primary" url="https://t.me/heysaka">「  」 creator</button>
-<button type="primary" url="https://t.me/kintanaoffcbot">「  」 buy script</button>`;
+
+<p>─── <a href="https://t.me/kintanaofficial">channel</a> ─── <a href="https://t.me/heysaka">creator</a> ─── <a href="https://t.me/kintanaoffcbot">buy script</a> ───</p>`;
 
   const replyMarkup = { inline_keyboard: [] };
 
@@ -1090,7 +1089,6 @@ bot.on("callback_query", async (query) => {
 <tr><td><code>/setjeda</code></td><td>set delay on bug features</td></tr>
 </table>
 
-<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
 <button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
       replyMarkup = { inline_keyboard: [] };
@@ -1125,7 +1123,6 @@ bot.on("callback_query", async (query) => {
 
 <p>don't minus the literacy okay</p>
 
-<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
 <button type="primary" data="kintana-menu">「  」 back to menu</button>`;
 
       replyMarkup = { inline_keyboard: [] };
@@ -1159,7 +1156,6 @@ bot.on("callback_query", async (query) => {
 <tr><td><code>/iqc</code></td><td>iphone quotes whatsapp</td></tr>
 </table>
 
-<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
 <button type="primary" data="back_to_main">「  」 back to menu</button>`;
 
       replyMarkup = { inline_keyboard: [] };
@@ -1202,11 +1198,9 @@ bot.on("callback_query", async (query) => {
 
 <p>and to all kintana script users, thank you for your support.</p>
 
-<button type="primary" url="https://t.me/kintanaofficial">「  」 script info</button>
-<button type="primary" url="https://instagram.com/@sakaurbans">「  」 instagram</button>
-<button type="primary" url="https://youtube.com/@sakaurbansoffc">「  」 youtube</button>
-<button type="primary" url="https://t.me/heysaka">「  」 telegram</button>
-<button type="primary" data="back_to_main">「  」 back to menu</button>`;
+<button type="primary" data="back_to_main">「  」 back to menu</button>
+
+<p>─── <a href="https://t.me/kintanaofficial">script info</a> ─── <a href="https://instagram.com/@sakaurbans">instagram</a> ─── <a href="https://youtube.com/@sakaurbansoffc">youtube</a> ─── <a href="https://t.me/heysaka">telegram</a> ───</p>`;
 
       replyMarkup = { inline_keyboard: [] };
     }
@@ -1249,9 +1243,8 @@ bot.on("callback_query", async (query) => {
 <button type="primary" data="all_menu">「  」 all menu</button>
 <button type="primary" data="kintana-menu">「  」 kintana menu</button>
 <button type="primary" data="thanks_to">「  」 thanks to</button>
-<button type="primary" url="https://t.me/kintanaofficial">「  」 channel</button>
-<button type="primary" url="https://t.me/heysaka">「  」 creator</button>
-<button type="primary" url="https://t.me/kintanaoffcbot">「  」 buy script</button>`;
+
+<p>─── <a href="https://t.me/kintanaofficial">channel</a> ─── <a href="https://t.me/heysaka">creator</a> ─── <a href="https://t.me/kintanaoffcbot">buy script</a> ───</p>`;
 
       replyMarkup = { inline_keyboard: [] };
     }
