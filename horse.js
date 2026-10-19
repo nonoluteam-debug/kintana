@@ -643,7 +643,7 @@ async function sendWAMenu(sock, from, mek, sender) {
   const bodyText = `\`「 KINTANA JS 」\`
  ${greeting}, *${pushname}*
   ▢ *Bot:* Kintana JavaScript
-  ▢ *Versi:* 7.3.0
+  ▢ *Versi:* 9.0.0
   ▢ *Uptime:* ${uptimeStr}
   ▢ *Platform:* WhatsApp
 
@@ -671,7 +671,7 @@ Berakhir pada ${expiredStr}`;
 
   try {
     const imagePayload = await prepareWAMessageMedia({
-      image: { url: "https://files.catbox.moe/5izqwp.jpg" }
+      image: { url: "https://files.catbox.moe/8c5zy4.jpg" }
     }, { upload: sock.waUploadToServer, mediaType: "image" });
 
     const msg = generateWAMessageFromContent(from, proto.Message.fromObject({
@@ -728,7 +728,7 @@ Berakhir pada ${expiredStr}`;
           externalAdReply: {
             title: "Kintana JavaScript",
             body: "WhatsApp Bug Script by Heysaka",
-            thumbnailUrl: "https://files.catbox.moe/5izqwp.jpg",
+            thumbnailUrl: "https://files.catbox.moe/8c5zy4.jpg",
             sourceUrl: "https://t.me/kintanaofficial",
             mediaType: 1,
             renderLargerThumbnail: true,
@@ -830,7 +830,7 @@ if (body.trim().toLowerCase() === "bubar") {
 
       case "owner": {
         await sock.sendMessage(from, {
-          text: `👑 *Owner Bot*\n\n📱 Telegram: @heysaka\n📢 Channel: t.me/kintanaofficial\n🌐 Script: Kintana JavaScript v7.3.0`
+          text: `👑 *Owner Bot*\n\n📱 Telegram: @heysaka\n📢 Channel: t.me/kintanaofficial\n🌐 Script: Kintana JavaScript v9.0.0`
         }, { quoted: mek });
         break;
       }
@@ -840,7 +840,7 @@ if (body.trim().toLowerCase() === "bubar") {
         const mem = process.memoryUsage();
         const memMB = (mem.rss / 1024 / 1024).toFixed(2);
         await sock.sendMessage(from, {
-          text: `📊 *Bot Status*\n\n⏱️ Uptime: ${Math.floor(uptime / 60)} menit\n💾 Memory: ${memMB} MB\n🔌 Bot: ${number}\n📦 Version: 7.3.0`
+          text: `📊 *Bot Status*\n\n⏱️ Uptime: ${Math.floor(uptime / 60)} menit\n💾 Memory: ${memMB} MB\n🔌 Bot: ${number}\n📦 Version: 9.0.0`
         }, { quoted: mek });
         break;
       }
@@ -1815,9 +1815,9 @@ function getkintanaMenu() {
   const privateStatus = activePrivate > 0 ? "on" : "off";
 
   const html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/j654oy.jpg"/>
-  <img src="https://files.catbox.moe/sqyadj.jpg"/>
-  <img src="https://files.catbox.moe/mugu3q.jpg"/>
+  <img src="https://files.catbox.moe/9prezk.jpg"/>
+  <img src="https://files.catbox.moe/fimmkv.jpg"/>
+  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
 </tg-slideshow>
 <p>this is where all whatsapp bug features are listed. please choose the feature you like.</p>
 
@@ -1840,7 +1840,7 @@ function getkintanaMenu() {
 <h3>ban group</h3>
 <table border="2">
 <tr><th>command</th><th>description</th></tr>
-<tr><td><code>/groupban</code></td><td>ban group (rate ban 95%)</td></tr>
+<tr><td><code>/groupban</code></td><td>ban group (rate ban 65%)</td></tr>
 </table>
 
 <h3>sender status</h3>
@@ -1886,17 +1886,17 @@ bot.onText(/^\/start(?:\s|$)/i, async (msg) => {
   const greeting = getGreeting();
 
 const html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/j654oy.jpg"/>
-  <img src="https://files.catbox.moe/sqyadj.jpg"/>
-  <img src="https://files.catbox.moe/mugu3q.jpg"/>
+  <img src="https://files.catbox.moe/9prezk.jpg"/>
+  <img src="https://files.catbox.moe/fimmkv.jpg"/>
+  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
 </tg-slideshow>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 7.3.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 9.0.0, created by heysaka.</p>
 
 <tg-collage>
-  <img src="https://files.catbox.moe/5izqwp.jpg"/>
+  <img src="https://files.catbox.moe/2jk1uz.jpg"/>
 </tg-collage>
 
 <tg-song>
@@ -1911,8 +1911,7 @@ const html = `<tg-slideshow>
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
   <tr><td>tiktok</td><td>https://www.tiktok.com/@h3ysaka</td></tr>
-  <tr><td>version</td><td>7.3.0</td></tr>
-  <tr><td>special theme</td><td>one piece</td></tr>
+  <tr><td>version</td><td>9.0.0</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
   <tr><td>status</td><td>${premiumStatus.toLowerCase()}</td></tr>
@@ -1921,7 +1920,7 @@ const html = `<tg-slideshow>
   const replyMarkup = {
     inline_keyboard: [
       [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "5316977664848837418" }],
-      [{ text: "kintana menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "6258110956245619517" }],
+      [{ text: "kintana menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "5350658338822574065" }],
       [{ text: "thanks to", callback_data: "thanks_to", style: "primary", icon_custom_emoji_id: "5316731584697613423" }],
       [{ text: "channel", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }],
       [{ text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" }]
@@ -1947,9 +1946,9 @@ bot.on("callback_query", async (query) => {
 
     if (query.data === "owner_menu") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/j654oy.jpg"/>
-  <img src="https://files.catbox.moe/sqyadj.jpg"/>
-  <img src="https://files.catbox.moe/mugu3q.jpg"/>
+  <img src="https://files.catbox.moe/9prezk.jpg"/>
+  <img src="https://files.catbox.moe/fimmkv.jpg"/>
+  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
 </tg-slideshow>
 
 <p>premium and admin access menu, please register to be able to use the bug.</p>
@@ -2008,9 +2007,9 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "bug_info") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/j654oy.jpg"/>
-  <img src="https://files.catbox.moe/sqyadj.jpg"/>
-  <img src="https://files.catbox.moe/mugu3q.jpg"/>
+  <img src="https://files.catbox.moe/9prezk.jpg"/>
+  <img src="https://files.catbox.moe/fimmkv.jpg"/>
+  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
 </tg-slideshow>
 
 <p>before using the bug feature, you must read this first so you don't make a mistake using it.</p>
@@ -2042,9 +2041,9 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "all_menu") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/j654oy.jpg"/>
-  <img src="https://files.catbox.moe/sqyadj.jpg"/>
-  <img src="https://files.catbox.moe/mugu3q.jpg"/>
+  <img src="https://files.catbox.moe/9prezk.jpg"/>
+  <img src="https://files.catbox.moe/fimmkv.jpg"/>
+  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
 </tg-slideshow>
 <p>all menu contains all the features available in this bot.</p>
 
@@ -2097,9 +2096,9 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "thanks_to") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/j654oy.jpg"/>
-  <img src="https://files.catbox.moe/sqyadj.jpg"/>
-  <img src="https://files.catbox.moe/mugu3q.jpg"/>
+  <img src="https://files.catbox.moe/9prezk.jpg"/>
+  <img src="https://files.catbox.moe/fimmkv.jpg"/>
+  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
 </tg-slideshow>
 <table border="2">
 <tr><th>role</th><th>name</th></tr>
@@ -2122,17 +2121,17 @@ bot.on("callback_query", async (query) => {
 
     else if (query.data === "back_to_main") {
       html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/j654oy.jpg"/>
-  <img src="https://files.catbox.moe/sqyadj.jpg"/>
-  <img src="https://files.catbox.moe/mugu3q.jpg"/>
+  <img src="https://files.catbox.moe/9prezk.jpg"/>
+  <img src="https://files.catbox.moe/fimmkv.jpg"/>
+  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
 </tg-slideshow>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 7.3.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 9.0.0, created by heysaka.</p>
 
 <tg-collage>
-  <img src="https://files.catbox.moe/5izqwp.jpg"/>
+  <img src="https://files.catbox.moe/2jk1uz.jpg"/>
 </tg-collage>
 
 <tg-song>
@@ -2147,8 +2146,7 @@ bot.on("callback_query", async (query) => {
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
   <tr><td>tiktok</td><td>https://www.tiktok.com/@h3ysaka</td></tr>
-  <tr><td>version</td><td>7.3.0</td></tr>
-  <tr><td>special theme</td><td>one piece</td></tr>
+  <tr><td>version</td><td>9.0.0</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
   <tr><td>status</td><td>${premiumStatus.toLowerCase()}</td></tr>
@@ -2156,7 +2154,7 @@ bot.on("callback_query", async (query) => {
 
       replyMarkup = {
         inline_keyboard: [
-          [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "6258110956245619517" }],
+          [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "5350658338822574065" }],
           [{ text: "kintana menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "5999312225741835904" }],
           [{ text: "thanks to", callback_data: "thanks_to", style: "primary", icon_custom_emoji_id: "5316731584697613423" }],
           [{ text: "channel", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }],
@@ -2502,7 +2500,7 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>target</td><td>${formattedNumber}</td></tr>
 <tr><td>type</td><td>/${commandName}</td></tr>
-<tr><td>script version</td><td>7.3.0</td></tr>
+<tr><td>script version</td><td>9.0.0</td></tr>
 <tr><td>status</td><td>done</td></tr>
 </table>`;
   const replyMarkup = {
