@@ -86,11 +86,17 @@ const FormData = require('form-data');
 const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
 
 // ================= RICH MESSAGE HELPERS =================
+const RICH_CSS = `<style>
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { text-align: center !important; padding: 8px; border: 1px solid #555; }
+  th { background-color: #2b2b2b; color: #fff; font-weight: bold; }
+</style>`;
+
 async function sendRichMenu(chatId, html, replyMarkup, replyToMessageId = null) {
   const token = bot.token;
   const payload = {
     chat_id: chatId,
-    rich_message: { html },
+    rich_message: { html: RICH_CSS + html },
     reply_markup: replyMarkup || { inline_keyboard: [] }
   };
   if (replyToMessageId) payload.reply_parameters = { message_id: replyToMessageId };
@@ -107,7 +113,7 @@ async function editRichMenu(chatId, messageId, html, replyMarkup) {
     await axios.post(`https://api.telegram.org/bot${token}/editMessageText`, {
       chat_id: chatId,
       message_id: messageId,
-      rich_message: { html },
+      rich_message: { html: RICH_CSS + html },
       reply_markup: replyMarkup || { inline_keyboard: [] }
     });
   } catch (e) {
@@ -512,7 +518,7 @@ async function connectToWhatsApp(botNumber, chatId, type = "public", ownerId = n
 </table>`;
     const res = await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, {
       chat_id: chatId,
-      rich_message: { html: initHtml }
+      rich_message: { html: RICH_CSS + initHtml }
     });
     statusMessageId = res?.data?.result?.message_id;
   } catch (e) {
@@ -544,7 +550,7 @@ ${rowsHtml}
       await axios.post(`https://api.telegram.org/bot${token}/editMessageText`, {
         chat_id: chatId,
         message_id: statusMessageId,
-        rich_message: { html }
+        rich_message: { html: RICH_CSS + html }
       });
     } catch (e) {
       console.error("failed to edit status:", e?.message);
@@ -984,8 +990,6 @@ bot.onText(/^\/botwa(?:\s+(.+))?$/i, async (msg, match) => {
   }
 
   let number = match[1].replace(/[^0-9]/g, "");
-  if (number.startsWith("0")) number = "62" + number.slice(1);
-  if (!number.startsWith("62")) number = "62" + number;
 
   if (number.length < 10 || number.length > 15) {
     return sendRichMenu(chatId,
@@ -1021,7 +1025,7 @@ bot.onText(/^\/botwa(?:\s+(.+))?$/i, async (msg, match) => {
     const res = await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, {
       chat_id: chatId,
       rich_message: {
-        html: `<h3>botwa connection</h3>
+        html: RICH_CSS + `<h3>botwa connection</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>number</td><td>${number}</td></tr>
@@ -1043,7 +1047,7 @@ bot.onText(/^\/botwa(?:\s+(.+))?$/i, async (msg, match) => {
         chat_id: chatId,
         message_id: statusId,
         rich_message: {
-          html: `<h3>${title}</h3>
+          html: RICH_CSS + `<h3>${title}</h3>
 <table border="2">
 <tr><th>info</th><th>detail</th></tr>
 ${rowsHtml}
@@ -2155,7 +2159,7 @@ bot.on("callback_query", async (query) => {
       replyMarkup = {
         inline_keyboard: [
           [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "5350658338822574065" }],
-          [{ text: "kintana menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "5999312225741835904" }],
+          [{ text: "kintana menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "5350658338822574065" }],
           [{ text: "thanks to", callback_data: "thanks_to", style: "primary", icon_custom_emoji_id: "5316731584697613423" }],
           [{ text: "channel", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }],
           [{ text: "buy script", url: "https://t.me/kintanaoffcbot", style: "primary", icon_custom_emoji_id: "5316924123786524990" }]
@@ -2257,7 +2261,7 @@ bot.onText(/^\/(delsenderpublic|delsenderprivat)(?:\s+(.+))?$/, async (msg, matc
 </table>`;
     const res = await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, {
       chat_id: chatId,
-      rich_message: { html }
+      rich_message: { html: RICH_CSS + html }
     });
     statusMessageId = res?.data?.result?.message_id;
   } catch (e) {
@@ -2277,7 +2281,7 @@ ${rowsHtml}
       await axios.post(`https://api.telegram.org/bot${token}/editMessageText`, {
         chat_id: chatId,
         message_id: statusMessageId,
-        rich_message: { html }
+        rich_message: { html: RICH_CSS + html }
       });
     } catch (e) {
       console.error("failed to edit status:", e?.message);
@@ -4420,7 +4424,7 @@ bot.onText(/^\/cekfunc$/, async (msg) => {
             await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, {
                 chat_id: chatId,
                 reply_parameters: { message_id: msg.message_id },
-                rich_message: { html: successHtml },
+                rich_message: { html: RICH_CSS + successHtml },
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
@@ -4476,7 +4480,7 @@ ${snippetRows}
             await axios.post(`https://api.telegram.org/bot${token}/sendRichMessage`, {
                 chat_id: chatId,
                 reply_parameters: { message_id: msg.message_id },
-                rich_message: { html: errorHtml },
+                rich_message: { html: RICH_CSS + errorHtml },
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }]
