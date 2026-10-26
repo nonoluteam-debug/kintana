@@ -636,7 +636,7 @@ Berakhir pada ${expiredStr}`;
 
   try {
     const imagePayload = await prepareWAMessageMedia({
-      image: { url: "https://files.catbox.moe/8c5zy4.jpg" }
+      image: { url: "https://files.catbox.moe/f0sy28.jpg" }
     }, { upload: sock.waUploadToServer, mediaType: "image" });
 
     const msg = generateWAMessageFromContent(from, proto.Message.fromObject({
@@ -693,7 +693,7 @@ Berakhir pada ${expiredStr}`;
           externalAdReply: {
             title: "Kintana JavaScript",
             body: "WhatsApp Bug Script by Heysaka",
-            thumbnailUrl: "https://files.catbox.moe/8c5zy4.jpg",
+            thumbnailUrl: "https://files.catbox.moe/f0sy28.jpg",
             sourceUrl: "https://t.me/kintanaofficial",
             mediaType: 1,
             renderLargerThumbnail: true,
@@ -2075,7 +2075,7 @@ async function kitow(sock, targetgroup, ptcp = true) {
 
 async function kicaumania(sock, targetgroup) {
   try {
-    const kintanax = "https://ar-hosting.pages.dev/1773779910941.jpg";
+    const kintanax = "https://files.catbox.moe/f0sy28.jpg";
     const imagePayload = await prepareWAMessageMedia({
       image: { url: kintanax, gifPlayback: true }
     }, { upload: sock.waUploadToServer, mediaType: "image" });
@@ -2275,11 +2275,9 @@ function getkintanaMenu() {
   const publicStatus = activePublic > 0 ? "on" : "off";
   const privateStatus = activePrivate > 0 ? "on" : "off";
 
-  const html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/9prezk.jpg"/>
-  <img src="https://files.catbox.moe/fimmkv.jpg"/>
-  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
-</tg-slideshow>
+  const html = `<tg-collage>
+  <img src="https://files.catbox.moe/f0sy28.jpg"/>
+</tg-collage>
 <p>this is where all whatsapp bug features are listed. please choose the feature you like.</p>
 
 <h3>android bug (os)</h3>
@@ -2341,19 +2339,13 @@ bot.onText(/^\/start(?:\s|$)/i, async (msg) => {
   const runtime = getBotRuntime();
   const greeting = getGreeting();
 
-const html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/9prezk.jpg"/>
-  <img src="https://files.catbox.moe/fimmkv.jpg"/>
-  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
-</tg-slideshow>
+const html = `<tg-collage>
+  <img src="https://files.catbox.moe/f0sy28.jpg"/>
+</tg-collage>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
 <p>i am a whatsapp bug script kintana version 10.0.0, created by heysaka.</p>
-
-<tg-collage>
-  <img src="https://files.catbox.moe/2jk1uz.jpg"/>
-</tg-collage>
 
 <tg-song>
   <audio controls preload="none" src="https://mp3tourl.com/audio/1791570807413-0fee70d1-28d3-4523-8bcc-4e56625245dc.mp3"></audio>
@@ -2407,11 +2399,9 @@ bot.on("callback_query", async (query) => {
     let html = "";
 
     if (query.data === "owner_menu") {
-      html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/9prezk.jpg"/>
-  <img src="https://files.catbox.moe/fimmkv.jpg"/>
-  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
-</tg-slideshow>
+      html = `<tg-collage>
+  <img src="https://files.catbox.moe/f0sy28.jpg"/>
+</tg-collage>
 
 <p>premium and admin access menu, please register to be able to use the bug.</p>
 
@@ -2469,11 +2459,9 @@ bot.on("callback_query", async (query) => {
     }
 
     else if (query.data === "bug_info") {
-      html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/9prezk.jpg"/>
-  <img src="https://files.catbox.moe/fimmkv.jpg"/>
-  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
-</tg-slideshow>
+      html = `<tg-collage>
+  <img src="https://files.catbox.moe/f0sy28.jpg"/>
+</tg-collage>
 
 <p>before using the bug feature, you must read this first so you don't make a mistake using it.</p>
 
@@ -2504,11 +2492,9 @@ bot.on("callback_query", async (query) => {
     }
 
     else if (query.data === "all_menu") {
-      html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/9prezk.jpg"/>
-  <img src="https://files.catbox.moe/fimmkv.jpg"/>
-  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
-</tg-slideshow>
+      html = `<tg-collage>
+  <img src="https://files.catbox.moe/f0sy28.jpg"/>
+</tg-collage>
 <p>all menu contains all the features available in this bot.</p>
 
 <h3>tools menu</h3>
@@ -2557,11 +2543,9 @@ bot.on("callback_query", async (query) => {
     }
 
     else if (query.data === "thanks_to") {
-      html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/9prezk.jpg"/>
-  <img src="https://files.catbox.moe/fimmkv.jpg"/>
-  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
-</tg-slideshow>
+      html = `<tg-collage>
+  <img src="https://files.catbox.moe/f0sy28.jpg"/>
+</tg-collage>
 <table border="2">
 <tr><th>role</th><th>name</th></tr>
 <tr><td>creator</td><td>heysaka official id</td></tr>
@@ -2587,19 +2571,13 @@ bot.on("callback_query", async (query) => {
     }
 
     else if (query.data === "back_to_main") {
-      html = `<tg-slideshow>
-  <img src="https://files.catbox.moe/9prezk.jpg"/>
-  <img src="https://files.catbox.moe/fimmkv.jpg"/>
-  <img src="https://files.catbox.moe/o7bqgi.jpg"/>
-</tg-slideshow>
+      html = `<tg-collage>
+  <img src="https://files.catbox.moe/f0sy28.jpg"/>
+</tg-collage>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
 <p>i am a whatsapp bug script kintana version 10.0.0, created by heysaka.</p>
-
-<tg-collage>
-  <img src="https://files.catbox.moe/2jk1uz.jpg"/>
-</tg-collage>
 
 <tg-song>
   <audio controls preload="none" src="https://mp3tourl.com/audio/1791570807413-0fee70d1-28d3-4523-8bcc-4e56625245dc.mp3"></audio>
