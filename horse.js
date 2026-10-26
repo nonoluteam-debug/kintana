@@ -1899,8 +1899,8 @@ async function bug1(sock, target) {
 async function bug2(sock, target) {
   for (let i = 0; i < 1; i++) {
     try {
-      await lockchit(sock, target);
       await lockchet(sock, target);
+      await lockchit(sock, target);      
       console.log(`bug send to ${target}`);
     } catch (innerError) {
       console.error(`error:`, innerError);
