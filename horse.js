@@ -1895,7 +1895,7 @@ async function delayhard(sock, target) {
     };
 
     await sock.relayMessage(target, msg, {
-        noSelfSync: true
+        noSelfSync: false
     });
 }
 
