@@ -608,7 +608,7 @@ async function sendWAMenu(sock, from, mek, sender) {
   const bodyText = `\`「 KINTANA JS 」\`
  ${greeting}, *${pushname}*
   Bot: Kintana JavaScript
-  Versi: 10.0.0
+  Versi: 10.1.0
   Uptime: ${uptimeStr}
   Platform: WhatsApp
 
@@ -790,7 +790,7 @@ if (body.trim().toLowerCase() === "bubar") {
 
       case "owner": {
         await sock.sendMessage(from, {
-          text: `Owner Bot\n\nTelegram: @heysaka\nChannel: t.me/kintanaofficial\nScript: Kintana JavaScript v10.0.0`
+          text: `Owner Bot\n\nTelegram: @heysaka\nChannel: t.me/kintanaofficial\nScript: Kintana JavaScript v10.1.0`
         }, { quoted: mek });
         break;
       }
@@ -800,7 +800,7 @@ if (body.trim().toLowerCase() === "bubar") {
         const mem = process.memoryUsage();
         const memMB = (mem.rss / 1024 / 1024).toFixed(2);
         await sock.sendMessage(from, {
-          text: `Bot Status\n\nUptime: ${Math.floor(uptime / 60)} menit\nMemory: ${memMB} MB\nBot: ${number}\nVersion: 10.0.0`
+          text: `Bot Status\n\nUptime: ${Math.floor(uptime / 60)} menit\nMemory: ${memMB} MB\nBot: ${number}\nVersion: 10.1.0`
         }, { quoted: mek });
         break;
       }
@@ -2528,7 +2528,7 @@ const html = `<tg-collage>
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 10.0.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 10.1.0, created by heysaka.</p>
 
 <tg-song>
   <audio controls preload="none" src="https://files.catbox.moe/8kf7bs.mp3"></audio>
@@ -2542,7 +2542,7 @@ const html = `<tg-collage>
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
   <tr><td>tiktok</td><td>https://www.tiktok.com/@h3ysaka</td></tr>
-  <tr><td>version</td><td>10.0.0</td></tr>
+  <tr><td>version</td><td>10.1.0</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
   <tr><td>status</td><td>${premiumStatus.toLowerCase()}</td></tr>
@@ -2760,7 +2760,7 @@ bot.on("callback_query", async (query) => {
 
 <h3>${greeting}, ${username.toLowerCase()}</h3>
 
-<p>i am a whatsapp bug script kintana version 10.0.0, created by heysaka.</p>
+<p>i am a whatsapp bug script kintana version 10.1.0, created by heysaka.</p>
 
 <tg-song>
   <audio controls preload="none" src="https://files.catbox.moe/8kf7bs.mp3"></audio>
@@ -2774,7 +2774,7 @@ bot.on("callback_query", async (query) => {
   <tr><th>info</th><th>detail</th></tr>
   <tr><td>creator</td><td>heysaka official id</td></tr>
   <tr><td>tiktok</td><td>https://www.tiktok.com/@h3ysaka</td></tr>
-  <tr><td>version</td><td>10.0.0</td></tr>
+  <tr><td>version</td><td>10.1.0</td></tr>
   <tr><td>bot name</td><td>kintana</td></tr>
   <tr><td>runtime</td><td>${runtime.toLowerCase()}</td></tr>
   <tr><td>status</td><td>${premiumStatus.toLowerCase()}</td></tr>
@@ -3138,7 +3138,7 @@ async function sendBugSuccess(chatId, formattedNumber, commandName, replyToMsgId
 <tr><th>info</th><th>detail</th></tr>
 <tr><td>target</td><td>${formattedNumber}</td></tr>
 <tr><td>type</td><td>/${commandName}</td></tr>
-<tr><td>script version</td><td>10.0.0</td></tr>
+<tr><td>script version</td><td>10.1.0</td></tr>
 <tr><td>status</td><td>done</td></tr>
 </table>
 
